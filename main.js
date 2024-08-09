@@ -64,6 +64,9 @@ const teleportCooldown = 3000;
 let nearTeleport = null; // Přidáno: sleduje, zda je hráč blízko teleportu
 
 let keyModel;
+var showMinimapTimer  = setInterval(showMinimap, 15000); // Interval 15 vteřin
+var minimapVisibleTimer;
+
 
 async function init() {
   scene = new THREE.Scene();
@@ -261,6 +264,12 @@ function createMaze(inputText = "") {
 
   keyCount = 0;
   updateKeyCount();
+
+  clearInterval(showMinimapTimer);
+  clearTimeout(minimapVisibleTimer);
+  minimap.style.display = "none";
+  showMinimapTimer = setInterval(showMinimap, 15000);
+
 
   console.log("Maze created");
 }
@@ -702,7 +711,7 @@ function checkObjectInteractions() {
       } else if (child.userData.isGoal && distance < 1) {
         if (keyCount === totalKeys) {
           console.log("Dosaženo cíle");
-          alert("Gratulujeme! Dosáhli jste cíle!");
+          showFinishMessage();
           stopTimer();
           createMaze(document.getElementById("mazeInput").value);
           createPlayer();
@@ -734,6 +743,15 @@ function showKeyMessage() {
 
   setTimeout(() => {
     keyMessageElement.style.display = "none";
+  }, 2500);
+}
+
+function showFinishMessage() {
+  const finishMessageElement = document.getElementById("finishMessage");
+  finishMessageElement.style.display = "block";
+
+  setTimeout(() => {
+    finishMessageElement.style.display = "none";
   }, 2500);
 }
 
@@ -934,12 +952,12 @@ function showMinimap() {
   drawMinimap();
   const minimap = document.getElementById("minimap");
   minimap.style.display = "block";
-  setTimeout(() => {
+  
+  minimapVisibleTimer = setTimeout(() => {
     minimap.style.display = "none";
   }, getMinimapDisplayTime() * 1000); // Použití dynamické doby zobrazení minimapy
 }
 
-setInterval(showMinimap, 15000); // Interval 20 vteřin
 
 // Funkce pro načtení modelu klíče
 function loadKeyModel() {
