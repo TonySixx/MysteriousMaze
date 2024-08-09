@@ -1,29 +1,26 @@
-import * as THREE from 'three';
-import seedrandom from 'seedrandom';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { createClient } from '@supabase/supabase-js'
+import * as THREE from "three";
+import seedrandom from "seedrandom";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { createClient } from "@supabase/supabase-js";
 
 // Initialize Supabase client
-const supabaseUrl = 'https://olhgutdozhdvniefmltx.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9saGd1dGRvemhkdm5pZWZtbHR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI4NzYwNTgsImV4cCI6MjAzODQ1MjA1OH0.RmahBsbb4QnO0xpTH-Bpe8f9vJFypcq6z5--e4s0MJI'
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9saGd1dGRvemhkdm5pZWZtbHR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI4NzYwNTgsImV4cCI6MjAzODQ1MjA1OH0.RmahBsbb4QnO0xpTH-Bpe8f9vJFypcq6z5--e4s0MJI";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Add these variables
-let playerName = '';
+let playerName = "";
 let bestTime = Infinity;
 
 const loader = new THREE.TextureLoader();
 const floorTexture = loader.load("cihly.jpg");
-floorTexture.colorSpace =  THREE.SRGBColorSpace;
+floorTexture.colorSpace = THREE.SRGBColorSpace;
 const textureSets = [
   {
     wallTexture: "wall.jpg",
     ceilingTexture: "wall.jpg",
-    specialTextures: [
-      "wall-sign-1.jpg",
-      "wall-sign-2.jpg",
-      "wall-sign-3.jpg",
-    ],
+    specialTextures: ["wall-sign-1.jpg", "wall-sign-2.jpg", "wall-sign-3.jpg"],
   },
   {
     wallTexture: "wall-egypt.jpg",
@@ -44,7 +41,6 @@ const textureSets = [
     ],
   },
 ];
-
 
 let scene, camera, renderer, maze, player;
 let startTime, timerInterval;
@@ -69,7 +65,6 @@ let nearTeleport = null; // Přidáno: sleduje, zda je hráč blízko teleportu
 
 let keyModel;
 
-
 async function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
@@ -89,11 +84,11 @@ async function init() {
     startTimer();
 
     // Načtení jména hráče z local storage
-    playerName = localStorage.getItem('playerName');
+    playerName = localStorage.getItem("playerName");
     if (!playerName) {
       showNameModal();
     } else {
-      document.getElementById('playerName').textContent = playerName;
+      document.getElementById("playerName").textContent = playerName;
     }
 
     document.addEventListener("keydown", onKeyDown);
@@ -103,24 +98,36 @@ async function init() {
     window.addEventListener("resize", onWindowResize);
 
     // Přidání event listenerů pro nové funkce
-    document.getElementById('submitName').addEventListener('click', () => {
-      playerName = document.getElementById('playerNameInput').value;
-      localStorage.setItem('playerName', playerName);
-      document.getElementById('playerName').textContent = playerName;
+    document.getElementById("submitName").addEventListener("click", () => {
+      playerName = document.getElementById("playerNameInput").value;
+      localStorage.setItem("playerName", playerName);
+      document.getElementById("playerName").textContent = playerName;
       hideNameModal();
     });
 
-    document.getElementById('mazeSearchInput').addEventListener('input', filterScores);
+    document
+      .getElementById("mazeSearchInput")
+      .addEventListener("input", filterScores);
 
-    document.querySelector('#scoreModal .close').addEventListener('click', hideScoreModal);
+    document
+      .querySelector("#scoreModal .close")
+      .addEventListener("click", hideScoreModal);
 
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'c' || event.key === 'C') {
-        if (document.getElementById('scoreModal').style.display === 'block') {
-          hideScoreModal();
-        } else {
-          showScoreModal();
-          getScores().then(updateScoreTable);
+    document.addEventListener("keydown", (event) => {
+      // Zkontrolujeme, zda aktivní element není input nebo textarea
+      if (event.key === "c" || event.key === "C") {
+        const activeElement = document.activeElement;
+        const isInput =
+          activeElement.tagName === "INPUT" ||
+          activeElement.tagName === "TEXTAREA";
+
+        if (!isInput) {
+          if (document.getElementById("scoreModal").style.display === "block") {
+            hideScoreModal();
+          } else {
+            showScoreModal();
+            getScores().then(updateScoreTable);
+          }
         }
       }
     });
@@ -149,8 +156,8 @@ function createMaze(inputText = "") {
   brickTexture.colorSpace = THREE.SRGBColorSpace;
   ceilingTexture.colorSpace = THREE.SRGBColorSpace;
 
-  const specialTextures = selectedTextureSet.specialTextures.map((textureName) =>
-    loader.load(textureName)
+  const specialTextures = selectedTextureSet.specialTextures.map(
+    (textureName) => loader.load(textureName)
   );
   specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
@@ -186,8 +193,6 @@ function createMaze(inputText = "") {
   const ceilingMaterial = new THREE.MeshStandardMaterial({
     map: ceilingTexture,
     color: 0x635a56,
-
-
   });
   const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
   ceiling.rotation.x = Math.PI / 2;
@@ -196,11 +201,7 @@ function createMaze(inputText = "") {
 
   maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed);
 
-  const wallGeometry = new THREE.BoxGeometry(
-    CELL_SIZE,
-    WALL_HEIGHT,
-    CELL_SIZE
-  );
+  const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
   const wallMaterial = new THREE.MeshStandardMaterial({
     map: brickTexture,
   });
@@ -274,7 +275,6 @@ function getHash(str) {
   return Math.abs(hash);
 }
 
-
 // vytvoření klíčů
 function createKeys(rng) {
   if (!keyModel) {
@@ -312,7 +312,6 @@ function animateKeys() {
     }
   });
 }
-
 
 function addSpecialWalls(rng, specialTextures) {
   const specialWallCount = Math.min(5, Math.floor(rng() * 5) + 1); // Počet speciálních zdí
@@ -376,7 +375,13 @@ function generateMaze(width, height, seed) {
       let nx = x + dx * 2;
       let ny = y + dy * 2;
 
-      if (nx >= 0 && nx < width && ny >= 0 && ny < height && maze[ny][nx] === 1) {
+      if (
+        nx >= 0 &&
+        nx < width &&
+        ny >= 0 &&
+        ny < height &&
+        maze[ny][nx] === 1
+      ) {
         maze[y + dy][x + dx] = 0;
         carvePassage(nx, ny);
       }
@@ -408,7 +413,9 @@ function generateMaze(width, height, seed) {
           let nx = x + dx * hallSize,
             ny = y + dy * hallSize;
           if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-            maze[y + dy * Math.floor(hallSize / 2)][x + dx * Math.floor(hallSize / 2)] = 0;
+            maze[y + dy * Math.floor(hallSize / 2)][
+              x + dx * Math.floor(hallSize / 2)
+            ] = 0;
           }
         }
       }
@@ -449,7 +456,9 @@ function placeObjectInFreeCell(object, rng) {
     }
   }
   let height = 0.5;
-  if (object.userData.isTeleport) { height = 1; }
+  if (object.userData.isTeleport) {
+    height = 1;
+  }
   if (freeCells.length > 0) {
     let cell = freeCells[Math.floor(rng() * freeCells.length)];
     object.position.set(
@@ -478,16 +487,13 @@ function createTeleportModel(color) {
   const particlePositions = new Float32Array(particleCount * 3);
 
   for (let i = 0; i < particleCount; i++) {
-    particlePositions[i * 3] =
-      (Math.random() - 0.5) * teleport.scale.x * 2;
-    particlePositions[i * 3 + 1] =
-      (Math.random() - 0.5) * teleport.scale.y * 2;
-    particlePositions[i * 3 + 2] =
-      (Math.random() - 0.5) * teleport.scale.z * 2;
+    particlePositions[i * 3] = (Math.random() - 0.5) * teleport.scale.x * 2;
+    particlePositions[i * 3 + 1] = (Math.random() - 0.5) * teleport.scale.y * 2;
+    particlePositions[i * 3 + 2] = (Math.random() - 0.5) * teleport.scale.z * 2;
   }
 
   particleGeometry.setAttribute(
-    'position',
+    "position",
     new THREE.BufferAttribute(particlePositions, 3)
   );
 
@@ -590,14 +596,19 @@ function onKeyUp(event) {
 
 function onMouseMove(event) {
   if (document.pointerLockElement === document.body) {
-    const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-    const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+    const movementX =
+      event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+    const movementY =
+      event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
     playerRotation -= movementX * 0.002;
     player.rotation.y = playerRotation;
 
     const verticalRotation = camera.rotation.x - movementY * 0.002;
-    camera.rotation.x = Math.max(Math.min(verticalRotation, Math.PI / 2), -Math.PI / 2);
+    camera.rotation.x = Math.max(
+      Math.min(verticalRotation, Math.PI / 2),
+      -Math.PI / 2
+    );
   }
 }
 
@@ -637,10 +648,7 @@ function updatePlayerPosition() {
   if (moveLeft) playerVelocity.x -= speed;
   if (moveRight) playerVelocity.x += speed;
 
-  playerVelocity.applyAxisAngle(
-    new THREE.Vector3(0, 1, 0),
-    playerRotation
-  );
+  playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
 
   const oldPosition = player.position.clone();
   player.position.add(playerVelocity);
@@ -719,7 +727,6 @@ function checkObjectInteractions() {
     hideTeleportPrompt();
   }
 }
-
 
 function showKeyMessage() {
   const keyMessageElement = document.getElementById("keyMessage");
@@ -802,7 +809,7 @@ function stopTimer() {
   const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
   if (elapsedTime < bestTime) {
     bestTime = elapsedTime;
-    submitScore(document.getElementById('mazeInput').value, bestTime);
+    submitScore(document.getElementById("mazeInput").value, bestTime);
   }
 }
 
@@ -810,8 +817,9 @@ function updateTimer() {
   const elapsedTime = Date.now() - startTime;
   const minutes = Math.floor(elapsedTime / 60000);
   const seconds = Math.floor((elapsedTime % 60000) / 1000);
-  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""
-    }${seconds}`;
+  document.getElementById("timeCount").textContent = `${minutes}:${
+    seconds < 10 ? "0" : ""
+  }${seconds}`;
 }
 
 function hideTeleportPrompt() {
@@ -972,7 +980,6 @@ function rotateTeleports() {
   });
 }
 
-
 function animate() {
   requestAnimationFrame(animate);
   updatePlayerPosition();
@@ -983,48 +990,48 @@ function animate() {
 }
 
 function showNameModal() {
-  document.getElementById('nameModal').style.display = 'block';
+  document.getElementById("nameModal").style.display = "block";
 }
 
 function hideNameModal() {
-  document.getElementById('nameModal').style.display = 'none';
+  document.getElementById("nameModal").style.display = "none";
 }
 
 function showScoreModal() {
-  document.getElementById('scoreModal').style.display = 'block';
+  document.getElementById("scoreModal").style.display = "block";
 }
 
 function hideScoreModal() {
-  document.getElementById('scoreModal').style.display = 'none';
+  document.getElementById("scoreModal").style.display = "none";
 }
 
 async function submitScore(levelName, time) {
   try {
     const { data, error } = await supabase
-      .from('maze_score')
+      .from("maze_score")
       .insert([
-        { playername: playerName, levelname: levelName, time_score: time }
+        { playername: playerName, levelname: levelName, time_score: time },
       ]);
-    
+
     if (error) throw error;
-    console.log('Score submitted successfully');
+    console.log("Score submitted successfully");
   } catch (error) {
-    console.error('Error submitting score:', error.message);
+    console.error("Error submitting score:", error.message);
   }
 }
 
 async function getScores() {
   try {
     const { data, error } = await supabase
-      .from('maze_score')
-      .select('*')
-      .order('levelname', { ascending: true })
-      .order('time_score', { ascending: true });
-    
+      .from("maze_score")
+      .select("*")
+      .order("levelname", { ascending: true })
+      .order("time_score", { ascending: true });
+
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching scores:', error.message);
+    console.error("Error fetching scores:", error.message);
     return [];
   }
 }
@@ -1033,20 +1040,22 @@ function formatTime(seconds) {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const remainingSeconds = seconds % 60;
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
 // Přidejte tuto funkci pro seskupování a řazení skóre
 function groupAndSortScores(scores) {
   const groupedScores = {};
-  scores.forEach(score => {
+  scores.forEach((score) => {
     if (!groupedScores[score.levelname]) {
       groupedScores[score.levelname] = [];
     }
     groupedScores[score.levelname].push(score);
   });
 
-  Object.values(groupedScores).forEach(group => {
+  Object.values(groupedScores).forEach((group) => {
     group.sort((a, b) => a.time_score - b.time_score);
   });
 
@@ -1054,22 +1063,22 @@ function groupAndSortScores(scores) {
 }
 
 function updateScoreTable(scores) {
-  const tbody = document.querySelector('#scoreTable tbody');
-  tbody.innerHTML = '';
-  
+  const tbody = document.querySelector("#scoreTable tbody");
+  tbody.innerHTML = "";
+
   const groupedScores = groupAndSortScores(scores);
-  
+
   Object.entries(groupedScores).forEach(([levelName, levelScores]) => {
     const groupRow = tbody.insertRow();
     const groupCell = groupRow.insertCell(0);
     groupCell.colSpan = 3;
     groupCell.textContent = levelName;
-    groupCell.style.fontWeight = 'bold';
-    groupCell.style.backgroundColor = '#34495e';
+    groupCell.style.fontWeight = "bold";
+    groupCell.style.backgroundColor = "#34495e";
 
     levelScores.forEach((score, index) => {
       const row = tbody.insertRow();
-      row.insertCell(0).textContent = index === 0 ? '' : levelName;
+      row.insertCell(0).textContent = index === 0 ? "" : levelName;
       row.insertCell(1).textContent = score.playername;
       row.insertCell(2).textContent = formatTime(score.time_score);
     });
@@ -1077,16 +1086,18 @@ function updateScoreTable(scores) {
 }
 
 function filterScores() {
-  const searchTerm = document.getElementById('mazeSearchInput').value.toLowerCase();
-  const rows = document.querySelectorAll('#scoreTable tbody tr');
-  
-  let currentGroup = '';
-  rows.forEach(row => {
+  const searchTerm = document
+    .getElementById("mazeSearchInput")
+    .value.toLowerCase();
+  const rows = document.querySelectorAll("#scoreTable tbody tr");
+
+  let currentGroup = "";
+  rows.forEach((row) => {
     if (row.cells[0].colSpan === 3) {
       currentGroup = row.cells[0].textContent.toLowerCase();
-      row.style.display = currentGroup.includes(searchTerm) ? '' : 'none';
+      row.style.display = currentGroup.includes(searchTerm) ? "" : "none";
     } else {
-      row.style.display = currentGroup.includes(searchTerm) ? '' : 'none';
+      row.style.display = currentGroup.includes(searchTerm) ? "" : "none";
     }
   });
 }
