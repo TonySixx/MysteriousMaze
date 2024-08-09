@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tajemné bludiště</title>
-  <script type="module" crossorigin src="/MysteriousMaze/assets/index-DFivjR1w.js"></script>
-  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-3Hi4M14l.css">
+  <script type="module" crossorigin src="/MysteriousMaze/assets/index-DVmnkBLI.js"></script>
+  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-DmfjdQEA.css">
 </head>
 
 <body>
@@ -28,6 +28,7 @@
     <button id="generateMaze">Generovat bludiště</button>
   </div>
   <div id="keyMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:yellow; font-size:20px;">Sebral jsi klíč.</div>
+  <div id="finishMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:rgb(202, 240, 255); font-size:20px;">Gratulujeme! Dosáhli jste cíle!</div>
   <div id="goalMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:white;font-size:20px;"></div>
   <canvas id="minimap" width="350" height="350" style="position: absolute; bottom: 10px; right: 10px; display: none; background-color: lightgrey;"></canvas>
   
@@ -43,7 +44,9 @@
     <div class="modal-content">
       <span class="close">&times;</span>
       <h2>Nejlepší skóre</h2>
+      <div style="display: flex;">
       <input type="text" id="mazeSearchInput" placeholder="Vyhledat bludiště">
+    </div>
       <div id="scoreTableContainer">
         <table id="scoreTable">
           <thead>
