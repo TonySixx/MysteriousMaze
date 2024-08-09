@@ -5,21 +5,38 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 
 const loader = new THREE.TextureLoader();
-const brickTexture = loader.load("wall.jpg");
-const ceilingTexture = loader.load("wall.jpg");
 const floorTexture = loader.load("cihly.jpg");
-brickTexture.colorSpace = THREE.SRGBColorSpace;
-ceilingTexture.colorSpace = THREE.SRGBColorSpace;
-floorTexture.colorSpace = THREE.SRGBColorSpace;
-
-// Načtení textur speciálních zdí
-const specialTextures = [
-  loader.load("wall-sign-1.jpg"),
-  loader.load("wall-sign-2.jpg"),
-  loader.load("wall-sign-3.jpg"),
+floorTexture.colorSpace =  THREE.SRGBColorSpace;
+const textureSets = [
+  {
+    wallTexture: "wall.jpg",
+    ceilingTexture: "wall.jpg",
+    specialTextures: [
+      "wall-sign-1.jpg",
+      "wall-sign-2.jpg",
+      "wall-sign-3.jpg",
+    ],
+  },
+  {
+    wallTexture: "wall-egypt.jpg",
+    ceilingTexture: "wall-egypt.jpg",
+    specialTextures: [
+      "wall-egypt-sign-1.jpg",
+      "wall-egypt-sign-2.jpg",
+      "wall-egypt-sign-3.jpg",
+    ],
+  },
+  {
+    wallTexture: "wall-crystal.jpg",
+    ceilingTexture: "wall-crystal.jpg",
+    specialTextures: [
+      "wall-crystal-sign-1.jpg",
+      "wall-crystal-sign-2.jpg",
+      "wall-crystal-sign-3.jpg",
+    ],
+  },
 ];
 
-specialTextures.forEach(x => x.colorSpace = THREE.SRGBColorSpace);
 
 let scene, camera, renderer, maze, player;
 let startTime, timerInterval;
@@ -43,6 +60,7 @@ const teleportCooldown = 3000;
 let nearTeleport = null; // Přidáno: sleduje, zda je hráč blízko teleportu
 
 let keyModel;
+
 
 async function init() {
   scene = new THREE.Scene();
@@ -84,6 +102,19 @@ function createMaze(inputText = "") {
 
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
+  const textureSetIndex = Math.floor(rng() * textureSets.length);
+  const selectedTextureSet = textureSets[textureSetIndex];
+
+  const brickTexture = loader.load(selectedTextureSet.wallTexture);
+  const ceilingTexture = loader.load(selectedTextureSet.ceilingTexture);
+  brickTexture.colorSpace = THREE.SRGBColorSpace;
+  ceilingTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const specialTextures = selectedTextureSet.specialTextures.map((textureName) =>
+    loader.load(textureName)
+  );
+  specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
+
   MAZE_SIZE = Math.max(20, Math.min(50, 20 + Math.floor(rng() * 31)));
   totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
   const teleportPairsCount = Math.max(
@@ -151,7 +182,7 @@ function createMaze(inputText = "") {
   }
 
   // Přidání speciálních zdí
-  addSpecialWalls(rng);
+  addSpecialWalls(rng, specialTextures);
 
   const teleportColors = [
     0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0xffff00, 0x00ffff,
@@ -204,6 +235,7 @@ function getHash(str) {
   return Math.abs(hash);
 }
 
+
 // vytvoření klíčů
 function createKeys(rng) {
   if (!keyModel) {
@@ -243,7 +275,7 @@ function animateKeys() {
 }
 
 
-function addSpecialWalls(rng) {
+function addSpecialWalls(rng, specialTextures) {
   const specialWallCount = Math.min(5, Math.floor(rng() * 5) + 1); // Počet speciálních zdí
   const selectedTextures = [];
 
@@ -863,7 +895,7 @@ function loadKeyModel() {
     console.log("Starting to load key model");
     const loader = new GLTFLoader();
     loader.load(
-      "/Key.glb",
+      "Key.glb",
       (gltf) => {
         console.log("GLTF loaded successfully", gltf);
         keyModel = gltf.scene;
