@@ -1,8 +1,16 @@
 import * as THREE from 'three';
 import seedrandom from 'seedrandom';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { createClient } from '@supabase/supabase-js'
 
+// Initialize Supabase client
+const supabaseUrl = 'https://olhgutdozhdvniefmltx.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9saGd1dGRvemhkdm5pZWZtbHR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI4NzYwNTgsImV4cCI6MjAzODQ1MjA1OH0.RmahBsbb4QnO0xpTH-Bpe8f9vJFypcq6z5--e4s0MJI'
+const supabase = createClient(supabaseUrl, supabaseKey)
 
+// Add these variables
+let playerName = '';
+let bestTime = Infinity;
 
 const loader = new THREE.TextureLoader();
 const floorTexture = loader.load("cihly.jpg");
@@ -80,11 +88,42 @@ async function init() {
     createPlayer();
     startTimer();
 
+    // Načtení jména hráče z local storage
+    playerName = localStorage.getItem('playerName');
+    if (!playerName) {
+      showNameModal();
+    } else {
+      document.getElementById('playerName').textContent = playerName;
+    }
+
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     document.addEventListener("mousemove", onMouseMove, false);
     document.addEventListener("click", onMouseClick, false);
     window.addEventListener("resize", onWindowResize);
+
+    // Přidání event listenerů pro nové funkce
+    document.getElementById('submitName').addEventListener('click', () => {
+      playerName = document.getElementById('playerNameInput').value;
+      localStorage.setItem('playerName', playerName);
+      document.getElementById('playerName').textContent = playerName;
+      hideNameModal();
+    });
+
+    document.getElementById('mazeSearchInput').addEventListener('input', filterScores);
+
+    document.querySelector('#scoreModal .close').addEventListener('click', hideScoreModal);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'c' || event.key === 'C') {
+        if (document.getElementById('scoreModal').style.display === 'block') {
+          hideScoreModal();
+        } else {
+          showScoreModal();
+          getScores().then(updateScoreTable);
+        }
+      }
+    });
 
     animate();
   } catch (error) {
@@ -760,6 +799,11 @@ function startTimer() {
 
 function stopTimer() {
   clearInterval(timerInterval);
+  const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+  if (elapsedTime < bestTime) {
+    bestTime = elapsedTime;
+    submitScore(document.getElementById('mazeInput').value, bestTime);
+  }
 }
 
 function updateTimer() {
@@ -936,6 +980,115 @@ function animate() {
   animateKeys();
   rotateTeleports();
   renderer.render(scene, camera);
+}
+
+function showNameModal() {
+  document.getElementById('nameModal').style.display = 'block';
+}
+
+function hideNameModal() {
+  document.getElementById('nameModal').style.display = 'none';
+}
+
+function showScoreModal() {
+  document.getElementById('scoreModal').style.display = 'block';
+}
+
+function hideScoreModal() {
+  document.getElementById('scoreModal').style.display = 'none';
+}
+
+async function submitScore(levelName, time) {
+  try {
+    const { data, error } = await supabase
+      .from('maze_score')
+      .insert([
+        { playername: playerName, levelname: levelName, time_score: time }
+      ]);
+    
+    if (error) throw error;
+    console.log('Score submitted successfully');
+  } catch (error) {
+    console.error('Error submitting score:', error.message);
+  }
+}
+
+async function getScores() {
+  try {
+    const { data, error } = await supabase
+      .from('maze_score')
+      .select('*')
+      .order('levelname', { ascending: true })
+      .order('time_score', { ascending: true });
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching scores:', error.message);
+    return [];
+  }
+}
+
+function formatTime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+// Přidejte tuto funkci pro seskupování a řazení skóre
+function groupAndSortScores(scores) {
+  const groupedScores = {};
+  scores.forEach(score => {
+    if (!groupedScores[score.levelname]) {
+      groupedScores[score.levelname] = [];
+    }
+    groupedScores[score.levelname].push(score);
+  });
+
+  Object.values(groupedScores).forEach(group => {
+    group.sort((a, b) => a.time_score - b.time_score);
+  });
+
+  return groupedScores;
+}
+
+function updateScoreTable(scores) {
+  const tbody = document.querySelector('#scoreTable tbody');
+  tbody.innerHTML = '';
+  
+  const groupedScores = groupAndSortScores(scores);
+  
+  Object.entries(groupedScores).forEach(([levelName, levelScores]) => {
+    const groupRow = tbody.insertRow();
+    const groupCell = groupRow.insertCell(0);
+    groupCell.colSpan = 3;
+    groupCell.textContent = levelName;
+    groupCell.style.fontWeight = 'bold';
+    groupCell.style.backgroundColor = '#34495e';
+
+    levelScores.forEach((score, index) => {
+      const row = tbody.insertRow();
+      row.insertCell(0).textContent = index === 0 ? '' : levelName;
+      row.insertCell(1).textContent = score.playername;
+      row.insertCell(2).textContent = formatTime(score.time_score);
+    });
+  });
+}
+
+function filterScores() {
+  const searchTerm = document.getElementById('mazeSearchInput').value.toLowerCase();
+  const rows = document.querySelectorAll('#scoreTable tbody tr');
+  
+  let currentGroup = '';
+  rows.forEach(row => {
+    if (row.cells[0].colSpan === 3) {
+      currentGroup = row.cells[0].textContent.toLowerCase();
+      row.style.display = currentGroup.includes(searchTerm) ? '' : 'none';
+    } else {
+      row.style.display = currentGroup.includes(searchTerm) ? '' : 'none';
+    }
+  });
 }
 
 document.getElementById("generateMaze").addEventListener("click", () => {
