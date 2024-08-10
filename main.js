@@ -2,6 +2,9 @@ import * as THREE from "three";
 import seedrandom from "seedrandom";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { createClient } from "@supabase/supabase-js";
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -63,8 +66,14 @@ let lastTeleportTime = 0;
 const teleportCooldown = 3000;
 let nearTeleport = null; // Přidáno: sleduje, zda je hráč blízko teleportu
 
+// Přidejte tyto globální proměnné
+const torches = [];
+// Globální proměnné
+let composer, lightManager;
+const MAX_VISIBLE_LIGHTS = 10; // Maximální počet viditelných světel
+
 let keyModel;
-var showMinimapTimer  = setInterval(showMinimap, 15000); // Interval 15 vteřin
+var showMinimapTimer = setInterval(showMinimap, 15000); // Interval 15 vteřin
 var minimapVisibleTimer;
 
 
@@ -134,14 +143,33 @@ async function init() {
         }
       }
     });
+    // Nastavení post-processingu
+    composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.5,
+      0.4,
+      0.85
+    );
+    bloomPass.threshold = 0.2;
+    bloomPass.strength = 0.6;
+    bloomPass.radius = 0;
+    composer.addPass(bloomPass);
+
 
     animate();
+
+
   } catch (error) {
     console.error("Failed to load key model:", error);
   }
 }
 
 function createMaze(inputText = "") {
+  lightManager = new LightManager(scene,MAX_VISIBLE_LIGHTS);
   walls = [];
   while (scene.children.length > 0) {
     scene.remove(scene.children[0]);
@@ -245,6 +273,8 @@ function createMaze(inputText = "") {
   }
 
   createKeys(rng);
+  createTorches(walls, maze, CELL_SIZE, MAZE_SIZE);
+
 
   const goalGeometry = new THREE.SphereGeometry(0.4, 32, 32);
   const goalMaterial = new THREE.MeshStandardMaterial({
@@ -255,12 +285,14 @@ function createMaze(inputText = "") {
   placeObjectInFreeCell(goal, rng);
   scene.add(goal);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.1);
   directionalLight.position.set(0, 10, 0);
   scene.add(directionalLight);
+
+
 
   keyCount = 0;
   updateKeyCount();
@@ -272,6 +304,7 @@ function createMaze(inputText = "") {
 
 
   console.log("Maze created");
+  console.log("lights " + lightManager.lights.length);
 }
 
 function getHash(str) {
@@ -835,9 +868,8 @@ function updateTimer() {
   const elapsedTime = Date.now() - startTime;
   const minutes = Math.floor(elapsedTime / 60000);
   const seconds = Math.floor((elapsedTime % 60000) / 1000);
-  document.getElementById("timeCount").textContent = `${minutes}:${
-    seconds < 10 ? "0" : ""
-  }${seconds}`;
+  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""
+    }${seconds}`;
 }
 
 function hideTeleportPrompt() {
@@ -952,7 +984,7 @@ function showMinimap() {
   drawMinimap();
   const minimap = document.getElementById("minimap");
   minimap.style.display = "block";
-  
+
   minimapVisibleTimer = setTimeout(() => {
     minimap.style.display = "none";
   }, getMinimapDisplayTime() * 1000); // Použití dynamické doby zobrazení minimapy
@@ -988,6 +1020,7 @@ function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function rotateTeleports() {
@@ -998,13 +1031,186 @@ function rotateTeleports() {
   });
 }
 
+
+// Třída pro správu světel
+class LightManager {
+  constructor(scene, maxVisibleLights, tolerance = 2) {
+    this.scene = scene;
+    this.maxVisibleLights = maxVisibleLights;
+    this.lights = [];
+    this.tolerance = tolerance; // Přidáme toleranci
+  }
+
+  addLight(light) {
+    this.lights.push(light);
+    this.scene.add(light);
+    light.visible = false; // Začněte se všemi světly vypnutými
+  }
+
+  update(playerPosition, camera) {
+    // Vytvoříme frustum kamery s tolerancí
+    const frustum = new THREE.Frustum();
+    const cameraViewProjectionMatrix = new THREE.Matrix4();
+    camera.updateMatrixWorld(); // Zajistíme, že matice kamery je aktuální
+    cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
+
+    this.lights.forEach(light => {
+      light.visible = false;
+    });
+
+    // Seřaďte světla podle vzdálenosti od hráče a zjistěte, zda jsou v záběru s tolerancí
+    const sortedLights = this.lights
+      .map(light => ({
+        light,
+        distance: light.position.distanceTo(playerPosition),
+        inView: frustum.intersectsSphere(new THREE.Sphere(light.position, this.tolerance))
+      }))
+      .filter(lightInfo => lightInfo.inView) // Filtrujte pouze světla, která jsou v záběru nebo blízko záběru
+      .sort((a, b) => a.distance - b.distance);
+
+    // Zapněte pouze nejbližší světla
+    for (let i = 0; i < Math.min(this.maxVisibleLights, sortedLights.length); i++) {
+      sortedLights[i].light.visible = true;
+    }
+  }
+}
+
+
+function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
+  const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1,0.65, 8);
+  const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+
+  const rng = new seedrandom(getHash(document.getElementById("mazeInput").value));
+
+  // Vytvoříme pomocné pole pro sledování, kde už jsou pochodně umístěny
+  const torchPositions = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+
+  for (let x = 0; x < MAZE_SIZE; x++) {
+    for (let z = 0; z < MAZE_SIZE; z++) {
+      if (maze[x][z] === 0) { // Jsme v chodbě
+        // Zkontrolujeme sousední buňky
+        const directions = [
+          { dx: 1, dz: 0 },
+          { dx: -1, dz: 0 },
+          { dx: 0, dz: 1 },
+          { dx: 0, dz: -1 }
+        ];
+
+        directions.forEach(dir => {
+          const nx = x + dir.dx;
+          const nz = z + dir.dz;
+
+          // Pokud je sousední buňka zeď a zde ještě není pochodeň
+          if (nx >= 0 && nx < MAZE_SIZE && nz >= 0 && nz < MAZE_SIZE &&
+              maze[nx][nz] === 1 && !torchPositions[x][z]) {
+            
+            // S určitou pravděpodobností umístíme pochodeň
+            if (rng() < 0.3) { // 30% šance na umístění pochodně
+              const torch = new THREE.Mesh(torchGeometry, torchMaterial);
+              
+              torch.position.set(
+                (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.5,
+                WALL_HEIGHT / 2,
+                (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
+              );
+
+              // Natočíme pochodeň směrem ke zdi
+             
+              torch.rotateZ(Math.PI / 1);
+
+              scene.add(torch);
+
+              const fire = createFireParticles();
+              fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
+              scene.add(fire);
+
+              const light = new THREE.PointLight(0xffa500, 1.5, CELL_SIZE * 4);
+              light.position.set(
+                (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.18,
+                (WALL_HEIGHT / 2) + 0.25,
+                (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.18
+              );
+
+              lightManager.addLight(light);
+
+              torches.push({ torch, fire, light });
+              torchPositions[x][z] = true;
+            }
+          }
+        });
+      }
+    }
+  }
+}
+
+
+// Upravte funkci createFireParticles()
+function createFireParticles() {
+  const particleCount = 12;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+  const sizes = new Float32Array(particleCount);
+
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 0.1;
+    positions[i * 3 + 1] = Math.random() * 0.3;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
+
+    colors[i * 3] = 1.5;
+    colors[i * 3 + 1] = 0.5 + Math.random() * 0.5;
+    colors[i * 3 + 2] = 0;
+
+    sizes[i] = 0.1 + Math.random() * 0.1; // Zvětšené částice
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+  const material = new THREE.PointsMaterial({
+    size: 0.1, // Zvětšená velikost částic
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+  });
+
+  return new THREE.Points(geometry, material);
+}
+
+// Přidejte tuto funkci pro animaci ohně
+function animateFire() {
+  torches.forEach(({ fire }) => {
+    const positions = fire.geometry.attributes.position.array;
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] += (Math.random() - 0.5) * 0.01;
+      positions[i + 1] += 0.01 + Math.random() * 0.02;
+      positions[i + 2] += (Math.random() - 0.5) * 0.01;
+
+      if (positions[i + 1] > 0.6) {
+        positions[i] = (Math.random() - 0.5) * 0.1;
+        positions[i + 1] = 0;
+        positions[i + 2] = (Math.random() - 0.5) * 0.1;
+      }
+    }
+    fire.geometry.attributes.position.needsUpdate = true;
+  });
+}
+
+// Upravte funkci animate()
 function animate() {
   requestAnimationFrame(animate);
   updatePlayerPosition();
   checkObjectInteractions();
   animateKeys();
   rotateTeleports();
-  renderer.render(scene, camera);
+  animateFire();
+
+  lightManager.update(player.position, camera); // Aktualizace světel s hráčovou pozicí a kamerou
+
+  composer.render();
 }
 
 function showNameModal() {
