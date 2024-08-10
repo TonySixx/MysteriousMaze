@@ -169,7 +169,7 @@ async function init() {
 }
 
 function createMaze(inputText = "") {
-  lightManager = new LightManager(scene,MAX_VISIBLE_LIGHTS);
+  lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
   walls = [];
   while (scene.children.length > 0) {
     scene.remove(scene.children[0]);
@@ -193,6 +193,7 @@ function createMaze(inputText = "") {
   specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
   MAZE_SIZE = Math.max(20, Math.min(50, 20 + Math.floor(rng() * 31)));
+
   totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
   const teleportPairsCount = Math.max(
     1,
@@ -846,6 +847,42 @@ function showTeleportPrompt() {
   promptElement.style.display = "block";
 }
 
+async function startGame() {
+  const inputText = document.getElementById("mazeInput").value;
+  await getBestTime(inputText);
+  createMaze(inputText);
+  createPlayer();
+  moveCount = 0;
+  keyCount = 0;
+  document.getElementById("moveCount").textContent = moveCount;
+  document.getElementById("timeCount").textContent = "0:00";
+  camera.position.set(0, 1.6, 0);
+  startTimer(); // Spuštění časovače
+}
+
+async function getBestTime(levelName) {
+  try {
+    const { data, error } = await supabase
+      .from("maze_score")
+      .select("time_score")
+      .eq("playername", playerName)
+      .eq("levelname", levelName)
+      .order("time_score", { ascending: true })
+      .limit(1);
+
+    if (error) throw error;
+
+    if (data.length > 0) {
+      bestTime = data[0].time_score;
+    } else {
+      bestTime = Infinity;
+    }
+  } catch (error) {
+    console.error("Error fetching best time:", error.message);
+    bestTime = Infinity;
+  }
+}
+
 function updateKeyCount() {
   document.getElementById("keyCount").textContent = `${keyCount}/${totalKeys}`;
 }
@@ -855,12 +892,13 @@ function startTimer() {
   timerInterval = setInterval(updateTimer, 1000); // Aktualizace každou sekundu
 }
 
-function stopTimer() {
+async function stopTimer() {
   clearInterval(timerInterval);
   const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+
   if (elapsedTime < bestTime) {
     bestTime = elapsedTime;
-    submitScore(document.getElementById("mazeInput").value, bestTime);
+    await submitScore(document.getElementById("mazeInput").value, bestTime);
   }
 }
 
@@ -1078,7 +1116,7 @@ class LightManager {
 
 
 function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
-  const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1,0.65, 8);
+  const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
   const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
 
   const rng = new seedrandom(getHash(document.getElementById("mazeInput").value));
@@ -1103,12 +1141,12 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
 
           // Pokud je sousední buňka zeď a zde ještě není pochodeň
           if (nx >= 0 && nx < MAZE_SIZE && nz >= 0 && nz < MAZE_SIZE &&
-              maze[nx][nz] === 1 && !torchPositions[x][z]) {
-            
+            maze[nx][nz] === 1 && !torchPositions[x][z]) {
+
             // S určitou pravděpodobností umístíme pochodeň
             if (rng() < 0.3) { // 30% šance na umístění pochodně
               const torch = new THREE.Mesh(torchGeometry, torchMaterial);
-              
+
               torch.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.5,
                 WALL_HEIGHT / 2,
@@ -1116,7 +1154,7 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
               );
 
               // Natočíme pochodeň směrem ke zdi
-             
+
               torch.rotateZ(Math.PI / 1);
 
               scene.add(torch);
@@ -1233,9 +1271,9 @@ async function submitScore(levelName, time) {
   try {
     const { data, error } = await supabase
       .from("maze_score")
-      .insert([
+      .upsert([
         { playername: playerName, levelname: levelName, time_score: time },
-      ]);
+      ], { onConflict: ['playername', 'levelname'] });
 
     if (error) throw error;
     console.log("Score submitted successfully");
@@ -1243,6 +1281,7 @@ async function submitScore(levelName, time) {
     console.error("Error submitting score:", error.message);
   }
 }
+
 
 async function getScores() {
   try {
@@ -1302,7 +1341,7 @@ function updateScoreTable(scores) {
 
     levelScores.forEach((score, index) => {
       const row = tbody.insertRow();
-      row.insertCell(0).textContent = index === 0 ? "" : levelName;
+      row.insertCell(0).textContent = "" //index === 0 ? "" : levelName;
       row.insertCell(1).textContent = score.playername;
       row.insertCell(2).textContent = formatTime(score.time_score);
     });
@@ -1326,16 +1365,6 @@ function filterScores() {
   });
 }
 
-document.getElementById("generateMaze").addEventListener("click", () => {
-  const inputText = document.getElementById("mazeInput").value;
-  createMaze(inputText);
-  createPlayer();
-  moveCount = 0;
-  keyCount = 0;
-  document.getElementById("moveCount").textContent = moveCount;
-  document.getElementById("timeCount").textContent = "0:00";
-  camera.position.set(0, 1.6, 0);
-  startTimer(); // Spuštění časovače
-});
+document.getElementById("generateMaze").addEventListener("click", startGame);
 
 init();
