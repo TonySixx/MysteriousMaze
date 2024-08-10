@@ -76,20 +76,20 @@ let keyModel;
 var showMinimapTimer = setInterval(showMinimap, 15000); // Interval 15 vteřin
 var minimapVisibleTimer;
 
-
+let nebula, nebulaMaterial;
 async function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
     0.1,
-    1000
+    1600
   );
   renderer = new THREE.WebGLRenderer({ alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-
   try {
+
     await loadKeyModel();
     createMaze();
     createPlayer();
@@ -159,7 +159,6 @@ async function init() {
     bloomPass.radius = 0;
     composer.addPass(bloomPass);
 
-
     animate();
 
 
@@ -169,13 +168,21 @@ async function init() {
 }
 
 function createMaze(inputText = "") {
+    // Odstraňte existující mlhovinu a mlhu, pokud existují
+    if (nebula) {
+      scene.remove(nebula);
+    }
+    scene.fog = null;
+  
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
   walls = [];
   while (scene.children.length > 0) {
     scene.remove(scene.children[0]);
   }
 
-  scene.background = new THREE.Color(0x48515b);
+    // Odstraňte nebo zakomentujte tuto řádku:
+  // scene.background = new THREE.Color(0x48515b);
+
 
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
@@ -293,7 +300,12 @@ function createMaze(inputText = "") {
   directionalLight.position.set(0, 10, 0);
   scene.add(directionalLight);
 
-
+ // Přidejte mlhovinu
+ nebulaMaterial = addNebula();
+  addFloatingObjects();
+  
+ // Přidejte mlhu
+ scene.fog = new THREE.FogExp2(0x000000,0.05); // Zvýšili jsme hustotu mlhy
 
   keyCount = 0;
   updateKeyCount();
@@ -1237,6 +1249,78 @@ function animateFire() {
   });
 }
 
+let floatingObjects = [];
+
+function addFloatingObjects() {
+  // Nejprve odstraníme staré objekty, pokud existují
+  floatingObjects.forEach(obj => scene.remove(obj));
+  floatingObjects = [];
+
+  const geometries = [
+    new THREE.TetrahedronGeometry(0.5),
+    new THREE.OctahedronGeometry(0.5),
+    new THREE.DodecahedronGeometry(0.5)
+  ];
+
+  for (let i = 0; i < 100; i++) {
+    const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+    const material = new THREE.MeshStandardMaterial({
+      color: Math.random() * 0xffffff,
+      metalness: 0.7,
+      roughness: 0.3
+    });
+    const object = new THREE.Mesh(geometry, material);
+
+    object.position.set(
+      (Math.random() - 0.5) * MAZE_SIZE * CELL_SIZE * 3,
+      Math.random() * MAZE_SIZE * CELL_SIZE,
+      (Math.random() - 0.5) * MAZE_SIZE * CELL_SIZE * 3
+    );
+
+    object.rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
+    
+    object.userData.rotationSpeed = {
+      x: (Math.random() - 0.5) * 0.02,
+      y: (Math.random() - 0.5) * 0.02,
+      z: (Math.random() - 0.5) * 0.02
+    };
+
+    object.userData.floatSpeed = (Math.random() - 0.5) * 0.05;
+
+    scene.add(object);
+    floatingObjects.push(object);
+  }
+}
+function addNebula() {
+  const geometry = new THREE.SphereGeometry(1500, 32, 32);
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      time: { value: 0 }
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normal;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float time;
+      varying vec3 vNormal;
+      void main() {
+        vec3 color = 0.5 + 0.5 * cos(time * 0.2 + vNormal.xyx + vec3(0,2,4));
+        gl_FragColor = vec4(color, 0.3);
+      }
+    `,
+    side: THREE.BackSide,
+    transparent: true
+  });
+  nebula = new THREE.Mesh(geometry, material);
+  scene.add(nebula);
+  
+  return { material, object: nebula };
+}
+
 // Upravte funkci animate()
 function animate() {
   requestAnimationFrame(animate);
@@ -1245,6 +1329,24 @@ function animate() {
   animateKeys();
   rotateTeleports();
   animateFire();
+
+   // Animace létajících objektů
+   floatingObjects.forEach(obj => {
+    obj.rotation.x += obj.userData.rotationSpeed.x;
+    obj.rotation.y += obj.userData.rotationSpeed.y;
+    obj.rotation.z += obj.userData.rotationSpeed.z;
+
+    obj.position.y += obj.userData.floatSpeed;
+
+    // Pokud objekt vyletí příliš vysoko nebo nízko, obrátíme směr
+    if (obj.position.y > MAZE_SIZE * CELL_SIZE || obj.position.y < 0) {
+      obj.userData.floatSpeed *= -1;
+    }
+  });
+ 
+  if (nebulaMaterial) {
+    nebulaMaterial.material.uniforms.time.value += 0.01;
+  }
 
   lightManager.update(player.position, camera); // Aktualizace světel s hráčovou pozicí a kamerou
 
