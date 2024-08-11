@@ -74,12 +74,17 @@ const MAX_VISIBLE_LIGHTS = 10; // Maximální počet viditelných světel
 
 let keyModel;
 let treasureModel;
+// Přidejte globální proměnné
+const BLOCKING_WALL = 2;
+let staffModel;
+let fireBalls = [];
 
 
 var showMinimapTimer = setInterval(showMinimap, 15000); // Interval 15 vteřin
 var minimapVisibleTimer;
 
 let nebula, nebulaMaterial;
+
 async function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
@@ -95,8 +100,10 @@ async function init() {
 
     await loadKeyModel();
     await loadTreasureModel();
+    await loadStaffModel();
     createMaze();
     createPlayer();
+    attachStaffToCamera();
     startTimer();
 
     // Načtení jména hráče z local storage
@@ -107,10 +114,12 @@ async function init() {
       document.getElementById("playerName").textContent = playerName;
     }
 
+
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     document.addEventListener("mousemove", onMouseMove, false);
     document.addEventListener("click", onMouseClick, false);
+    document.addEventListener('mousedown', onMouseDown);
     window.addEventListener("resize", onWindowResize);
 
     // Přidání event listenerů pro nové funkce
@@ -171,27 +180,224 @@ async function init() {
   }
 }
 
-function createMaze(inputText = "") {
-    // Odstraňte existující mlhovinu a mlhu, pokud existují
-    if (nebula) {
-      scene.remove(nebula);
+function attachStaffToCamera() {
+  if (staffModel) {
+    staffModel.position.set(0.3, -0.2, -0.5); // Upravte pozici podle potřeby
+    staffModel.rotation.set(0, Math.PI / 2, 0); // Upravte rotaci podle potřeby
+    camera.add(staffModel);
+  }
+}
+
+function onMouseDown(event) {
+  if (event.button === 0) { // Levé tlačítko myši
+    shootFireball();
+  }
+}
+
+// Funkce pro vystřelení ohnivé koule
+function shootFireball() {
+  const fireball = createFireball();
+
+  // Nastavení počáteční pozice ohnivé koule na pozici staffModel
+  const staffWorldPosition = new THREE.Vector3();
+  staffModel.getWorldPosition(staffWorldPosition);
+  fireball.position.copy(staffWorldPosition);
+  fireball.position.y += 0.3;
+
+  // Vytvoření efektu při vyčarování ohnivé koule
+  createCastEffect(staffWorldPosition);
+
+  // Získání směru střelby z kamery
+  const direction = new THREE.Vector3();
+  camera.getWorldDirection(direction);
+  fireball.velocity = direction.multiplyScalar(0.25);
+
+  // Přidání ohnivé koule do scény
+  scene.add(fireball);
+  fireBalls.push(fireball);
+
+}
+
+// Funkce pro vytvoření ohnivé koule
+function createFireball() {
+  const fireball = new THREE.Group();
+
+  // Vytvoření základní koule s emissive materiálem
+  const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xff4500,
+    emissive: 0xff4500,
+    emissiveIntensity: 2
+  });
+  const core = new THREE.Mesh(geometry, material);
+  fireball.add(core);
+
+  // Přidání částicového efektu
+  const particleCount = 50;
+  const particles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xff6600,
+      size: 0.05,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    })
+  );
+
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 0.45;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 0.45;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.45;
+  }
+
+  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  fireball.add(particles);
+
+  // Animace částic
+  fireball.userData.animate = function () {
+    const positions = particles.geometry.attributes.position.array;
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] += (Math.random() - 0.5) * 0.02;
+      positions[i + 1] += (Math.random() - 0.5) * 0.01;
+      positions[i + 2] += (Math.random() - 0.5) * 0.04;
     }
-    scene.fog = null;
-  
+    particles.geometry.attributes.position.needsUpdate = true;
+  };
+
+  return fireball;
+}
+
+function createCastEffect(position) {
+  const castEffectGroup = new THREE.Group();
+
+  const particleCount = 30;
+  const particles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xffa500,
+      size: 0.02,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    })
+  );
+
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 0.2;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 0.2;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+  }
+
+  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  castEffectGroup.add(particles);
+
+  castEffectGroup.position.copy(position);
+  castEffectGroup.position.y += 0.3;
+  scene.add(castEffectGroup);
+
+  // Animace částic
+  castEffectGroup.userData.animate = function () {
+    const positions = particles.geometry.attributes.position.array;
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] += (Math.random() - 0.5) * 0.01;
+      positions[i + 1] += (Math.random() - 0.5) * 0.01;
+      positions[i + 2] += (Math.random() - 0.5) * 0.01;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+  };
+
+  // Automatické odstranění efektu po určité době
+  setTimeout(() => {
+    scene.remove(castEffectGroup);
+  }, 500); // Efekt trvá 0.5 sekundy
+
+  return castEffectGroup;
+}
+
+function createExplosion(position) {
+  const explosionGroup = new THREE.Group();
+
+  const particleCount = 100;
+  const particles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xff4500,
+      size: 0.1,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    })
+  );
+
+  const positions = new Float32Array(particleCount * 3);
+  const velocities = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 0.5;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+
+    velocities[i * 3] = (Math.random() - 0.5) * 0.2;
+    velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.2;
+    velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+  }
+
+  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particles.geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+  explosionGroup.add(particles);
+
+  explosionGroup.position.copy(position);
+  scene.add(explosionGroup);
+
+  // Animace částic
+  explosionGroup.userData.animate = function () {
+    const positions = particles.geometry.attributes.position.array;
+    const velocities = particles.geometry.attributes.velocity.array;
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] += velocities[i];
+      positions[i + 1] += velocities[i + 1];
+      positions[i + 2] += velocities[i + 2];
+
+      velocities[i] *= 0.95; // Zpomalení částic
+      velocities[i + 1] *= 0.95;
+      velocities[i + 2] *= 0.95;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+  };
+
+  // Automatické odstranění výbuchu po určité době
+  setTimeout(() => {
+    scene.remove(explosionGroup);
+  }, 1000); // Výbuch trvá 1 sekundu
+
+  return explosionGroup;
+}
+
+
+
+function createMaze(inputText = "") {
+  // Odstraňte existující mlhovinu a mlhu, pokud existují
+  if (nebula) {
+    scene.remove(nebula);
+  }
+  scene.fog = null;
+
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
   walls = [];
   while (scene.children.length > 0) {
     scene.remove(scene.children[0]);
   }
 
-    // Odstraňte nebo zakomentujte tuto řádku:
-  // scene.background = new THREE.Color(0x48515b);
-
-
+  // Nastavení seed pro generátor náhodných čísel
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
+
+  // Vybereme sadu textur
   const textureSetIndex = Math.floor(rng() * textureSets.length);
   const selectedTextureSet = textureSets[textureSetIndex];
+
+  const loader = new THREE.TextureLoader();
+  const floorTexture = loader.load("cihly.jpg");
+  floorTexture.colorSpace = THREE.SRGBColorSpace;
 
   const brickTexture = loader.load(selectedTextureSet.wallTexture);
   const ceilingTexture = loader.load(selectedTextureSet.ceilingTexture);
@@ -204,7 +410,6 @@ function createMaze(inputText = "") {
   specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
   MAZE_SIZE = Math.max(20, Math.min(50, 20 + Math.floor(rng() * 31)));
-
   totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
   const teleportPairsCount = Math.max(
     1,
@@ -267,6 +472,33 @@ function createMaze(inputText = "") {
   // Přidání speciálních zdí
   addSpecialWalls(rng, specialTextures);
 
+  // Přidání blokujících zdí na základě seed
+  const blockingWallCount = Math.floor(MAZE_SIZE * MAZE_SIZE * 0.02);
+  for (let i = 0; i < blockingWallCount; i++) {
+    let x, z;
+    do {
+      x = Math.floor(rng() * MAZE_SIZE);
+      z = Math.floor(rng() * MAZE_SIZE);
+    } while (maze[x][z] !== 0);
+    maze[x][z] = BLOCKING_WALL;
+  }
+
+  // Přidejte vytvoření blokujících zdí
+  for (let i = 0; i < MAZE_SIZE; i++) {
+    for (let j = 0; j < MAZE_SIZE; j++) {
+      if (maze[i][j] === BLOCKING_WALL) {
+        const blockingWall = createBlockingWall(brickTexture);
+        blockingWall.position.set(
+          (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
+          WALL_HEIGHT / 2,
+          (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
+        );
+        scene.add(blockingWall);
+        walls.push(blockingWall);
+      }
+    }
+  }
+
   const teleportColors = [
     0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0xffff00, 0x00ffff,
   ];
@@ -287,24 +519,21 @@ function createMaze(inputText = "") {
   createKeys(rng);
   createTorches(walls, maze, CELL_SIZE, MAZE_SIZE);
 
-
-    // Použijeme model truhly jako cíl
-    const goal = treasureModel.clone();
-    goal.userData.isGoal = true;
-    placeObjectInFreeCell(goal, rng);
-    scene.add(goal);
+  // Použijeme model truhly jako cíl
+  const goal = treasureModel.clone();
+  goal.userData.isGoal = true;
+  placeObjectInFreeCell(goal, rng);
+  scene.add(goal);
 
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
   scene.add(ambientLight);
 
-  
-
- // Přidejte mlhovinu
- nebulaMaterial = addNebula();
+  // Přidejte mlhovinu
+  nebulaMaterial = addNebula();
   addFloatingObjects();
-  
- // Přidejte mlhu
- scene.fog = new THREE.FogExp2(0x000000,0.05); // Zvýšili jsme hustotu mlhy
+
+  // Přidejte mlhu
+  scene.fog = new THREE.FogExp2(0x000000, 0.05); // Zvýšili jsme hustotu mlhy
 
   keyCount = 0;
   updateKeyCount();
@@ -314,10 +543,10 @@ function createMaze(inputText = "") {
   minimap.style.display = "none";
   showMinimapTimer = setInterval(showMinimap, 15000);
 
-
   console.log("Maze created");
   console.log("lights " + lightManager.lights.length);
 }
+
 
 function getHash(str) {
   let hash = 0;
@@ -370,10 +599,10 @@ function animateGoal() {
   scene.children.forEach((child) => {
     if (child.userData.isGoal) {
       child.rotation.y += 0.01; // Pomalu otáčíme kolem Y osy
-       // Vznášení nahoru a dolů
-       const time = Date.now() * 0.001; // Aktuální čas v sekundách
-       const floatHeight = Math.sin(time) * 0.1; // Výška vznášení
-       child.position.y = 0.5 + floatHeight; // Nastavení pozice na ose Y
+      // Vznášení nahoru a dolů
+      const time = Date.now() * 0.001; // Aktuální čas v sekundách
+      const floatHeight = Math.sin(time) * 0.1; // Výška vznášení
+      child.position.y = 0.5 + floatHeight; // Nastavení pozice na ose Y
     }
   });
 }
@@ -524,7 +753,7 @@ function placeObjectInFreeCell(object, rng) {
   if (object.userData.isTeleport) {
     height = 1;
   }
- 
+
   if (freeCells.length > 0) {
     let cell = freeCells[Math.floor(rng() * freeCells.length)];
     object.position.set(
@@ -536,6 +765,44 @@ function placeObjectInFreeCell(object, rng) {
     console.error("Nepodařilo se najít volnou buňku pro umístění objektu.");
   }
 }
+
+// Funkce pro vytvoření blokující zdi
+function createBlockingWall(brickTexture) {
+  const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+  const wallMaterial = new THREE.MeshStandardMaterial({
+    map: brickTexture,
+    emissive: 0xff3300,
+    emissiveIntensity: 1.5,
+  });
+  const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+
+  // Přidejte částicový efekt
+  const particles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xff3300,
+      size: 0.2,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    })
+  );
+
+  const particleCount = 0;
+  const positions = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * CELL_SIZE;
+    positions[i * 3 + 1] = Math.random() * WALL_HEIGHT;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * CELL_SIZE;
+  }
+
+  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  wall.add(particles);
+
+  wall.userData.isBlockingWall = true;
+  return wall;
+}
+
 
 // Funkce pro vytvoření nového 3D modelu teleportu s particle efekty
 function createTeleportModel(color) {
@@ -967,10 +1234,18 @@ function drawMinimap() {
   ctx.fillRect(0, 0, minimap.width, minimap.height);
 
   // Vykreslení zdí
-  ctx.fillStyle = "black";
   for (let i = 0; i < MAZE_SIZE; i++) {
     for (let j = 0; j < MAZE_SIZE; j++) {
       if (maze[i][j] === 1) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(
+          i * CELL_SIZE * scale,
+          j * CELL_SIZE * scale,
+          CELL_SIZE * scale,
+          CELL_SIZE * scale
+        );
+      } else if (maze[i][j] === BLOCKING_WALL) {
+        ctx.fillStyle = "orange";
         ctx.fillRect(
           i * CELL_SIZE * scale,
           j * CELL_SIZE * scale,
@@ -1049,6 +1324,43 @@ function showMinimap() {
   minimapVisibleTimer = setTimeout(() => {
     minimap.style.display = "none";
   }, getMinimapDisplayTime() * 1000); // Použití dynamické doby zobrazení minimapy
+}
+
+// Funkce pro načtení modelu kouzelné hole
+async function loadStaffModel() {
+  return new Promise((resolve, reject) => {
+    const loader = new GLTFLoader();
+    loader.load(
+      "Staff.glb",
+      (gltf) => {
+        staffModel = gltf.scene;
+
+        // Přidání emisivního materiálu k hůlce
+        staffModel.traverse((child) => {
+          if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
+            child.material = new THREE.MeshStandardMaterial({
+              emissive: 0xff4500, // Emisivní oranžová barva
+              emissiveIntensity: 1.5, // Intenzita emisivní barvy
+              metalness: 1,
+              roughness: 0.5
+            });
+
+          }
+
+        });
+
+        staffModel.scale.set(0.1, 0.1, 0.1);
+        resolve(staffModel);
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.error("Error loading staff model:", error);
+        reject(error);
+      }
+    );
+  });
 }
 
 
@@ -1313,7 +1625,7 @@ function addFloatingObjects() {
     );
 
     object.rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
-    
+
     object.userData.rotationSpeed = {
       x: (Math.random() - 0.5) * 0.02,
       y: (Math.random() - 0.5) * 0.02,
@@ -1352,11 +1664,68 @@ function addNebula() {
   });
   nebula = new THREE.Mesh(geometry, material);
   scene.add(nebula);
-  
+
   return { material, object: nebula };
 }
 
+// Funkce pro aktualizaci pozic a animace ohnivých koulí
+function updateFireballs() {
+  for (let i = fireBalls.length - 1; i >= 0; i--) {
+    const fireball = fireBalls[i];
+    fireball.position.add(fireball.velocity);
+
+    // Animace částic v ohnivé kouli
+    fireball.userData.animate();
+
+    // Detekce kolize s podlahou a stropem
+    if (fireball.position.y <= 0 || fireball.position.y >= WALL_HEIGHT) {
+      console.log("Collision detected with floor or ceiling at", fireball.position);
+
+      // Vytvoření výbuchu při kolizi
+      createExplosion(fireball.position);
+
+      scene.remove(fireball);
+      fireBalls.splice(i, 1);
+      continue;
+    }
+
+    // Detekce kolize s zdmi
+    for (let j = walls.length - 1; j >= 0; j--) {
+      const wall = walls[j];
+      if (fireball.position.distanceTo(wall.position) < CELL_SIZE / 2) {
+        console.log("Collision detected with wall at", wall.position);
+
+        // Vytvoření výbuchu při kolizi
+        createExplosion(fireball.position);
+
+        scene.remove(fireball);
+        fireBalls.splice(i, 1);
+
+        if (wall.userData.isBlockingWall) {
+          console.log("Destroying blocking wall at", wall.position);
+          scene.remove(wall);
+          walls.splice(j, 1);
+          // Aktualizujte matici bludiště
+          const x = Math.round((wall.position.x / CELL_SIZE) + (MAZE_SIZE / 2) - 0.5);
+          const z = Math.round((wall.position.z / CELL_SIZE) + (MAZE_SIZE / 2) - 0.5);
+          maze[x][z] = 0;
+        }
+
+        break;
+      }
+    }
+
+    // Odstraňte ohnivou kouli, pokud je příliš daleko
+    if (fireball.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
+      scene.remove(fireball);
+      fireBalls.splice(i, 1);
+    }
+  }
+}
+
+
 // Upravte funkci animate()
+// Funkce animate (přidání animace částic v ohnivých koulích)
 function animate() {
   requestAnimationFrame(animate);
   updatePlayerPosition();
@@ -1365,9 +1734,10 @@ function animate() {
   animateGoal();
   rotateTeleports();
   animateFire();
+  updateFireballs();
 
-   // Animace létajících objektů
-   floatingObjects.forEach(obj => {
+  // Animace létajících objektů
+  floatingObjects.forEach(obj => {
     obj.rotation.x += obj.userData.rotationSpeed.x;
     obj.rotation.y += obj.userData.rotationSpeed.y;
     obj.rotation.z += obj.userData.rotationSpeed.z;
@@ -1379,7 +1749,14 @@ function animate() {
       obj.userData.floatSpeed *= -1;
     }
   });
- 
+
+  // Animace všech částicových efektů ve scéně
+  scene.children.forEach(child => {
+    if (child.userData.animate) {
+      child.userData.animate();
+    }
+  });
+
   if (nebulaMaterial) {
     nebulaMaterial.material.uniforms.time.value += 0.01;
   }
@@ -1388,6 +1765,8 @@ function animate() {
 
   composer.render();
 }
+
+
 
 function showNameModal() {
   document.getElementById("nameModal").style.display = "block";
