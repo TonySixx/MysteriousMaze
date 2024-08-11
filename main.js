@@ -73,6 +73,9 @@ let composer, lightManager;
 const MAX_VISIBLE_LIGHTS = 10; // Maximální počet viditelných světel
 
 let keyModel;
+let treasureModel;
+
+
 var showMinimapTimer = setInterval(showMinimap, 15000); // Interval 15 vteřin
 var minimapVisibleTimer;
 
@@ -91,6 +94,7 @@ async function init() {
   try {
 
     await loadKeyModel();
+    await loadTreasureModel();
     createMaze();
     createPlayer();
     startTimer();
@@ -284,21 +288,16 @@ function createMaze(inputText = "") {
   createTorches(walls, maze, CELL_SIZE, MAZE_SIZE);
 
 
-  const goalGeometry = new THREE.SphereGeometry(0.4, 32, 32);
-  const goalMaterial = new THREE.MeshStandardMaterial({
-    color: 0x00ffff,
-  });
-  const goal = new THREE.Mesh(goalGeometry, goalMaterial);
-  goal.userData.isGoal = true;
-  placeObjectInFreeCell(goal, rng);
-  scene.add(goal);
+    // Použijeme model truhly jako cíl
+    const goal = treasureModel.clone();
+    goal.userData.isGoal = true;
+    placeObjectInFreeCell(goal, rng);
+    scene.add(goal);
 
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.1);
-  directionalLight.position.set(0, 10, 0);
-  scene.add(directionalLight);
+  
 
  // Přidejte mlhovinu
  nebulaMaterial = addNebula();
@@ -346,8 +345,8 @@ function createKeys(rng) {
       if (child.isMesh) {
         child.material = new THREE.MeshStandardMaterial({
           color: 0xffd700,
-          metalness: 0.7,
-          roughness: 0.3,
+          metalness: 0.6,
+          roughness: 0.10,
         });
       }
     });
@@ -364,6 +363,17 @@ function animateKeys() {
   scene.children.forEach((child) => {
     if (child.userData.isKey) {
       child.rotation.y += 0.01; // Pomalu otáčíme kolem Y osy
+    }
+  });
+}
+function animateGoal() {
+  scene.children.forEach((child) => {
+    if (child.userData.isGoal) {
+      child.rotation.y += 0.01; // Pomalu otáčíme kolem Y osy
+       // Vznášení nahoru a dolů
+       const time = Date.now() * 0.001; // Aktuální čas v sekundách
+       const floatHeight = Math.sin(time) * 0.1; // Výška vznášení
+       child.position.y = 0.5 + floatHeight; // Nastavení pozice na ose Y
     }
   });
 }
@@ -445,9 +455,9 @@ function generateMaze(width, height, seed) {
 
   carvePassage(1, 1);
 
-  // Přidáme haly (méně často)
-  const hallProbability = 0.01;
-  const hallSize = 3;
+  // Náhodně generujeme pravděpodobnost a velikost haly na základě seed
+  const hallProbability = 0.008 + rng() * (0.02 - 0.008);
+  const hallSize = 2 + Math.floor(rng() * (4 - 2 + 1));
 
   for (let y = 1; y < height - hallSize; y += hallSize) {
     for (let x = 1; x < width - hallSize; x += hallSize) {
@@ -514,6 +524,7 @@ function placeObjectInFreeCell(object, rng) {
   if (object.userData.isTeleport) {
     height = 1;
   }
+ 
   if (freeCells.length > 0) {
     let cell = freeCells[Math.floor(rng() * freeCells.length)];
     object.position.set(
@@ -754,7 +765,7 @@ function checkObjectInteractions() {
       } else if (child.userData.isTeleport && distance < 1.5) {
         nearTeleport = child;
         showTeleportPrompt();
-      } else if (child.userData.isGoal && distance < 1) {
+      } else if (child.userData.isGoal && distance < 1.5) {
         if (keyCount === totalKeys) {
           console.log("Dosaženo cíle");
           showFinishMessage();
@@ -1066,6 +1077,30 @@ function loadKeyModel() {
   });
 }
 
+async function loadTreasureModel() {
+  return new Promise((resolve, reject) => {
+    console.log("Starting to load treasure model");
+    const loader = new GLTFLoader();
+    loader.load(
+      "TreasureChest.glb",
+      (gltf) => {
+        console.log("Treasure model loaded successfully", gltf);
+        treasureModel = gltf.scene;
+        treasureModel.scale.set(0.5, 0.5, 0.5);
+        console.log("Treasure model processed");
+        resolve(treasureModel);
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.error("Error loading treasure model:", error);
+        reject(error);
+      }
+    );
+  });
+}
+
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -1327,6 +1362,7 @@ function animate() {
   updatePlayerPosition();
   checkObjectInteractions();
   animateKeys();
+  animateGoal();
   rotateTeleports();
   animateFire();
 
