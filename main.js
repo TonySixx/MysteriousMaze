@@ -89,6 +89,7 @@ let bossCounter = 0; // Globální počítadlo pro ID bossů
 let isConsoleOpen = false;
 let consoleInput = '';
 let canWalkThroughWalls = false;
+let isFlying = false;
 
 
 
@@ -195,15 +196,18 @@ async function init() {
 
 function processConsoleCommand(command) {
   switch (command.toLowerCase()) {
-    case 'ghost':
-      enableGhostMode();
-      break;
-    case 'walk':
-      disableGhostMode();
-      break;
-    default:
-      console.log('Neznámý příkaz:', command);
-      break;
+      case 'ghost.cmd':
+          enableGhostMode();
+          break;
+      case 'walk.cmd':
+          disableGhostMode();
+          break;
+      case 'fly.cmd':
+          toggleFlyMode();
+          break;
+      default:
+          console.log('Neznámý příkaz:', command);
+          break;
   }
 }
 
@@ -216,6 +220,20 @@ function disableGhostMode() {
   canWalkThroughWalls = false;
   console.log("Ghost mode deactivated!");
 }
+
+function toggleFlyMode() {
+  isFlying = !isFlying;
+  canWalkThroughWalls = isFlying; // Povolit procházení zdmi, pokud je aktivní letový režim
+  if (isFlying) {
+      console.log("Fly mode activated!");
+      scene.fog = null;
+
+  } else {
+      console.log("Fly mode deactivated!");
+      scene.fog = new THREE.FogExp2(0x000000, 0.05);
+  }
+}
+
 
 function attachStaffToCamera() {
   if (staffModel) {
@@ -1192,35 +1210,61 @@ function updatePlayerPosition(deltaTime) {
   playerVelocity.set(0, 0, 0);
 
   const speed = 6.5; // Základní rychlost hráče
-  if (moveForward) playerVelocity.z -= speed * deltaTime;
-  if (moveBackward) playerVelocity.z += speed * deltaTime;
-  if (moveLeft) playerVelocity.x -= speed * deltaTime;
-  if (moveRight) playerVelocity.x += speed * deltaTime;
+  const flySpeed = 6.5; // Rychlost při letu
 
-  playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
+  if (isFlying) {
+      // Při letu se pohybujeme ve směru kamery, pokud jsou stisknuty klávesy
+      const direction = new THREE.Vector3();
+      camera.getWorldDirection(direction);
+
+      if (moveForward) playerVelocity.add(direction.clone().multiplyScalar(flySpeed * deltaTime));
+      if (moveBackward) playerVelocity.add(direction.clone().multiplyScalar(-flySpeed * deltaTime));
+      if (moveLeft) {
+          const leftDirection = new THREE.Vector3(direction.z, 0, -direction.x).normalize(); 
+          playerVelocity.add(leftDirection.clone().multiplyScalar(flySpeed * deltaTime));
+      }
+      if (moveRight) {
+          const rightDirection = new THREE.Vector3(-direction.z, 0, direction.x).normalize(); 
+          playerVelocity.add(rightDirection.clone().multiplyScalar(flySpeed * deltaTime));
+      }
+  } else {
+      // Standardní pohyb po zemi
+      if (moveForward) playerVelocity.z -= speed * deltaTime;
+      if (moveBackward) playerVelocity.z += speed * deltaTime;
+      if (moveLeft) playerVelocity.x -= speed * deltaTime;
+      if (moveRight) playerVelocity.x += speed * deltaTime;
+
+      playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
+  }
 
   const oldPosition = player.position.clone();
   player.position.add(playerVelocity);
 
-  if (checkCollisions()) {
-    player.position.copy(oldPosition);
+  if (!canWalkThroughWalls && checkCollisions()) {
+      player.position.copy(oldPosition);
   } else if (playerVelocity.length() > 0) {
-    moveCount++;
-    lastTeleport = null; // Resetujeme poslední teleport pouze při skutečném pohybu
+      moveCount++;
+      lastTeleport = null; // Resetujeme poslední teleport pouze při skutečném pohybu
   }
 
   // Limit player movement to the maze area
   player.position.x = Math.max(
-    Math.min(player.position.x, (MAZE_SIZE * CELL_SIZE) / 2),
-    (-MAZE_SIZE * CELL_SIZE) / 2
+      Math.min(player.position.x, (MAZE_SIZE * CELL_SIZE) / 2),
+      (-MAZE_SIZE * CELL_SIZE) / 2
   );
   player.position.z = Math.max(
-    Math.min(player.position.z, (MAZE_SIZE * CELL_SIZE) / 2),
-    (-MAZE_SIZE * CELL_SIZE) / 2
+      Math.min(player.position.z, (MAZE_SIZE * CELL_SIZE) / 2),
+      (-MAZE_SIZE * CELL_SIZE) / 2
   );
+
+  if (!isFlying) {
+      player.position.y = Math.max(0, player.position.y); // Neumožní pád pod podlahu
+  }
 
   checkObjectInteractions();
 }
+
+
 
 let lastTeleport = null;
 
