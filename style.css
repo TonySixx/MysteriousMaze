@@ -10,6 +10,54 @@ canvas {
   display: block;
 }
 
+#bossHealthContainer {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+}
+
+.boss-health {
+  font-family: Arial, sans-serif;
+}
+
+#playerHealthBar {
+  width: 200px;
+  height: 20px;
+  background-color: black;
+  border: 1px solid white;
+  padding: 2px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+#playerHealthFill {
+  height: 100%;
+  background-color: rgb(173, 42, 42);
+  transition: width 0.3s ease; /* Hladký přechod při změně zdraví */
+}
+
+#playerManaBar {
+  width: 200px;
+  height: 20px;
+  background-color: black;
+  border: 1px solid white;
+  padding: 2px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 5px; /* Trochu místa mezi healthbarem a manabarem */
+}
+
+#playerManaFill {
+  height: 100%;
+  background-color: rgb(42, 42, 216);
+  transition: width 0.3s ease; /* Hladký přechod při změně many */
+}
+
 #game-ui {
   position: absolute;
   top: 10px;
