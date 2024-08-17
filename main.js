@@ -839,7 +839,7 @@ function generateMaze(width, height, seed) {
   // Přidáme generování hal a bossů
   const hallProbability = 0.008 + rng() * (0.02 - 0.008);
   const hallSize = 2 + Math.floor(rng() * (4 - 2 + 1));
-  const bossProbability = 0.3; // 30% šance na spawnutí bosse v hale
+  const bossProbability = 0.8; // 80% šance na spawnutí bosse v hale
 
   for (let y = 1; y < MAZE_SIZE - hallSize; y += hallSize) {
     for (let x = 1; x < MAZE_SIZE - hallSize; x += hallSize) {
