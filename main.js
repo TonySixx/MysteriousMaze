@@ -235,7 +235,7 @@ function onMouseDown(event) {
 function updateMagicBalls(deltaTime) {
   for (let i = magicBalls.length - 1; i >= 0; i--) {
     const magicBall = magicBalls[i];
-    magicBall.position.add(magicBall.velocity.clone().multiplyScalar(deltaTime*40));
+    magicBall.position.add(magicBall.velocity.clone().multiplyScalar(deltaTime * 40));
 
     var player_position_for_collision = { ...player.position };
     player_position_for_collision.y = 1;
@@ -260,12 +260,12 @@ function updateMagicBalls(deltaTime) {
       }
     }
 
-     // Časový limit - pokud střela existuje déle než 5 sekund, odstranit ji
-     magicBall.userData.lifeTime = (magicBall.userData.lifeTime || 0) + deltaTime;
-     if (magicBall.userData.lifeTime > 5) {
-       scene.remove(magicBall);
-       magicBalls.splice(i, 1);
-     }
+    // Časový limit - pokud střela existuje déle než 5 sekund, odstranit ji
+    magicBall.userData.lifeTime = (magicBall.userData.lifeTime || 0) + deltaTime;
+    if (magicBall.userData.lifeTime > 5) {
+      scene.remove(magicBall);
+      magicBalls.splice(i, 1);
+    }
 
   }
 }
@@ -321,14 +321,14 @@ function shootFireball() {
 
 function regenerateMana(deltaTime) {
   if (playerMana < maxMana) {
-    playerMana = Math.min(playerMana + (manaRegenRate * (deltaTime*40)), maxMana);
+    playerMana = Math.min(playerMana + (manaRegenRate * (deltaTime * 40)), maxMana);
     updatePlayerManaBar();
   }
 }
 
 function regenerateHealth(deltaTime) {
   if (playerHealth < 100) {
-    playerHealth = Math.min(playerHealth + (0.05 * (deltaTime*40)), 100);
+    playerHealth = Math.min(playerHealth + (0.05 * (deltaTime * 40)), 100);
     updatePlayerHealthBar();
   }
 }
@@ -431,7 +431,7 @@ function createCastEffect(position) {
   return castEffectGroup;
 }
 
-function createExplosion(position,color = 0xff4500) {
+function createExplosion(position, color = 0xff4500) {
   const explosionGroup = new THREE.Group();
 
   const particleCount = 100;
@@ -869,8 +869,8 @@ function generateMaze(width, height, seed) {
         }
 
         // Šance na spawnutí bosse v hale
-        if (rng() < bossProbability) {       
-          spawnBossInMaze(maze,rng);
+        if (rng() < bossProbability) {
+          spawnBossInMaze(maze, rng);
         }
       }
     }
@@ -1666,16 +1666,16 @@ class Boss {
     this.position = position;
     this.attackCooldown = rng() * 0.5 + 0.5; // Náhodný cooldown útoku v rozmezí 0.5 - 1 vteřina
 
-      // Definování dostupných barev střel
-      const colors = [
-        new THREE.Color(0x0000ff), // Modrá
-        new THREE.Color(0x00ff00), // Zelená
-        new THREE.Color(0xffff00), // Žlutá
-        new THREE.Color(0xff00ff)  // Růžová
-      ];
-  
-      // Náhodně vybereme jednu barvu
-      this.attackColor = colors[Math.floor(rng() * colors.length)];
+    // Definování dostupných barev střel
+    const colors = [
+      new THREE.Color(0x33adff), // Modrá
+      new THREE.Color(0x66ff99), // Zelená
+      new THREE.Color(0xffff66), // Žlutá
+      new THREE.Color(0xff66ff)  // Růžová
+    ];
+
+    // Náhodně vybereme jednu barvu
+    this.attackColor = colors[Math.floor(rng() * colors.length)];
 
     this.model = null;
     this.healthBar = null;
@@ -1765,7 +1765,7 @@ class Boss {
     this.updateHealthBar();
   }
 
- die() {
+  die() {
     if (this.model) {
       scene.remove(this.model); // Odstranění modelu bosse ze scény
     }
@@ -1786,7 +1786,7 @@ class Boss {
     }
   }
 
-   attack() {
+  attack() {
     const currentTime = performance.now();
     if (currentTime - this.lastAttackTime >= this.attackCooldown * 1000) {
       if (this.health < this.maxHealth / 2 && this.rng() < 0.3) {
@@ -1828,7 +1828,10 @@ class Boss {
 
   createMagicBall(startPosition, targetPosition) {
     const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: this.attackColor });
+    const material = new THREE.MeshBasicMaterial({
+      color: this.attackColor, emissive: this.attackColor,
+      emissiveIntensity: 2
+    });
     const magicBall = new THREE.Mesh(geometry, material);
     magicBall.position.copy(startPosition);
     magicBall.position.y += 1;
@@ -1848,6 +1851,10 @@ class Boss {
   }
 
   move(deltaTime) {
+    if (!this.model || !this.position) {
+      return;
+    }
+
     if (this.moveDirection.length() === 0) {
       this.changeDirection();
     }
@@ -1856,7 +1863,13 @@ class Boss {
     const moveStep = this.moveDirection.clone().multiplyScalar(speed * deltaTime);
     const nextPosition = this.position.clone().add(moveStep);
 
-    if (!this.checkCollision(nextPosition)) {
+    const halfMazeSize = (MAZE_SIZE * CELL_SIZE) / 2;
+    if (
+      nextPosition.x < -halfMazeSize || nextPosition.x > halfMazeSize ||
+      nextPosition.z < -halfMazeSize || nextPosition.z > halfMazeSize
+    ) {
+      this.changeDirection(); // Pokud by boss opustil hranice bludiště, změní směr
+    } else if (!this.checkCollision(nextPosition)) {
       this.position.add(moveStep);
       this.model.position.copy(this.position);
     } else {
@@ -1894,7 +1907,7 @@ class Boss {
 
 
 
-function spawnBossInMaze(maze,rng) {
+function spawnBossInMaze(maze, rng) {
   let freeCells = [];
 
   // Projdeme celé bludiště a najdeme volné buňky
@@ -2083,9 +2096,9 @@ function animateFire(deltaTime) {
   torches.forEach(({ fire }) => {
     const positions = fire.geometry.attributes.position.array;
     for (let i = 0; i < positions.length; i += 3) {
-      positions[i] += (Math.random() - 0.5) * 0.01 * (deltaTime*50);
-      positions[i + 1] += 0.01 * (deltaTime*50) + Math.random() * 0.02 * (deltaTime*50);
-      positions[i + 2] += (Math.random() - 0.5) * 0.01 * (deltaTime*50);
+      positions[i] += (Math.random() - 0.5) * 0.01 * (deltaTime * 50);
+      positions[i + 1] += 0.01 * (deltaTime * 50) + Math.random() * 0.02 * (deltaTime * 50);
+      positions[i + 2] += (Math.random() - 0.5) * 0.01 * (deltaTime * 50);
 
       if (positions[i + 1] > 0.6) {
         positions[i] = (Math.random() - 0.5) * 0.1;
@@ -2260,11 +2273,11 @@ function animate() {
 
   // Animace létajících objektů
   floatingObjects.forEach(obj => {
-    obj.rotation.x += obj.userData.rotationSpeed.x * (deltaTime*30);
-    obj.rotation.y += obj.userData.rotationSpeed.y * (deltaTime*50);
-    obj.rotation.z += obj.userData.rotationSpeed.z * (deltaTime*30);
+    obj.rotation.x += obj.userData.rotationSpeed.x * (deltaTime * 30);
+    obj.rotation.y += obj.userData.rotationSpeed.y * (deltaTime * 50);
+    obj.rotation.z += obj.userData.rotationSpeed.z * (deltaTime * 30);
 
-    obj.position.y += obj.userData.floatSpeed * (deltaTime*30);
+    obj.position.y += obj.userData.floatSpeed * (deltaTime * 30);
 
     // Pokud objekt vyletí příliš vysoko nebo nízko, obrátíme směr
     if (obj.position.y > MAZE_SIZE * CELL_SIZE || obj.position.y < 0) {
@@ -2275,12 +2288,12 @@ function animate() {
   // Animace všech částicových efektů ve scéně
   scene.children.forEach(child => {
     if (child.userData.animate) {
-      child.userData.animate(deltaTime*30);
+      child.userData.animate(deltaTime * 30);
     }
   });
 
   if (nebulaMaterial) {
-    nebulaMaterial.material.uniforms.time.value += deltaTime*1;
+    nebulaMaterial.material.uniforms.time.value += deltaTime * 1;
   }
 
   lightManager.update(player.position, camera); // Aktualizace světel s hráčovou pozicí a kamerou
@@ -2412,7 +2425,6 @@ function toggleConsole() {
 
   if (isConsoleOpen) {
     consoleInput = '';
-    debugger;
     consoleElement.value = "";
     consoleElement.style.display = "block";
     consoleElement.focus();
@@ -2424,7 +2436,6 @@ function toggleConsole() {
 }
 
 document.addEventListener('keydown', (event) => {
-  debugger;
   if (event.key === ';') {
     toggleConsole();
   } else if (isConsoleOpen) {
@@ -2437,7 +2448,7 @@ document.addEventListener('keydown', (event) => {
       consoleInput += event.key;
     }
 
-   
+
   }
 });
 
