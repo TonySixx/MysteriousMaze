@@ -55,6 +55,7 @@ const WALL_HEIGHT = 2.8;
 const CELL_SIZE = 2.4;
 const OBJECT_HEIGHT = 1.6;
 let walls = [];
+let highWallAreas = [];
 
 let playerHealth = 100;
 let playerMana = 100;
@@ -605,7 +606,7 @@ function createMaze(inputText = "") {
 
 
  // Determine high wall areas
-const highWallAreas = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+highWallAreas = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
 for (let i = 0; i < MAZE_SIZE; i++) {
   for (let j = 0; j < MAZE_SIZE; j++) {
     if (maze[i][j] === 0 && rng() < 0.1) { 
@@ -2392,6 +2393,12 @@ function addNebula() {
   return { material, object: nebula };
 }
 
+function isHighWallArea(x, z) {
+  const mazeX = Math.floor((x / CELL_SIZE) + (MAZE_SIZE / 2));
+  const mazeZ = Math.floor((z / CELL_SIZE) + (MAZE_SIZE / 2));
+  return highWallAreas[mazeX][mazeZ];
+}
+
 // Funkce pro aktualizaci pozic a animace ohnivých koulí
 function updateFireballs(deltaTime) {
   for (let i = fireBalls.length - 1; i >= 0; i--) {
@@ -2416,15 +2423,15 @@ function updateFireballs(deltaTime) {
     }
 
     // Detekce kolize s podlahou a stropem
-    if (fireball.position.y <= 0 || fireball.position.y >= WALL_HEIGHT) {
+    const ceilingHeight = isHighWallArea(fireball.position.x, fireball.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+if (fireball.position.y <= 0 || fireball.position.y >= ceilingHeight) {
+  // Vytvoření výbuchu při kolizi
+  createExplosion(fireball.position);
 
-      // Vytvoření výbuchu při kolizi
-      createExplosion(fireball.position);
-
-      scene.remove(fireball);
-      fireBalls.splice(i, 1);
-      continue;
-    }
+  scene.remove(fireball);
+  fireBalls.splice(i, 1);
+  continue;
+}
 
     // Detekce kolize s zdmi
     for (let j = walls.length - 1; j >= 0; j--) {
