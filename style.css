@@ -105,6 +105,11 @@ canvas {
   color: yellow;
 }
 
+#showMinimapText.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 #menu {
   position: absolute;
   top: 10px;

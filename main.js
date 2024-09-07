@@ -99,6 +99,10 @@ let isMinimapVisible = false;
 let minimapTimeMultiplier = 1;
 let cumulativeTime = 0;
 let lastUpdateTime;
+let canOpenMinimap = true;
+let minimapCooldownTimer = null;
+
+
 
 
 let nebula, nebulaMaterial;
@@ -191,6 +195,9 @@ async function init() {
     bloomPass.strength = 0.6;
     bloomPass.radius = 0;
     composer.addPass(bloomPass);
+
+    const inputText = document.getElementById("mazeInput").value;
+    getBestTime(inputText);
 
     animate();
 
@@ -1151,11 +1158,11 @@ function onKeyDown(event) {
       if (nearTeleport) {
         teleportPlayer(nearTeleport);
       }
-      case "KeyV":
-        toggleMinimap();
-        break;
-  
       break;
+    case "KeyV":
+      toggleMinimap();
+      break;
+
   }
 }
 
@@ -1203,6 +1210,7 @@ function onMouseClick() {
 function checkCollisions(newPosition) {
   const playerRadius = 0.4;
   const wallMargin = 0.3;
+  
   let collisionNormal = new THREE.Vector3();
   let hasCollision = false;
 
@@ -1220,6 +1228,31 @@ function checkCollisions(newPosition) {
   }
 
   return { normal: collisionNormal, collision: hasCollision };
+}
+
+function checkCollisionsWhenTeleport() {
+  if (canWalkThroughWalls) {
+    return false; // Pokud je aktivní Ghost mode, ignorujeme kolize
+  }
+
+  const playerRadius = 0.4;
+  const wallMargin = 0.3;
+  for (let wall of walls) {
+    const dx = player.position.x - wall.position.x;
+    const dz = player.position.z - wall.position.z;
+    const distance = Math.sqrt(dx * dx + dz * dz);
+    if (distance < CELL_SIZE / 2 + playerRadius + wallMargin) {
+      const angle = Math.atan2(dz, dx);
+      player.position.x =
+        wall.position.x +
+        Math.cos(angle) * (CELL_SIZE / 2 + playerRadius + wallMargin);
+      player.position.z =
+        wall.position.z +
+        Math.sin(angle) * (CELL_SIZE / 2 + playerRadius + wallMargin);
+      return true;
+    }
+  }
+  return false;
 }
 
 function updatePlayerHealthBar() {
@@ -1340,11 +1373,7 @@ function checkObjectInteractions() {
           console.log("Dosaženo cíle");
           showFinishMessage();
           stopTimer();
-          createMaze(document.getElementById("mazeInput").value);
-          createPlayer();
-          moveCount = 0;
-          keyCount = 0;
-          updateKeyCount();
+          startGame();
         } else {
           if (!keysAlertShown) {
             console.log(
@@ -1430,7 +1459,7 @@ function teleportPlayer(teleport) {
       );
       lastTeleportTime = currentTime;
 
-      while (checkCollisions()) {
+      while (checkCollisionsWhenTeleport()) {
         player.position.set(
           (Math.random() - 0.5) * MAZE_SIZE * CELL_SIZE,
           0,
@@ -1466,9 +1495,27 @@ async function startGame() {
   createPlayer();
   moveCount = 0;
   keyCount = 0;
+  
+  // Reset času
+  cumulativeTime = 0;
   document.getElementById("timeCount").textContent = "0:00";
+  
   camera.position.set(0, 1.6, 0);
-  startTimer(); // Spuštění časovače
+  
+  // Zastavíme předchozí časovač, pokud běží
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
+  isMinimapVisible = false;
+  canOpenMinimap = true;
+  if (minimapCooldownTimer) {
+    clearTimeout(minimapCooldownTimer);
+  }
+  document.getElementById("showMinimapText").classList.remove("disabled");
+  document.getElementById("minimap").style.display = "none";
+  
+  startTimer(); // Spuštění nového časovače
 }
 
 async function getBestTime(levelName) {
@@ -1506,13 +1553,16 @@ function startTimer() {
 
 async function stopTimer() {
   clearInterval(timerInterval);
-  const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+  const elapsedTime = Math.floor(cumulativeTime / 1000);
 
   if (elapsedTime < bestTime) {
     bestTime = elapsedTime;
     await submitScore(document.getElementById("mazeInput").value, bestTime);
   }
+
+ 
 }
+
 
 function updateTimer() {
   const now = Date.now();
@@ -1551,18 +1601,31 @@ function drawArrow(ctx, x, y, angle, size) {
 
 // Přidejte novou funkci pro přepínání minimapy
 function toggleMinimap() {
+  if (!canOpenMinimap && !isMinimapVisible) return;
+
   isMinimapVisible = !isMinimapVisible;
   const minimap = document.getElementById("minimap");
   const timeCount = document.getElementById("timeCount");
+  const showMinimapText = document.getElementById("showMinimapText");
+  
   minimap.style.display = isMinimapVisible ? "block" : "none";
   timeCount.classList.toggle("minimap-open", isMinimapVisible);
-  minimapTimeMultiplier = isMinimapVisible ? 2 : 1;
+  minimapTimeMultiplier = isMinimapVisible ? 3 : 1;
+  
+  if (!isMinimapVisible) {
+    canOpenMinimap = false;
+    showMinimapText.classList.add("disabled");
+    minimapCooldownTimer = setTimeout(() => {
+      canOpenMinimap = true;
+      showMinimapText.classList.remove("disabled");
+    }, 3000);
+  }
+  
   lastUpdateTime = Date.now();
   if (isMinimapVisible) {
     drawMinimap();
   }
 }
-
 function drawMinimap() {
   const minimap = document.getElementById("minimap");
   const ctx = minimap.getContext("2d");
@@ -2344,7 +2407,6 @@ function updateFireballs(deltaTime) {
 
     // Detekce kolize s podlahou a stropem
     if (fireball.position.y <= 0 || fireball.position.y >= WALL_HEIGHT) {
-      console.log("Collision detected with floor or ceiling at", fireball.position);
 
       // Vytvoření výbuchu při kolizi
       createExplosion(fireball.position);
@@ -2387,6 +2449,8 @@ function updateFireballs(deltaTime) {
     }
   }
 }
+
+
 
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
