@@ -51,7 +51,7 @@ let moveCount = 0,
   keyCount = 0;
 let MAZE_SIZE = 20;
 let totalKeys = 3; // Přidání deklarace proměnné totalKeys
-const WALL_HEIGHT = 2.6;
+const WALL_HEIGHT = 2.8;
 const CELL_SIZE = 2.4;
 const OBJECT_HEIGHT = 1.6;
 let walls = [];
@@ -510,9 +510,8 @@ function createExplosion(position, color = 0xff4500) {
 
 
 
-function createMaze(inputText = "") {
 
-  // Odstranění všech UI elementů pro bosse
+function createMaze(inputText = "") {
   const bossHealthContainer = document.getElementById("bossHealthContainer");
   while (bossHealthContainer.firstChild) {
     bossHealthContainer.removeChild(bossHealthContainer.firstChild);
@@ -536,11 +535,9 @@ function createMaze(inputText = "") {
   while (scene.children.length > 0) {
     scene.remove(scene.children[0]);
   }
-
   // Nastavení seed pro generátor náhodných čísel
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
-
   // Vybereme sadu textur
   const textureSetIndex = Math.floor(rng() * textureSets.length);
   const selectedTextureSet = textureSets[textureSetIndex];
@@ -559,18 +556,11 @@ function createMaze(inputText = "") {
   );
   specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
-  //Velikost bludiště
   MAZE_SIZE = Math.max(20, Math.min(50, 20 + Math.floor(rng() * 31)));
   totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
-  const teleportPairsCount = Math.max(
-    1,
-    Math.min(3, 1 + Math.floor(rng() * 3))
-  );
+  const teleportPairsCount = Math.max(1, Math.min(3, 1 + Math.floor(rng() * 3)));
 
-  const floorGeometry = new THREE.PlaneGeometry(
-    MAZE_SIZE * CELL_SIZE,
-    MAZE_SIZE * CELL_SIZE
-  );
+  const floorGeometry = new THREE.PlaneGeometry(MAZE_SIZE * CELL_SIZE, MAZE_SIZE * CELL_SIZE);
   const floorMaterial = new THREE.MeshStandardMaterial({
     color: 0x8c8480,
     map: floorTexture,
@@ -582,32 +572,46 @@ function createMaze(inputText = "") {
   floor.rotation.x = -Math.PI / 2;
   scene.add(floor);
 
-  const ceilingGeometry = new THREE.PlaneGeometry(
-    MAZE_SIZE * CELL_SIZE,
-    MAZE_SIZE * CELL_SIZE
-  );
-  ceilingTexture.wrapS = THREE.RepeatWrapping;
-  ceilingTexture.wrapT = THREE.RepeatWrapping;
-  ceilingTexture.repeat.set(MAZE_SIZE, MAZE_SIZE);
-  const ceilingMaterial = new THREE.MeshStandardMaterial({
-    map: ceilingTexture,
-    color: 0x635a56,
-  });
-  const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
-  ceiling.rotation.x = Math.PI / 2;
-  ceiling.position.y = WALL_HEIGHT;
-  scene.add(ceiling);
-
   maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed);
 
   const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
-  const wallMaterial = new THREE.MeshStandardMaterial({
-    map: brickTexture,
+  const wallMaterial = new THREE.MeshStandardMaterial({ map: brickTexture });
+
+  const ceilingGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+  const ceilingMaterial = new THREE.MeshStandardMaterial({
+    map: ceilingTexture,
   });
+  const ceilingMaterialHigh = new THREE.MeshStandardMaterial({
+    map: ceilingTexture,
+    color: 0x918B88,
+  });
+
+
+ // Determine high wall areas
+const highWallAreas = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+for (let i = 0; i < MAZE_SIZE; i++) {
+  for (let j = 0; j < MAZE_SIZE; j++) {
+    if (maze[i][j] === 0 && rng() < 0.1) { 
+      highWallAreas[i][j] = true;
+      // Zajistíme, že okolní buňky budou také vysoké
+      for (let di = -1; di <= 1; di++) {
+        for (let dj = -1; dj <= 1; dj++) {
+          if (i + di >= 0 && i + di < MAZE_SIZE && j + dj >= 0 && j + dj < MAZE_SIZE) {
+            highWallAreas[i + di][j + dj] = true;
+          }
+        }
+      }
+    }
+  }
+}
 
   for (let i = 0; i < MAZE_SIZE; i++) {
     for (let j = 0; j < MAZE_SIZE; j++) {
+      const isHighWallArea = highWallAreas[i][j];
+      const wallHeight = isHighWallArea ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+  
       if (maze[i][j] === 1) {
+        // Základní zeď
         const wall = new THREE.Mesh(wallGeometry, wallMaterial);
         wall.position.set(
           (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
@@ -616,14 +620,35 @@ function createMaze(inputText = "") {
         );
         scene.add(wall);
         walls.push(wall);
+  
+        // Přidáme druhou zeď pro vysoké oblasti
+        if (isHighWallArea) {
+          const upperWall = new THREE.Mesh(wallGeometry, wallMaterial);
+          upperWall.position.set(
+            (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
+            WALL_HEIGHT * 1.5,
+            (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
+          );
+          scene.add(upperWall);
+          walls.push(upperWall);
+        }
       }
+  
+      // Strop pro každou buňku
+      const ceiling = new THREE.Mesh(ceilingGeometry, (isHighWallArea) ? ceilingMaterialHigh : ceilingMaterial);
+      ceiling.position.set(
+        (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
+        wallHeight + WALL_HEIGHT/2,
+        (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
+      );
+      scene.add(ceiling);
     }
   }
 
-  // Přidání speciálních zdí
+  // Add special walls
   addSpecialWalls(rng, specialTextures);
 
-  // Přidání blokujících zdí na základě seed
+  // Add blocking walls
   const blockingWallCount = Math.floor(MAZE_SIZE * MAZE_SIZE * 0.02);
   for (let i = 0; i < blockingWallCount; i++) {
     let x, z;
@@ -634,7 +659,7 @@ function createMaze(inputText = "") {
     maze[x][z] = BLOCKING_WALL;
   }
 
-  // Přidejte vytvoření blokujících zdí
+  // Create blocking walls
   for (let i = 0; i < MAZE_SIZE; i++) {
     for (let j = 0; j < MAZE_SIZE; j++) {
       if (maze[i][j] === BLOCKING_WALL) {
@@ -2125,7 +2150,7 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
 
               torch.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.5,
-                WALL_HEIGHT / 2,
+                (WALL_HEIGHT / 2)  - 0.1,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
               );
 
