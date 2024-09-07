@@ -118,12 +118,22 @@ async function init() {
   renderer = new THREE.WebGLRenderer({ alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-  try {
 
+  // Check for seed in URL
+  const seedFromUrl = getUrlParameter('seed');
+  if (seedFromUrl) {
+    document.getElementById("mazeInput").value = seedFromUrl;
+  }
+
+  try {
     await loadKeyModel();
     await loadTreasureModel();
     await loadStaffModel();
-    createMaze();
+    
+    // Use the seed from URL or input to create the maze
+    const _inputText = document.getElementById("mazeInput").value;
+    await getBestTime(_inputText);
+    createMaze(_inputText);
     createPlayer();
     attachStaffToCamera();
     startTimer();
@@ -2630,6 +2640,19 @@ function filterScores() {
   });
 }
 
+function getUrlParameter(name) {
+  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  var results = regex.exec(location.search);
+  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
+function setUrlParameter(name, value) {
+  const url = new URL(window.location);
+  url.searchParams.set(name, value);
+  window.history.pushState({}, '', url);
+}
+
 
 
 function toggleConsole() {
@@ -2665,6 +2688,9 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-document.getElementById("generateMaze").addEventListener("click", startGame);
-
+document.getElementById("generateMaze").addEventListener("click", () => {
+  const inputText = document.getElementById("mazeInput").value;
+  setUrlParameter('seed', inputText);
+  startGame();
+});
 init();
