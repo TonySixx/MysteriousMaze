@@ -119,6 +119,8 @@ async function init() {
     createPlayer();
     attachStaffToCamera();
     startTimer();
+    const crosshair = createCrosshair();
+    camera.add(crosshair);
 
     // Načtení jména hráče z local storage
     playerName = localStorage.getItem("playerName");
@@ -315,21 +317,17 @@ function shootFireball() {
 
     const fireball = createFireball();
 
-    // Nastavení počáteční pozice ohnivé koule na pozici staffModel
     const staffWorldPosition = new THREE.Vector3();
     staffModel.getWorldPosition(staffWorldPosition);
     fireball.position.copy(staffWorldPosition);
     fireball.position.y += 0.3;
 
-    // Vytvoření efektu při vyčarování ohnivé koule
     createCastEffect(staffWorldPosition);
 
-    // Získání směru střelby z kamery
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
+    // Použijeme směr kamery pro nastavení rychlosti fireballu
+    const direction = getCameraDirection();
     fireball.velocity = direction.multiplyScalar(0.25);
 
-    // Přidání ohnivé koule do scény
     scene.add(fireball);
     fireBalls.push(fireball);
   } else {
@@ -1332,6 +1330,26 @@ function checkObjectInteractions() {
   }
 }
 
+function createCrosshair() {
+  const crosshairSize = 0.01;
+  const crosshairColor = 0xffffff;
+
+  const material = new THREE.LineBasicMaterial({ color: crosshairColor });
+
+  const points = [];
+  points.push(new THREE.Vector3(-crosshairSize, 0, 0));
+  points.push(new THREE.Vector3(crosshairSize, 0, 0));
+  points.push(new THREE.Vector3(0, 0, 0));
+  points.push(new THREE.Vector3(0, -crosshairSize, 0));
+  points.push(new THREE.Vector3(0, crosshairSize, 0));
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const crosshair = new THREE.Line(geometry, material);
+
+  crosshair.position.set(0, 0, -0.5);
+  return crosshair;
+}
+
 function showKeyMessage() {
   const keyMessageElement = document.getElementById("keyMessage");
   keyMessageElement.style.display = "block";
@@ -2051,6 +2069,17 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
 
   const rng = new seedrandom(getHash(document.getElementById("mazeInput").value));
 
+  // Define the color options
+  const colorOptions = [
+    { light: 0xffa500, particles: 0xff4500 }, // Original orange color
+    { light: 0x00bfff, particles: 0x1e90ff }, // Magical blue
+    { light: 0x00ff7f, particles: 0x2ecc71 }  // Emerald green
+  ];
+
+  // Choose a color based on the seed
+  const colorIndex = Math.floor(rng() * colorOptions.length);
+  const selectedColor = colorOptions[colorIndex];
+
   // Vytvoříme pomocné pole pro sledování, kde už jsou pochodně umístěny
   const torchPositions = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
 
@@ -2084,16 +2113,15 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
               );
 
               // Natočíme pochodeň směrem ke zdi
-
               torch.rotateZ(Math.PI / 1);
 
               scene.add(torch);
 
-              const fire = createFireParticles();
+              const fire = createFireParticles(selectedColor.particles);
               fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
               scene.add(fire);
 
-              const light = new THREE.PointLight(0xffa500, 1.5, CELL_SIZE * 4);
+              const light = new THREE.PointLight(selectedColor.light, 1.5, CELL_SIZE * 4);
               light.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.18,
                 (WALL_HEIGHT / 2) + 0.25,
@@ -2114,23 +2142,32 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
 
 
 // Upravte funkci createFireParticles()
-function createFireParticles() {
+function createFireParticles(color) {
   const particleCount = 12;
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
   const colors = new Float32Array(particleCount * 3);
   const sizes = new Float32Array(particleCount);
 
+  const isDefaultColor = color === 0xff4500;
+
   for (let i = 0; i < particleCount; i++) {
     positions[i * 3] = (Math.random() - 0.5) * 0.1;
     positions[i * 3 + 1] = Math.random() * 0.3;
     positions[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
 
-    colors[i * 3] = 1.5;
-    colors[i * 3 + 1] = 0.5 + Math.random() * 0.5;
-    colors[i * 3 + 2] = 0;
+    if (isDefaultColor) {
+      colors[i * 3] = 1.5;
+      colors[i * 3 + 1] = 0.5 + Math.random() * 0.5;
+      colors[i * 3 + 2] = 0;
+    } else {
+      const particleColor = new THREE.Color(color);
+      colors[i * 3] = particleColor.r;
+      colors[i * 3 + 1] = particleColor.g;
+      colors[i * 3 + 2] = particleColor.b;
+    }
 
-    sizes[i] = 0.1 + Math.random() * 0.1; // Zvětšené částice
+    sizes[i] = 0.1 + Math.random() * 0.1;
   }
 
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -2138,7 +2175,7 @@ function createFireParticles() {
   geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
   const material = new THREE.PointsMaterial({
-    size: 0.1, // Zvětšená velikost částic
+    size: 0.1,
     vertexColors: true,
     blending: THREE.AdditiveBlending,
     transparent: true,
@@ -2147,6 +2184,7 @@ function createFireParticles() {
 
   return new THREE.Points(geometry, material);
 }
+
 
 // Přidejte tuto funkci pro animaci ohně
 function animateFire(deltaTime) {
@@ -2355,9 +2393,17 @@ function animate() {
 
   lightManager.update(player.position, camera); // Aktualizace světel s hráčovou pozicí a kamerou
 
+  camera.children[camera.children.length - 1].renderOrder = 999;
+  camera.children[camera.children.length - 1].material.depthTest = false;
+
   composer.render();
 }
 
+function getCameraDirection() {
+  const direction = new THREE.Vector3();
+  camera.getWorldDirection(direction);
+  return direction;
+}
 
 
 function showNameModal() {
