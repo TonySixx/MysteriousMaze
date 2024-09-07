@@ -94,8 +94,12 @@ let isFlying = false;
 
 
 
-var showMinimapTimer = setInterval(showMinimap, 15000); // Interval 15 vteřin
-var minimapVisibleTimer;
+// Přidejte nové globální proměnné
+let isMinimapVisible = false;
+let minimapTimeMultiplier = 1;
+let cumulativeTime = 0;
+let lastUpdateTime;
+
 
 let nebula, nebulaMaterial;
 
@@ -685,10 +689,10 @@ function createMaze(inputText = "") {
   keyCount = 0;
   updateKeyCount();
 
-  clearInterval(showMinimapTimer);
-  clearTimeout(minimapVisibleTimer);
-  minimap.style.display = "none";
-  showMinimapTimer = setInterval(showMinimap, 15000);
+ 
+  if (isMinimapVisible){
+    toggleMinimap();
+  }
 
   // Resetování zdraví hráče při vytvoření nového bludiště
   playerHealth = 100;
@@ -1122,6 +1126,10 @@ function onKeyDown(event) {
       if (nearTeleport) {
         teleportPlayer(nearTeleport);
       }
+      case "KeyV":
+        toggleMinimap();
+        break;
+  
       break;
   }
 }
@@ -1465,9 +1473,10 @@ function updateKeyCount() {
   document.getElementById("keyCount").textContent = `${keyCount}/${totalKeys}`;
 }
 
+
 function startTimer() {
-  startTime = Date.now();
-  timerInterval = setInterval(updateTimer, 1000); // Aktualizace každou sekundu
+  lastUpdateTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000 / 60);
 }
 
 async function stopTimer() {
@@ -1481,12 +1490,18 @@ async function stopTimer() {
 }
 
 function updateTimer() {
-  const elapsedTime = Date.now() - startTime;
-  const minutes = Math.floor(elapsedTime / 60000);
-  const seconds = Math.floor((elapsedTime % 60000) / 1000);
-  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""
-    }${seconds}`;
+  const now = Date.now();
+  const deltaTime = now - lastUpdateTime;
+  cumulativeTime += deltaTime * minimapTimeMultiplier;
+  lastUpdateTime = now;
+
+  const totalSeconds = Math.floor(cumulativeTime / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
 }
+
+
 
 function hideTeleportPrompt() {
   const promptElement = document.getElementById("teleportPrompt");
@@ -1507,6 +1522,20 @@ function drawArrow(ctx, x, y, angle, size) {
   ctx.closePath();
   ctx.fill();
   ctx.restore();
+}
+
+// Přidejte novou funkci pro přepínání minimapy
+function toggleMinimap() {
+  isMinimapVisible = !isMinimapVisible;
+  const minimap = document.getElementById("minimap");
+  const timeCount = document.getElementById("timeCount");
+  minimap.style.display = isMinimapVisible ? "block" : "none";
+  timeCount.classList.toggle("minimap-open", isMinimapVisible);
+  minimapTimeMultiplier = isMinimapVisible ? 2 : 1;
+  lastUpdateTime = Date.now();
+  if (isMinimapVisible) {
+    drawMinimap();
+  }
 }
 
 function drawMinimap() {
@@ -1617,19 +1646,7 @@ function drawMinimap() {
   drawArrow(ctx, playerX, playerZ, playerAngle, CELL_SIZE * scale);
 }
 
-function getMinimapDisplayTime() {
-  return Math.max(5, Math.min(10, MAZE_SIZE / 5));
-}
 
-function showMinimap() {
-  drawMinimap();
-  const minimap = document.getElementById("minimap");
-  minimap.style.display = "block";
-
-  minimapVisibleTimer = setTimeout(() => {
-    minimap.style.display = "none";
-  }, getMinimapDisplayTime() * 1000); // Použití dynamické doby zobrazení minimapy
-}
 
 // Funkce pro načtení modelu kouzelné hole
 async function loadStaffModel() {
@@ -2365,6 +2382,10 @@ function animate() {
   updateMagicBalls(deltaTime);
   regenerateMana(deltaTime);
   regenerateHealth(deltaTime)
+
+  if (isMinimapVisible) {
+    drawMinimap();
+  }
 
   // Animace létajících objektů
   floatingObjects.forEach(obj => {

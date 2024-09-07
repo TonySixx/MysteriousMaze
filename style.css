@@ -91,6 +91,20 @@ canvas {
   font-size: 14px;
 }
 
+#minimap {
+  border: 4px solid rgb(0, 0, 0);
+}
+
+#showMinimapText {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-left: 20px;
+}
+
+#timeCount.minimap-open {
+  color: yellow;
+}
+
 #menu {
   position: absolute;
   top: 10px;
