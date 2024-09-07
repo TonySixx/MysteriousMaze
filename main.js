@@ -35,12 +35,12 @@ const textureSets = [
     ],
   },
   {
-    wallTexture: "wall-crystal.jpg",
-    ceilingTexture: "wall-crystal.jpg",
+    wallTexture: "wall-jungle.jpg",
+    ceilingTexture: "wall-jungle.jpg",
     specialTextures: [
-      "wall-crystal-sign-1.jpg",
-      "wall-crystal-sign-2.jpg",
-      "wall-crystal-sign-3.jpg",
+      "wall-jungle-sign-1.jpg",
+      "wall-jungle-sign-2.jpg",
+      "wall-jungle-sign-3.jpg",
     ],
   },
 ];
@@ -1169,29 +1169,26 @@ function onMouseClick() {
   }
 }
 
-function checkCollisions() {
-  if (canWalkThroughWalls) {
-    return false; // Pokud je aktivní Ghost mode, ignorujeme kolize
-  }
+function checkCollisions(newPosition) {
+  const playerRadius = 0.4;
+  const wallMargin = 0.3;
+  let collisionNormal = new THREE.Vector3();
+  let hasCollision = false;
 
-  const playerRadius = 0.3;
-  const wallMargin = 0.2; // Přidáme malou mezeru mezi hráčem a zdí
   for (let wall of walls) {
-    const dx = player.position.x - wall.position.x;
-    const dz = player.position.z - wall.position.z;
+    const dx = newPosition.x - wall.position.x;
+    const dz = newPosition.z - wall.position.z;
     const distance = Math.sqrt(dx * dx + dz * dz);
+
     if (distance < CELL_SIZE / 2 + playerRadius + wallMargin) {
-      const angle = Math.atan2(dz, dx);
-      player.position.x =
-        wall.position.x +
-        Math.cos(angle) * (CELL_SIZE / 2 + playerRadius + wallMargin);
-      player.position.z =
-        wall.position.z +
-        Math.sin(angle) * (CELL_SIZE / 2 + playerRadius + wallMargin);
-      return true;
+      const normal = new THREE.Vector3(dx, 0, dz).normalize();
+      const penetrationDepth = CELL_SIZE / 2 + playerRadius + wallMargin - distance;
+      collisionNormal.add(normal.multiplyScalar(penetrationDepth));
+      hasCollision = true;
     }
   }
-  return false;
+
+  return { normal: collisionNormal, collision: hasCollision };
 }
 
 function updatePlayerHealthBar() {
@@ -1227,26 +1224,42 @@ function updatePlayerPosition(deltaTime) {
           const rightDirection = new THREE.Vector3(-direction.z, 0, direction.x).normalize(); 
           playerVelocity.add(rightDirection.clone().multiplyScalar(flySpeed * deltaTime));
       }
-  } else {
-      // Standardní pohyb po zemi
+    } else {
       if (moveForward) playerVelocity.z -= speed * deltaTime;
       if (moveBackward) playerVelocity.z += speed * deltaTime;
       if (moveLeft) playerVelocity.x -= speed * deltaTime;
       if (moveRight) playerVelocity.x += speed * deltaTime;
-
+  
       playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
-  }
-
-  const oldPosition = player.position.clone();
-  player.position.add(playerVelocity);
-
-  if (!canWalkThroughWalls && checkCollisions()) {
-      player.position.copy(oldPosition);
-  } else if (playerVelocity.length() > 0) {
-      moveCount++;
-      lastTeleport = null; // Resetujeme poslední teleport pouze při skutečném pohybu
-  }
-
+    }
+  
+    const oldPosition = player.position.clone();
+    const newPosition = oldPosition.clone().add(playerVelocity);
+  
+    if (!canWalkThroughWalls) {
+      const { normal, collision } = checkCollisions(newPosition);
+      if (collision) {
+        normal.normalize();
+        const dot = playerVelocity.dot(normal);
+        
+        // Only apply sliding if the player is not moving directly into the wall
+        if (Math.abs(dot) < 0.9) {
+          playerVelocity.sub(normal.multiplyScalar(dot));
+          newPosition.copy(oldPosition).add(playerVelocity);
+        } else {
+          // If moving directly into the wall, stop the player
+          newPosition.copy(oldPosition);
+        }
+        
+        // Perform a final collision check
+        const finalCollision = checkCollisions(newPosition);
+        if (finalCollision.collision) {
+          newPosition.add(finalCollision.normal);
+        }
+      }
+    }
+  
+    player.position.copy(newPosition);
   // Limit player movement to the maze area
   player.position.x = Math.max(
       Math.min(player.position.x, (MAZE_SIZE * CELL_SIZE) / 2),
