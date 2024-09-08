@@ -101,6 +101,12 @@ canvas {
   margin-left: 20px;
 }
 
+#showHintText{
+  font-size: 14px;
+  opacity: 0.8;
+  margin-left: 20px;
+}
+
 #timeCount.minimap-open {
   color: yellow;
 }
@@ -108,6 +114,15 @@ canvas {
 #showMinimapText.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+#hintModal .modal-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#hintContent {
+  margin-top: 20px;
 }
 
 #menu {

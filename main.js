@@ -103,6 +103,8 @@ let lastUpdateTime;
 let canOpenMinimap = true;
 let minimapCooldownTimer = null;
 
+let teleportPairsCount = 0
+
 
 
 
@@ -189,8 +191,20 @@ async function init() {
             getScores().then(updateScoreTable);
           }
         }
+    }
+     else if (event.key === "i" || event.key === "I") {
+      
+      if (document.getElementById("hintModal").style.display === "block") {
+        hideHintModal();
+      } else {
+        showHintModal();
       }
+    }
+      
     });
+
+    document.querySelector("#hintModal .close").addEventListener("click", hideHintModal)
+
     // Nastavení post-processingu
     composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
@@ -576,7 +590,8 @@ function createMaze(inputText = "") {
 
   MAZE_SIZE = Math.max(20, Math.min(50, 20 + Math.floor(rng() * 31)));
   totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
-  const teleportPairsCount = Math.max(1, Math.min(3, 1 + Math.floor(rng() * 3)));
+  
+  teleportPairsCount = Math.max(1, Math.min(3, 1 + Math.floor(rng() * 3)));
 
   const floorGeometry = new THREE.PlaneGeometry(MAZE_SIZE * CELL_SIZE, MAZE_SIZE * CELL_SIZE);
   const floorMaterial = new THREE.MeshStandardMaterial({
@@ -1891,7 +1906,7 @@ class Boss {
 
   getBossType(rng) {
     const types = ['Dragon', 'Golem', 'Wizard', 'Shadow'];
-    return types[Math.floor(rng() * types.length)];
+    return types[Math.floor(rng() * types.length)]; 
   }
 
   getBossColor(rng) {
@@ -2827,6 +2842,60 @@ function setUrlParameter(name, value) {
   const url = new URL(window.location);
   url.searchParams.set(name, value);
   window.history.pushState({}, '', url);
+}
+
+function showHintModal() {
+  const hintModal = document.getElementById("hintModal");
+  const hintContent = document.getElementById("hintContent");
+  hintContent.innerHTML = generateHintContent();
+  hintModal.style.display = "block";
+}
+
+function hideHintModal() {
+  document.getElementById("hintModal").style.display = "none";
+}
+
+function generateHintContent() {
+  let content = `
+    <h3>Jak dokončit bludiště:</h3>
+    <p>Posbírejte ${totalKeys} klíčů a dostaňte se k cíli.</p>
+    <p>Počet teleportů v bludišti: ${teleportPairsCount * 2}</p>
+    <h3>Bossové (${bosses.length}):</h3>
+  `;
+
+  bosses.forEach((boss, index) => {
+    content += `
+      <h4>Boss ${index + 1}</h4>
+      <p>Zdraví: ${boss.maxHealth}</p>
+      <p>Speciální útok: ${boss.specialAttackType}</p>
+      <p>Taktika: ${getBossTactic(boss.specialAttackType)}</p>
+    `;
+  });
+
+  content += `
+    <h3>Tipy:</h3>
+    <ul>
+      <li>Používejte minimapu pro lepší orientaci v bludišti.</li>
+      <li>Sbírejte klíče průběžně, abyste mohli rychle dokončit level po poražení bossů.</li>
+      <li>Využívejte teleporty pro rychlý přesun v bludišti.</li>
+      <li>Sledujte své zdraví a manu, vyhýbejte se útokům bossů.</li>
+    </ul>
+  `;
+
+  return content;
+}
+
+function getBossTactic(specialAttackType) {
+  switch (specialAttackType) {
+    case 'multiShot':
+      return "Pohybujte se do stran, abyste se vyhnuli střelám. Útočte mezi salvami.";
+    case 'aoeBlast':
+      return "Udržujte si odstup a vyhněte se oblasti účinku. Útočte ihned po výbuchu.";
+    case 'teleport':
+      return "Buďte připraveni na náhlou změnu pozice bosse. Sledujte jeho pohyb a rychle reagujte.";
+    default:
+      return "Pozorujte vzorec útoků a reagujte podle situace.";
+  }
 }
 
 
