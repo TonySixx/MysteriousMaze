@@ -124,6 +124,8 @@ let fireballSoundBuffer;
 let bossSoundBuffer;
 let backgroundMusic;
 let isMusicPlaying = true;
+let footstepsSound;
+
 const audioLoader = new AudioLoader();
 
 // Přidejte globální proměnné
@@ -147,6 +149,13 @@ async function init() {
   if (seedFromUrl) {
     document.getElementById("mazeInput").value = seedFromUrl;
   }
+
+  audioLoader.load('footstep.mp3', function (buffer) {
+    footstepsSound = new THREE.Audio(new THREE.AudioListener());
+    footstepsSound.setBuffer(buffer);
+    footstepsSound.setLoop(true);
+    footstepsSound.setVolume(0.5); // Upravte hlasitost podle potřeby
+  });
 
   audioLoader.load('audio_bg.mp3', function (buffer) {
     backgroundMusic = new THREE.Audio(new THREE.AudioListener());
@@ -403,6 +412,18 @@ function canSeePlayer(bossPosition, playerPosition) {
   const raycaster = new THREE.Raycaster(bossPosition, new THREE.Vector3().subVectors(playerPosition, bossPosition).normalize());
   const intersects = raycaster.intersectObjects(walls);
   return intersects.length === 0;
+}
+
+function updateFootstepsSound() {
+  if (moveForward || moveBackward || moveLeft || moveRight) {
+      if (!footstepsSound.isPlaying) {
+          footstepsSound.play();
+      }
+  } else {
+      if (footstepsSound.isPlaying) {
+          footstepsSound.stop();
+      }
+  }
 }
 
 function playerDeath() {
@@ -1242,6 +1263,7 @@ function createPlayer() {
 }
 
 function onKeyDown(event) {
+  
   switch (event.code) {
     case "KeyW":
       moveForward = true;
@@ -2770,6 +2792,8 @@ function animate() {
   if (isMinimapVisible) {
     drawMinimap();
   }
+
+  updateFootstepsSound();
 
   // Animace létajících objektů
   floatingObjects.forEach(obj => {
