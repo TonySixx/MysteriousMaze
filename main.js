@@ -6,6 +6,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Frustum, Matrix4 } from 'three';
+import { AudioLoader } from 'three';
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -113,12 +114,17 @@ let lastUpdateTime;
 let canOpenMinimap = true;
 let minimapCooldownTimer = null;
 
-let teleportPairsCount = 0
-
-
+let teleportPairsCount = 0;
 
 
 let nebula, nebulaMaterial;
+
+let fireballSound, bossAttackSound;
+let fireballSoundBuffer;
+let bossSoundBuffer;
+let backgroundMusic;
+let isMusicPlaying = true;
+const audioLoader = new AudioLoader();
 
 // Přidejte globální proměnné
 const frustum = new Frustum();
@@ -141,6 +147,27 @@ async function init() {
   if (seedFromUrl) {
     document.getElementById("mazeInput").value = seedFromUrl;
   }
+
+  audioLoader.load('audio_bg.mp3', function (buffer) {
+    backgroundMusic = new THREE.Audio(new THREE.AudioListener());
+    backgroundMusic.setBuffer(buffer);
+    backgroundMusic.setLoop(true);
+    backgroundMusic.setVolume(0.25); // Nastavte hlasitost podle potřeby
+    backgroundMusic.play();
+  });
+
+
+
+  audioLoader.load('snd_fireball.wav', function (buffer) {
+    fireballSoundBuffer = buffer;
+  });
+
+  audioLoader.load('snd_boss_attack.wav', function (buffer) {
+    bossSoundBuffer = buffer;
+  });
+
+
+
 
   try {
     await loadKeyModel();
@@ -225,6 +252,11 @@ async function init() {
       else if (event.key === "o" || event.key === "O") {
         if (!isInput) {
           showSettingsModal();
+        }
+      }
+      else if (event.key === "b" || event.key === "B") {
+        if (!isInput) {
+          toggleBackgroundMusic();
         }
       }
 
@@ -315,6 +347,19 @@ function onMouseDown(event) {
   }
 }
 
+function toggleBackgroundMusic() {
+  if (backgroundMusic) {
+    if (isMusicPlaying) {
+      backgroundMusic.pause();
+      document.getElementById("toggleMusicText").style.color = "red";
+    } else {
+      backgroundMusic.play();
+      document.getElementById("toggleMusicText").style.color = "white";
+    }
+    isMusicPlaying = !isMusicPlaying;
+  }
+}
+
 
 function updateMagicBalls(deltaTime) {
   for (let i = magicBalls.length - 1; i >= 0; i--) {
@@ -370,6 +415,16 @@ function shootFireball() {
   if (playerMana >= 20) {
     playerMana -= 20;
     updatePlayerManaBar();
+
+    if (fireballSoundBuffer) {
+      const sound = new THREE.Audio(new THREE.AudioListener());
+      sound.setBuffer(fireballSoundBuffer);
+      sound.play();
+      sound.onEnded = () => {
+        sound.disconnect();
+      };
+    }
+
 
     const fireball = createFireball();
 
@@ -2036,6 +2091,15 @@ class Boss {
   attack() {
     const currentTime = performance.now();
     if (currentTime - this.lastAttackTime >= this.attackCooldown * 1000) {
+      if (bossSoundBuffer) {
+        const sound = new THREE.Audio(new THREE.AudioListener());
+        sound.setBuffer(bossSoundBuffer);
+        sound.play();
+        sound.onEnded = () => {
+          sound.disconnect();
+        };
+      }
+
       if (this.health < this.maxHealth / 2 && this.rng() < 0.5) {
         // 50% šance na speciální útok, pokud má boss méně než polovinu života
         this.specialAttack();

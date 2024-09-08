@@ -110,18 +110,24 @@ canvas {
 #showMinimapText {
   font-size: 14px;
   opacity: 0.8;
-  margin-left: 20px;
+  margin-left: 15px;
 }
 
 #showHintText{
   font-size: 14px;
   opacity: 0.8;
-  margin-left: 20px;
+  margin-left: 15px;
 }
 #showOptions{
   font-size: 14px;
   opacity: 0.8;
-  margin-left: 20px;
+  margin-left: 15px;
+}
+
+#toggleMusicText {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-left: 15px;
 }
 
 
