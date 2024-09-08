@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tajemné bludiště</title>
-  <script type="module" crossorigin src="/MysteriousMaze/assets/index-CMiyx2-u.js"></script>
-  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-BUfLaUR1.css">
+  <script type="module" crossorigin src="/MysteriousMaze/assets/index-DE6yQxxu.js"></script>
+  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-sbRStrkL.css">
 </head>
 
 <body>
@@ -16,8 +16,9 @@
   <div id="game-ui">
     <div id="top-left-info">
       <span id="playerName"></span>
-      <span id="showScoreText">Zobrazit skóre [C]</span>
-      <span id="showMinimapText">Zobrazit minimapu [V]</span>
+      <span id="showScoreText">Skóre [C]</span>
+      <span id="showMinimapText"> Minimapa [V]</span>
+      <span id="showHintText">Nápověda [I]</span>
     </div>
     <div id="game-stats">
       <div id="playerHealthBar" style="width: 200px; height: 20px; background-color: black; border: 1px solid; padding: 2px; border-radius: 4px;">
@@ -41,6 +42,14 @@
   <div id="goalMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:white;font-size:20px;"></div>
   <canvas id="minimap" width="350" height="350" style="position: absolute; bottom: 10px; right: 10px; display: none; background-color: rgba(211, 211, 211, 0.7);"></canvas>
   
+  <div id="hintModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Nápověda</h2>
+      <div id="hintContent"></div>
+    </div>
+  </div>
+
   <div id="nameModal" class="modal">
     <div class="modal-content">
       <h2>Zadejte své jméno</h2>
