@@ -15,9 +15,6 @@
   <div id="game-ui">
     <div id="top-left-info">
       <span id="playerName"></span>
-      <span id="showScoreText">Skóre [C]</span>
-      <span id="showMinimapText"> Minimapa [V]</span>
-      <span id="showHintText">Nápověda [I]</span>
     </div>
     <div id="game-stats">
       <div id="playerHealthBar" style="width: 200px; height: 20px; background-color: black; border: 1px solid; padding: 2px; border-radius: 4px;">
@@ -28,7 +25,13 @@
       </div>
       <p>Čas: <span id="timeCount">0:00</span></p>
       <p>Kouzelné klíče: <span id="keyCount">0/3</span></p>
-    </div>
+    </div> 
+  </div>
+  <div id="game-ui-bot">
+      <span id="showScoreText">Skóre [C]</span>
+      <span id="showMinimapText"> Minimapa [V]</span>
+      <span id="showHintText">Nápověda [I]</span>
+      <span id="showOptions">Nastavení [O]</span>
   </div>
 
   <div id="menu">
@@ -46,6 +49,21 @@
       <span class="close">&times;</span>
       <h2>Nápověda</h2>
       <div id="hintContent"></div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Nastavení</h2>
+      <div>
+        <label for="lightSettings">Množství světel:</label>
+        <select id="lightSettings">
+          <option value="10">Vysoké</option>
+          <option value="6">Nízké</option>
+        </select>
+      </div>
+      <button id="saveSettings">Uložit</button>
     </div>
   </div>
 

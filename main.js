@@ -85,7 +85,7 @@ let nearTeleport = null;
 const torches = [];
 // Globální proměnné
 let composer, lightManager;
-const MAX_VISIBLE_LIGHTS = 10; // Maximální počet viditelných světel
+let MAX_VISIBLE_LIGHTS = 10; // Default value
 
 let keyModel;
 let treasureModel;
@@ -146,7 +146,7 @@ async function init() {
     await loadKeyModel();
     await loadTreasureModel();
     await loadStaffModel();
-    
+
     // Use the seed from URL or input to create the maze
     const _inputText = document.getElementById("mazeInput").value;
     await getBestTime(_inputText);
@@ -191,11 +191,12 @@ async function init() {
 
     document.addEventListener("keydown", (event) => {
       // Zkontrolujeme, zda aktivní element není input nebo textarea
+      const activeElement = document.activeElement;
+      const isInput =
+        activeElement.tagName === "INPUT" ||
+        activeElement.tagName === "TEXTAREA";
       if (event.key === "c" || event.key === "C") {
-        const activeElement = document.activeElement;
-        const isInput =
-          activeElement.tagName === "INPUT" ||
-          activeElement.tagName === "TEXTAREA";
+
 
         if (!isInput) {
           if (document.getElementById("scoreModal").style.display === "block") {
@@ -205,20 +206,28 @@ async function init() {
             getScores().then(updateScoreTable);
           }
         }
-    }
-     else if (event.key === "i" || event.key === "I") {
-      
-      if (document.getElementById("hintModal").style.display === "block") {
-        hideHintModal();
-      } else {
-        showHintModal();
       }
-    }
-    else if (event.key === 'p' || event.key === 'P') {
-      showFPS = !showFPS;
-      fpsCounter.style.display = showFPS ? 'block' : 'none';
-    }
-      
+      else if (event.key === "i" || event.key === "I") {
+        if (!isInput) {
+          if (document.getElementById("hintModal").style.display === "block") {
+            hideHintModal();
+          } else {
+            showHintModal();
+          }
+        }
+      }
+      else if (event.key === 'p' || event.key === 'P') {
+        if (!isInput) {
+          showFPS = !showFPS;
+          fpsCounter.style.display = showFPS ? 'block' : 'none';
+        }
+      }
+      else if (event.key === "o" || event.key === "O") {
+        if (!isInput) {
+          showSettingsModal();
+        }
+      }
+
     });
 
     document.querySelector("#hintModal .close").addEventListener("click", hideHintModal)
@@ -253,18 +262,18 @@ async function init() {
 
 function processConsoleCommand(command) {
   switch (command.toLowerCase()) {
-      case 'ghost.cmd':
-          enableGhostMode();
-          break;
-      case 'walk.cmd':
-          disableGhostMode();
-          break;
-      case 'fly.cmd':
-          toggleFlyMode();
-          break;
-      default:
-          console.log('Neznámý příkaz:', command);
-          break;
+    case 'ghost.cmd':
+      enableGhostMode();
+      break;
+    case 'walk.cmd':
+      disableGhostMode();
+      break;
+    case 'fly.cmd':
+      toggleFlyMode();
+      break;
+    default:
+      console.log('Neznámý příkaz:', command);
+      break;
   }
 }
 
@@ -282,12 +291,12 @@ function toggleFlyMode() {
   isFlying = !isFlying;
   canWalkThroughWalls = isFlying; // Povolit procházení zdmi, pokud je aktivní letový režim
   if (isFlying) {
-      console.log("Fly mode activated!");
-      scene.fog = null;
+    console.log("Fly mode activated!");
+    scene.fog = null;
 
   } else {
-      console.log("Fly mode deactivated!");
-      scene.fog = new THREE.FogExp2(0x000000, 0.05);
+    console.log("Fly mode deactivated!");
+    scene.fog = new THREE.FogExp2(0x000000, 0.05);
   }
 }
 
@@ -597,7 +606,7 @@ function createMaze(inputText = "") {
 
   MAZE_SIZE = Math.max(20, Math.min(50, 20 + Math.floor(rng() * 31)));
   totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
-  
+
   teleportPairsCount = Math.max(1, Math.min(3, 1 + Math.floor(rng() * 3)));
 
   const floorGeometry = new THREE.PlaneGeometry(MAZE_SIZE * CELL_SIZE, MAZE_SIZE * CELL_SIZE);
@@ -627,29 +636,29 @@ function createMaze(inputText = "") {
   });
 
 
- // Determine high wall areas
- highWallAreas = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
-for (let i = 0; i < MAZE_SIZE; i++) {
-  for (let j = 0; j < MAZE_SIZE; j++) {
-    if (maze[i][j] === 0 && rng() < 0.1) { 
-      highWallAreas[i][j] = true;
-      // Zajistíme, že okolní buňky budou také vysoké
-      for (let di = -1; di <= 1; di++) {
-        for (let dj = -1; dj <= 1; dj++) {
-          if (i + di >= 0 && i + di < MAZE_SIZE && j + dj >= 0 && j + dj < MAZE_SIZE) {
-            highWallAreas[i + di][j + dj] = true;
+  // Determine high wall areas
+  highWallAreas = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+  for (let i = 0; i < MAZE_SIZE; i++) {
+    for (let j = 0; j < MAZE_SIZE; j++) {
+      if (maze[i][j] === 0 && rng() < 0.1) {
+        highWallAreas[i][j] = true;
+        // Zajistíme, že okolní buňky budou také vysoké
+        for (let di = -1; di <= 1; di++) {
+          for (let dj = -1; dj <= 1; dj++) {
+            if (i + di >= 0 && i + di < MAZE_SIZE && j + dj >= 0 && j + dj < MAZE_SIZE) {
+              highWallAreas[i + di][j + dj] = true;
+            }
           }
         }
       }
     }
   }
-}
 
   for (let i = 0; i < MAZE_SIZE; i++) {
     for (let j = 0; j < MAZE_SIZE; j++) {
       const isHighWallArea = highWallAreas[i][j];
       const wallHeight = isHighWallArea ? WALL_HEIGHT * 2 : WALL_HEIGHT;
-  
+
       if (maze[i][j] === 1) {
         // Základní zeď
         const wall = new THREE.Mesh(wallGeometry, wallMaterial);
@@ -660,7 +669,7 @@ for (let i = 0; i < MAZE_SIZE; i++) {
         );
         scene.add(wall);
         walls.push(wall);
-  
+
         // Přidáme druhou zeď pro vysoké oblasti
         if (isHighWallArea) {
           const upperWall = new THREE.Mesh(wallGeometry, wallMaterial);
@@ -673,12 +682,12 @@ for (let i = 0; i < MAZE_SIZE; i++) {
           walls.push(upperWall);
         }
       }
-  
+
       // Strop pro každou buňku
       const ceiling = new THREE.Mesh(ceilingGeometry, (isHighWallArea) ? ceilingMaterialHigh : ceilingMaterial);
       ceiling.position.set(
         (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
-        wallHeight + WALL_HEIGHT/2,
+        wallHeight + WALL_HEIGHT / 2,
         (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
       );
       scene.add(ceiling);
@@ -754,8 +763,8 @@ for (let i = 0; i < MAZE_SIZE; i++) {
   keyCount = 0;
   updateKeyCount();
 
- 
-  if (isMinimapVisible){
+
+  if (isMinimapVisible) {
     toggleMinimap();
   }
 
@@ -1247,7 +1256,7 @@ function onMouseClick() {
 function checkCollisions(newPosition) {
   const playerRadius = 0.4;
   const wallMargin = 0.3;
-  
+
   let collisionNormal = new THREE.Vector3();
   let hasCollision = false;
 
@@ -1311,68 +1320,68 @@ function updatePlayerPosition(deltaTime) {
   const flySpeed = 6.5; // Rychlost při letu
 
   if (isFlying) {
-      // Při letu se pohybujeme ve směru kamery, pokud jsou stisknuty klávesy
-      const direction = new THREE.Vector3();
-      camera.getWorldDirection(direction);
+    // Při letu se pohybujeme ve směru kamery, pokud jsou stisknuty klávesy
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
 
-      if (moveForward) playerVelocity.add(direction.clone().multiplyScalar(flySpeed * deltaTime));
-      if (moveBackward) playerVelocity.add(direction.clone().multiplyScalar(-flySpeed * deltaTime));
-      if (moveLeft) {
-          const leftDirection = new THREE.Vector3(direction.z, 0, -direction.x).normalize(); 
-          playerVelocity.add(leftDirection.clone().multiplyScalar(flySpeed * deltaTime));
-      }
-      if (moveRight) {
-          const rightDirection = new THREE.Vector3(-direction.z, 0, direction.x).normalize(); 
-          playerVelocity.add(rightDirection.clone().multiplyScalar(flySpeed * deltaTime));
-      }
-    } else {
-      if (moveForward) playerVelocity.z -= speed * deltaTime;
-      if (moveBackward) playerVelocity.z += speed * deltaTime;
-      if (moveLeft) playerVelocity.x -= speed * deltaTime;
-      if (moveRight) playerVelocity.x += speed * deltaTime;
-  
-      playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
+    if (moveForward) playerVelocity.add(direction.clone().multiplyScalar(flySpeed * deltaTime));
+    if (moveBackward) playerVelocity.add(direction.clone().multiplyScalar(-flySpeed * deltaTime));
+    if (moveLeft) {
+      const leftDirection = new THREE.Vector3(direction.z, 0, -direction.x).normalize();
+      playerVelocity.add(leftDirection.clone().multiplyScalar(flySpeed * deltaTime));
     }
-  
-    const oldPosition = player.position.clone();
-    const newPosition = oldPosition.clone().add(playerVelocity);
-  
-    if (!canWalkThroughWalls) {
-      const { normal, collision } = checkCollisions(newPosition);
-      if (collision) {
-        normal.normalize();
-        const dot = playerVelocity.dot(normal);
-        
-        // Only apply sliding if the player is not moving directly into the wall
-        if (Math.abs(dot) < 0.9) {
-          playerVelocity.sub(normal.multiplyScalar(dot));
-          newPosition.copy(oldPosition).add(playerVelocity);
-        } else {
-          // If moving directly into the wall, stop the player
-          newPosition.copy(oldPosition);
-        }
-        
-        // Perform a final collision check
-        const finalCollision = checkCollisions(newPosition);
-        if (finalCollision.collision) {
-          newPosition.add(finalCollision.normal);
-        }
+    if (moveRight) {
+      const rightDirection = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
+      playerVelocity.add(rightDirection.clone().multiplyScalar(flySpeed * deltaTime));
+    }
+  } else {
+    if (moveForward) playerVelocity.z -= speed * deltaTime;
+    if (moveBackward) playerVelocity.z += speed * deltaTime;
+    if (moveLeft) playerVelocity.x -= speed * deltaTime;
+    if (moveRight) playerVelocity.x += speed * deltaTime;
+
+    playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
+  }
+
+  const oldPosition = player.position.clone();
+  const newPosition = oldPosition.clone().add(playerVelocity);
+
+  if (!canWalkThroughWalls) {
+    const { normal, collision } = checkCollisions(newPosition);
+    if (collision) {
+      normal.normalize();
+      const dot = playerVelocity.dot(normal);
+
+      // Only apply sliding if the player is not moving directly into the wall
+      if (Math.abs(dot) < 0.9) {
+        playerVelocity.sub(normal.multiplyScalar(dot));
+        newPosition.copy(oldPosition).add(playerVelocity);
+      } else {
+        // If moving directly into the wall, stop the player
+        newPosition.copy(oldPosition);
+      }
+
+      // Perform a final collision check
+      const finalCollision = checkCollisions(newPosition);
+      if (finalCollision.collision) {
+        newPosition.add(finalCollision.normal);
       }
     }
-  
-    player.position.copy(newPosition);
+  }
+
+  player.position.copy(newPosition);
   // Limit player movement to the maze area
   player.position.x = Math.max(
-      Math.min(player.position.x, (MAZE_SIZE * CELL_SIZE) / 2),
-      (-MAZE_SIZE * CELL_SIZE) / 2
+    Math.min(player.position.x, (MAZE_SIZE * CELL_SIZE) / 2),
+    (-MAZE_SIZE * CELL_SIZE) / 2
   );
   player.position.z = Math.max(
-      Math.min(player.position.z, (MAZE_SIZE * CELL_SIZE) / 2),
-      (-MAZE_SIZE * CELL_SIZE) / 2
+    Math.min(player.position.z, (MAZE_SIZE * CELL_SIZE) / 2),
+    (-MAZE_SIZE * CELL_SIZE) / 2
   );
 
   if (!isFlying) {
-      player.position.y = Math.max(0, player.position.y); // Neumožní pád pod podlahu
+    player.position.y = Math.max(0, player.position.y); // Neumožní pád pod podlahu
   }
 
   checkObjectInteractions();
@@ -1532,12 +1541,12 @@ async function startGame() {
   createPlayer();
   moveCount = 0;
   keyCount = 0;
-  
+
   // Reset času
   cumulativeTime = 0;
   document.getElementById("timeCount").textContent = "0:00";
-  
-  
+
+
   // Zastavíme předchozí časovač, pokud běží
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -1551,7 +1560,7 @@ async function startGame() {
   document.getElementById("showMinimapText").classList.remove("disabled");
   document.getElementById("minimap").style.display = "none";
   updatePlayerHealthBar();
-  
+
   startTimer(); // Spuštění nového časovače
 }
 
@@ -1597,7 +1606,7 @@ async function stopTimer() {
     submitScore(document.getElementById("mazeInput").value, bestTime);
   }
 
- 
+
 }
 
 
@@ -1644,11 +1653,11 @@ function toggleMinimap() {
   const minimap = document.getElementById("minimap");
   const timeCount = document.getElementById("timeCount");
   const showMinimapText = document.getElementById("showMinimapText");
-  
+
   minimap.style.display = isMinimapVisible ? "block" : "none";
   timeCount.classList.toggle("minimap-open", isMinimapVisible);
   minimapTimeMultiplier = isMinimapVisible ? 3 : 1;
-  
+
   if (!isMinimapVisible) {
     canOpenMinimap = false;
     showMinimapText.classList.add("disabled");
@@ -1657,7 +1666,7 @@ function toggleMinimap() {
       showMinimapText.classList.remove("disabled");
     }, 3000);
   }
-  
+
   lastUpdateTime = Date.now();
   if (isMinimapVisible) {
     drawMinimap();
@@ -1917,7 +1926,7 @@ class Boss {
 
   getBossType(rng) {
     const types = ['Dragon', 'Golem', 'Wizard', 'Shadow'];
-    return types[Math.floor(rng() * types.length)]; 
+    return types[Math.floor(rng() * types.length)];
   }
 
   getBossColor(rng) {
@@ -2048,7 +2057,7 @@ class Boss {
     magicBalls.push(magicBall);
   }
 
- 
+
   specialAttack() {
     switch (this.specialAttackType) {
       case 'multiShot':
@@ -2059,7 +2068,7 @@ class Boss {
         break;
       case 'teleport':
         this.teleportAttack();
-        break;    
+        break;
     }
   }
 
@@ -2088,15 +2097,15 @@ class Boss {
     const blast = new THREE.Mesh(blastGeometry, blastMaterial);
     blast.position.copy(this.position);
     scene.add(blast);
-  
-  
-  
+
+
+
     // Damage player if within blast radius
     if (player.position.distanceTo(this.position) < blastRadius) {
       playerHealth -= 20;
       updatePlayerHealthBar();
     }
-  
+
     // Remove blast effect after a short delay
     setTimeout(() => {
       scene.remove(blast);
@@ -2143,7 +2152,7 @@ class Boss {
     const particleCount = 100;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
-  
+
     for (let i = 0; i < particleCount; i++) {
       const x = (Math.random() - 0.5) * 2;
       const y = Math.random() * 2;
@@ -2152,20 +2161,20 @@ class Boss {
       positions[i * 3 + 1] = y;
       positions[i * 3 + 2] = z;
     }
-  
+
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  
+
     const material = new THREE.PointsMaterial({
       color: this.color,
       size: 0.1,
       transparent: true,
       blending: THREE.AdditiveBlending
     });
-  
+
     const particles = new THREE.Points(geometry, material);
     particles.position.copy(position);
     scene.add(particles);
-  
+
     // Animace částic
     const animate = () => {
       const positions = particles.geometry.attributes.position.array;
@@ -2176,14 +2185,14 @@ class Boss {
       }
       particles.geometry.attributes.position.needsUpdate = true;
       material.opacity -= 0.02;
-  
+
       if (material.opacity > 0) {
         requestAnimationFrame(animate);
       } else {
         scene.remove(particles);
       }
     };
-  
+
     animate();
   }
 
@@ -2198,7 +2207,7 @@ class Boss {
   }
 
   findSafePosition(originalDirection) {
-    const angles = [0, Math.PI/4, Math.PI/2, 3*Math.PI/4, Math.PI, 5*Math.PI/4, 3*Math.PI/2, 7*Math.PI/4];
+    const angles = [0, Math.PI / 4, Math.PI / 2, 3 * Math.PI / 4, Math.PI, 5 * Math.PI / 4, 3 * Math.PI / 2, 7 * Math.PI / 4];
     for (let angle of angles) {
       const rotatedDirection = originalDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
       const newPosition = this.position.clone().add(rotatedDirection);
@@ -2210,7 +2219,7 @@ class Boss {
   }
 
 
-  
+
 
   createMagicBall(startPosition, targetPosition) {
     const geometry = new THREE.SphereGeometry(0.2, 32, 32);
@@ -2335,7 +2344,7 @@ class LightManager {
     this.scene = scene;
     this.maxVisibleLights = maxVisibleLights;
     this.lights = [];
-    this.tolerance = tolerance; // Přidáme toleranci
+    this.tolerance = tolerance;
   }
 
   addLight(light) {
@@ -2420,7 +2429,7 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
 
               torch.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.5,
-                (WALL_HEIGHT / 2)  - 0.1,
+                (WALL_HEIGHT / 2) - 0.1,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
               );
 
@@ -2595,12 +2604,12 @@ function isHighWallArea(x, z) {
   }
   const mazeX = Math.floor((x / CELL_SIZE) + (MAZE_SIZE / 2));
   const mazeZ = Math.floor((z / CELL_SIZE) + (MAZE_SIZE / 2));
-  
+
   // Přidáme kontrolu platnosti indexů
   if (mazeX < 0 || mazeX >= MAZE_SIZE || mazeZ < 0 || mazeZ >= MAZE_SIZE) {
     return false;
   }
-  
+
   return highWallAreas[mazeX][mazeZ];
 }
 
@@ -2629,14 +2638,14 @@ function updateFireballs(deltaTime) {
 
     // Detekce kolize s podlahou a stropem
     const ceilingHeight = isHighWallArea(fireball.position.x, fireball.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
-if (fireball.position.y <= 0 || fireball.position.y >= ceilingHeight) {
-  // Vytvoření výbuchu při kolizi
-  createExplosion(fireball.position);
+    if (fireball.position.y <= 0 || fireball.position.y >= ceilingHeight) {
+      // Vytvoření výbuchu při kolizi
+      createExplosion(fireball.position);
 
-  scene.remove(fireball);
-  fireBalls.splice(i, 1);
-  continue;
-}
+      scene.remove(fireball);
+      fireBalls.splice(i, 1);
+      continue;
+    }
 
     // Detekce kolize s zdmi
     for (let j = walls.length - 1; j >= 0; j--) {
@@ -2725,20 +2734,20 @@ function animate() {
 
   lightManager.update(player.position, camera); // Aktualizace světel s hráčovou pozicí a kamerou
 
-   // Aktualizujte frustum
-   camera.updateMatrixWorld();
-   projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-   frustum.setFromProjectionMatrix(projScreenMatrix);
- 
-   // Proveďte occlusion culling
-   walls.forEach(wall => {
-     if (wall.isLOD) {
-       wall.update(camera);
-     }
-     wall.visible = frustum.intersectsObject(wall);
-   });
+  // Aktualizujte frustum
+  camera.updateMatrixWorld();
+  projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  frustum.setFromProjectionMatrix(projScreenMatrix);
 
-   if (showFPS) {
+  // Proveďte occlusion culling
+  walls.forEach(wall => {
+    if (wall.isLOD) {
+      wall.update(camera);
+    }
+    wall.visible = frustum.intersectsObject(wall);
+  });
+
+  if (showFPS) {
     updateFPS();
   }
 
@@ -2944,7 +2953,7 @@ let frameCount = 0;
 function initFPSCounter() {
   fpsCounter = document.createElement('div');
   fpsCounter.style.position = 'absolute';
-  fpsCounter.style.bottom = '10px';
+  fpsCounter.style.bottom = '50px';
   fpsCounter.style.left = '10px';
   fpsCounter.style.color = 'white';
   fpsCounter.style.fontSize = '16px';
@@ -2963,6 +2972,20 @@ function updateFPS() {
   }
 }
 
+function showSettingsModal() {
+  document.getElementById("settingsModal").style.display = "block";
+}
+
+function hideSettingsModal() {
+  document.getElementById("settingsModal").style.display = "none";
+}
+
+function saveSettings() {
+  MAX_VISIBLE_LIGHTS = parseInt(document.getElementById("lightSettings").value);
+  lightManager.maxVisibleLights = MAX_VISIBLE_LIGHTS;
+  hideSettingsModal();
+}
+
 
 function toggleConsole() {
   const consoleElement = document.getElementById("gameConsole");
@@ -2979,6 +3002,10 @@ function toggleConsole() {
     consoleElement.value = "";
   }
 }
+
+document.querySelector("#settingsModal .close").addEventListener("click", hideSettingsModal);
+document.getElementById("saveSettings").addEventListener("click", saveSettings);
+
 
 document.addEventListener('keydown', (event) => {
   if (event.key === ';') {

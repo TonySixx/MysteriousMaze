@@ -10,6 +10,17 @@ canvas {
   display: block;
 }
 
+#game-ui-bot {
+  position: absolute;
+  bottom: 10px;
+  left: 5px;
+  padding: 20px;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 10px;
+} 
+
 #bossHealthContainer {
   position: fixed;
   top: 10px;
@@ -68,6 +79,7 @@ canvas {
   padding: 10px;
   border-radius: 10px;
 }
+¨
 
 #top-left-info {
   display: flex;
@@ -106,6 +118,12 @@ canvas {
   opacity: 0.8;
   margin-left: 20px;
 }
+#showOptions{
+  font-size: 14px;
+  opacity: 0.8;
+  margin-left: 20px;
+}
+
 
 #timeCount.minimap-open {
   color: yellow;
@@ -236,4 +254,23 @@ canvas {
 
 #scoreTable tbody tr:hover {
   background-color: #3c5a76;
+}
+
+#settingsModal .modal-content {
+  max-width: 400px;
+}
+
+#lightSettings {
+  margin: 10px 0;
+  padding: 5px;
+}
+
+#saveSettings {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
