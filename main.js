@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { Frustum, Matrix4 } from 'three';
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -119,6 +120,10 @@ let teleportPairsCount = 0
 
 let nebula, nebulaMaterial;
 
+// Přidejte globální proměnné
+const frustum = new Frustum();
+const projScreenMatrix = new Matrix4();
+
 async function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
@@ -209,6 +214,10 @@ async function init() {
         showHintModal();
       }
     }
+    else if (event.key === 'p' || event.key === 'P') {
+      showFPS = !showFPS;
+      fpsCounter.style.display = showFPS ? 'block' : 'none';
+    }
       
     });
 
@@ -232,6 +241,7 @@ async function init() {
 
     const inputText = document.getElementById("mazeInput").value;
     getBestTime(inputText);
+    initFPSCounter();
 
     animate();
 
@@ -343,15 +353,7 @@ function canSeePlayer(bossPosition, playerPosition) {
 
 function playerDeath() {
   // Restart hry
-  createMaze(document.getElementById("mazeInput").value);
-  createPlayer();
-  moveCount = 0;
-  keyCount = 0;
-  playerHealth = 100;
-  updatePlayerHealthBar();
-  updateKeyCount();
-  document.getElementById("timeCount").textContent = "0:00";
-  startTimer();
+  startGame();
 }
 
 // Funkce pro vystřelení ohnivé koule
@@ -558,10 +560,6 @@ function createMaze(inputText = "") {
     bossHealthContainer.removeChild(bossHealthContainer.firstChild);
   }
 
-  // Resetování pole bossů
-  bosses = [];
-  bossCounter = 0;
-
   bosses = [];
   bossCounter = 0;
 
@@ -630,7 +628,7 @@ function createMaze(inputText = "") {
 
 
  // Determine high wall areas
-highWallAreas = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+ highWallAreas = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
 for (let i = 0; i < MAZE_SIZE; i++) {
   for (let j = 0; j < MAZE_SIZE; j++) {
     if (maze[i][j] === 0 && rng() < 0.1) { 
@@ -1144,6 +1142,11 @@ function createTeleportModel(color) {
 }
 
 function createPlayer() {
+  if (player) {
+    scene.remove(player);
+    camera.parent.remove(camera);
+  }
+
   player = new THREE.Group();
   camera.position.set(0, 1.6, 0);
   player.add(camera);
@@ -1151,7 +1154,6 @@ function createPlayer() {
 
   const seed = getHash(document.getElementById("mazeInput").value);
   let rng = new seedrandom(seed);
-
   // Najděme volnou buňku v bludišti pro umístění hráče
   let freeCells = [];
   for (let i = 0; i < MAZE_SIZE; i++) {
@@ -1525,7 +1527,7 @@ function showTeleportPrompt() {
 
 async function startGame() {
   const inputText = document.getElementById("mazeInput").value;
-  await getBestTime(inputText);
+  getBestTime(inputText);
   createMaze(inputText);
   createPlayer();
   moveCount = 0;
@@ -1535,7 +1537,6 @@ async function startGame() {
   cumulativeTime = 0;
   document.getElementById("timeCount").textContent = "0:00";
   
-  camera.position.set(0, 1.6, 0);
   
   // Zastavíme předchozí časovač, pokud běží
   if (timerInterval) {
@@ -1549,6 +1550,7 @@ async function startGame() {
   }
   document.getElementById("showMinimapText").classList.remove("disabled");
   document.getElementById("minimap").style.display = "none";
+  updatePlayerHealthBar();
   
   startTimer(); // Spuštění nového časovače
 }
@@ -1592,7 +1594,7 @@ async function stopTimer() {
 
   if (elapsedTime < bestTime) {
     bestTime = elapsedTime;
-    await submitScore(document.getElementById("mazeInput").value, bestTime);
+    submitScore(document.getElementById("mazeInput").value, bestTime);
   }
 
  
@@ -2593,6 +2595,12 @@ function isHighWallArea(x, z) {
   }
   const mazeX = Math.floor((x / CELL_SIZE) + (MAZE_SIZE / 2));
   const mazeZ = Math.floor((z / CELL_SIZE) + (MAZE_SIZE / 2));
+  
+  // Přidáme kontrolu platnosti indexů
+  if (mazeX < 0 || mazeX >= MAZE_SIZE || mazeZ < 0 || mazeZ >= MAZE_SIZE) {
+    return false;
+  }
+  
   return highWallAreas[mazeX][mazeZ];
 }
 
@@ -2716,6 +2724,23 @@ function animate() {
   }
 
   lightManager.update(player.position, camera); // Aktualizace světel s hráčovou pozicí a kamerou
+
+   // Aktualizujte frustum
+   camera.updateMatrixWorld();
+   projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+   frustum.setFromProjectionMatrix(projScreenMatrix);
+ 
+   // Proveďte occlusion culling
+   walls.forEach(wall => {
+     if (wall.isLOD) {
+       wall.update(camera);
+     }
+     wall.visible = frustum.intersectsObject(wall);
+   });
+
+   if (showFPS) {
+    updateFPS();
+  }
 
   camera.children[camera.children.length - 1].renderOrder = 999;
   camera.children[camera.children.length - 1].material.depthTest = false;
@@ -2911,6 +2936,32 @@ function getBossTactic(specialAttackType) {
   }
 }
 
+let showFPS = false;
+let fpsCounter;
+let lastFrameTime = performance.now();
+let frameCount = 0;
+
+function initFPSCounter() {
+  fpsCounter = document.createElement('div');
+  fpsCounter.style.position = 'absolute';
+  fpsCounter.style.bottom = '10px';
+  fpsCounter.style.left = '10px';
+  fpsCounter.style.color = 'white';
+  fpsCounter.style.fontSize = '16px';
+  fpsCounter.style.fontFamily = 'Arial, sans-serif';
+  fpsCounter.style.display = 'none';
+  document.body.appendChild(fpsCounter);
+}
+
+function updateFPS() {
+  const currentTime = performance.now();
+  frameCount++;
+  if (currentTime - lastFrameTime >= 1000) {
+    fpsCounter.textContent = `FPS: ${frameCount}`;
+    frameCount = 0;
+    lastFrameTime = currentTime;
+  }
+}
 
 
 function toggleConsole() {
