@@ -43,6 +43,15 @@ const textureSets = [
       "wall-jungle-sign-3.jpg",
     ],
   },
+  {
+    wallTexture: "wall-mythical.jpg",
+    ceilingTexture: "wall-mythical.jpg",
+    specialTextures: [
+      "wall-mythical-sign-1.jpg",
+      "wall-mythical-sign-2.jpg",
+      "wall-mythical-sign-3.jpg",
+    ],
+  },
 ];
 
 let scene, camera, renderer, maze, player;
@@ -2373,7 +2382,8 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
   const colorOptions = [
     { light: 0xffa500, particles: 0xff4500 }, // Original orange color
     { light: 0x00bfff, particles: 0x1e90ff }, // Magical blue
-    { light: 0x00ff7f, particles: 0x2ecc71 }  // Emerald green
+    { light: 0x00ff7f, particles: 0x2ecc71 },  // Emerald green
+    { light: 0xa35ee8, particles: 0xa35ee8 }  // Amethyst purple
   ];
 
   // Choose a color based on the seed
@@ -2578,6 +2588,9 @@ function addNebula() {
 }
 
 function isHighWallArea(x, z) {
+  if (highWallAreas.length === 0) {
+    return false;
+  }
   const mazeX = Math.floor((x / CELL_SIZE) + (MAZE_SIZE / 2));
   const mazeZ = Math.floor((z / CELL_SIZE) + (MAZE_SIZE / 2));
   return highWallAreas[mazeX][mazeZ];
