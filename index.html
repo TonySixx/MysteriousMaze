@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tajemné bludiště</title>
-  <script type="module" crossorigin src="/MysteriousMaze/assets/index-BYNTbhn4.js"></script>
-  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-Do-xDL_K.css">
+  <script type="module" crossorigin src="/MysteriousMaze/assets/index-B51ux0Ix.js"></script>
+  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-DY5n2Nj6.css">
 </head>
 
 <body>
@@ -18,11 +18,13 @@
       <span id="playerName"></span>
     </div>
     <div id="game-stats">
-      <div id="playerHealthBar" style="width: 200px; height: 20px; background-color: black; border: 1px solid; padding: 2px; border-radius: 4px;">
-        <div id="playerHealthFill" style="height: 100%; width: 100%; background-color: rgb(212, 31, 31);"></div>
+      <div id="playerHealthBar">
+        <div id="playerHealthFill"></div>
+        <span id="playerHealthText"></span>
       </div>
       <div id="playerManaBar">
         <div id="playerManaFill"></div>
+        <span id="playerManaText"></span>
       </div>
       <p>Čas: <span id="timeCount">0:00</span></p>
       <p>Kouzelné klíče: <span id="keyCount">0/3</span></p>
@@ -46,6 +48,10 @@
   <div id="goalMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:white;font-size:20px;"></div>
   <canvas id="minimap" width="350" height="350" style="position: absolute; bottom: 10px; right: 10px; display: none; background-color: rgba(211, 211, 211, 0.7);"></canvas>
   
+  <div id="skillbar">
+    <!-- Spelly budou dynamicky přidány pomocí JavaScriptu -->
+  </div>
+
   <div id="hintModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
