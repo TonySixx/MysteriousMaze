@@ -119,7 +119,6 @@ let teleportPairsCount = 0;
 
 let nebula, nebulaMaterial;
 
-let fireballSound, bossAttackSound;
 let fireballSoundBuffer;
 let bossSoundBuffer;
 let backgroundMusic;
