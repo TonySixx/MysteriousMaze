@@ -7,6 +7,9 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Frustum, Matrix4 } from 'three';
 import { AudioLoader } from 'three';
+import frostboltIcon from './public/frostbolt-icon.png';
+import arcaneMissileIcon from './public/arcane-missile-icon.png';
+import fireballIcon from './public/fireball-icon.png';
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -94,6 +97,8 @@ let treasureModel;
 const BLOCKING_WALL = 2;
 let staffModel;
 let fireBalls = [];
+let frostBalls = [];
+let arcaneMissiles = [];
 let magicBalls = [];
 let bosses = [];
 let bossCounter = 0; // Globální počítadlo pro ID bossů
@@ -103,7 +108,10 @@ let consoleInput = '';
 let canWalkThroughWalls = false;
 let isFlying = false;
 
-
+let lastSpellCastTime = 0;
+let currentStaffColor = new THREE.Color(0xff4500);
+let targetStaffColor = new THREE.Color(0xff4500);
+let colorTransitionSpeed = 5; // Rychlost přechodu barev
 
 
 // Přidejte nové globální proměnné
@@ -120,6 +128,9 @@ let teleportPairsCount = 0;
 let nebula, nebulaMaterial;
 
 let fireballSoundBuffer;
+let frostBoltSoundBuffer;
+let magicMissileSoundBuffer;
+
 let bossSoundBuffer;
 let backgroundMusic;
 let isMusicPlaying = true;
@@ -169,6 +180,12 @@ async function init() {
   audioLoader.load('snd_fireball.wav', function (buffer) {
     fireballSoundBuffer = buffer;
   });
+  audioLoader.load('snd_frostbolt.wav', function (buffer) {
+    frostBoltSoundBuffer = buffer;
+  });
+  audioLoader.load('snd_magicmissile.wav', function (buffer) {
+    magicMissileSoundBuffer = buffer;
+  });
 
   audioLoader.load('snd_boss_attack.wav', function (buffer) {
     bossSoundBuffer = buffer;
@@ -187,6 +204,7 @@ async function init() {
     await getBestTime(_inputText);
     createMaze(_inputText);
     createPlayer();
+    createSkillbar()
     attachStaffToCamera();
     startTimer();
     const crosshair = createCrosshair();
@@ -343,15 +361,35 @@ function toggleFlyMode() {
 
 function attachStaffToCamera() {
   if (staffModel) {
-    staffModel.position.set(0.3, -0.2, -0.5); // Upravte pozici podle potřeby
-    staffModel.rotation.set(0, Math.PI / 2, 0); // Upravte rotaci podle potřeby
+    staffModel.position.set(0.3, -0.2, -0.5);
+    staffModel.rotation.set(0, Math.PI / 2, 0);
+    staffModel.traverse((child) => {
+      if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
+        child.material = new THREE.MeshStandardMaterial({
+          emissive: currentStaffColor,
+          emissiveIntensity: 2,
+          metalness: 1,
+          roughness: 0.5
+        });
+      }
+    });
     camera.add(staffModel);
   }
 }
 
 function onMouseDown(event) {
-  if (event.button === 0) { // Levé tlačítko myši
-    shootFireball();
+  if (event.button === 0) {
+    const fireballSpell = spells.find(spell => spell.name === 'Fireball');
+    if (fireballSpell && fireballSpell.isReady()) {
+      fireballSpell.cast();
+      fireballSpell.lastCastTime = Date.now();
+    }
+  } else if (event.button === 2) {
+    const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
+    if (arcaneMissileSpell && arcaneMissileSpell.isReady()) {
+      arcaneMissileSpell.cast();
+      arcaneMissileSpell.lastCastTime = Date.now();
+    }
   }
 }
 
@@ -430,42 +468,6 @@ function playerDeath() {
   startGame();
 }
 
-// Funkce pro vystřelení ohnivé koule
-function shootFireball() {
-  if (playerMana >= 20) {
-    playerMana -= 20;
-    updatePlayerManaBar();
-
-    if (fireballSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setBuffer(fireballSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
-
-
-    const fireball = createFireball();
-
-    const staffWorldPosition = new THREE.Vector3();
-    staffModel.getWorldPosition(staffWorldPosition);
-    fireball.position.copy(staffWorldPosition);
-    fireball.position.y += 0.3;
-
-    createCastEffect(staffWorldPosition);
-
-    // Použijeme směr kamery pro nastavení rychlosti fireballu
-    const direction = getCameraDirection();
-    fireball.velocity = direction.multiplyScalar(0.25);
-
-    scene.add(fireball);
-    fireBalls.push(fireball);
-  } else {
-    console.log("Not enough mana to cast fireball.");
-  }
-}
-
 function regenerateMana(deltaTime) {
   if (playerMana < maxMana) {
     playerMana = Math.min(playerMana + (manaRegenRate * (deltaTime * 40)), maxMana);
@@ -488,9 +490,9 @@ function createFireball() {
   // Vytvoření základní koule s emissive materiálem
   const geometry = new THREE.SphereGeometry(0.2, 32, 32);
   const material = new THREE.MeshStandardMaterial({
-    color: 0xff4500,
-    emissive: 0xff4500,
-    emissiveIntensity: 2
+    color: 0xff6a32,
+    emissive: 0xff6a32,
+    emissiveIntensity: 3
   });
   const core = new THREE.Mesh(geometry, material);
   fireball.add(core);
@@ -531,14 +533,14 @@ function createFireball() {
   return fireball;
 }
 
-function createCastEffect(position) {
+function createCastEffect(position, color = 0xffa500) {
   const castEffectGroup = new THREE.Group();
 
   const particleCount = 30;
   const particles = new THREE.Points(
     new THREE.BufferGeometry(),
     new THREE.PointsMaterial({
-      color: 0xffa500,
+      color: color,
       size: 0.02,
       blending: THREE.AdditiveBlending,
       transparent: true,
@@ -559,7 +561,6 @@ function createCastEffect(position) {
   castEffectGroup.position.y += 0.3;
   scene.add(castEffectGroup);
 
-  // Animace částic
   castEffectGroup.userData.animate = function () {
     const positions = particles.geometry.attributes.position.array;
     for (let i = 0; i < positions.length; i += 3) {
@@ -570,30 +571,33 @@ function createCastEffect(position) {
     particles.geometry.attributes.position.needsUpdate = true;
   };
 
-  // Automatické odstranění efektu po určité době
   setTimeout(() => {
     scene.remove(castEffectGroup);
-  }, 500); // Efekt trvá 0.5 sekundy
+  }, 500);
 
   return castEffectGroup;
 }
 
-function createExplosion(position, color = 0xff4500) {
+function createExplosion(position, color = 0xff8f45) {
   const explosionGroup = new THREE.Group();
 
   const particleCount = 100;
   const particles = new THREE.Points(
     new THREE.BufferGeometry(),
     new THREE.PointsMaterial({
-      color: color, // Použití předané barvy nebo výchozí barvy
+      color: color,
       size: 0.1,
       blending: THREE.AdditiveBlending,
       transparent: true,
+      vertexColors: true,
     })
   );
 
   const positions = new Float32Array(particleCount * 3);
   const velocities = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+  const sizes = new Float32Array(particleCount);
+
   for (let i = 0; i < particleCount; i++) {
     positions[i * 3] = (Math.random() - 0.5) * 0.5;
     positions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
@@ -602,39 +606,62 @@ function createExplosion(position, color = 0xff4500) {
     velocities[i * 3] = (Math.random() - 0.5) * 0.2;
     velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.2;
     velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+
+    const particleColor = new THREE.Color(color);
+    colors[i * 3] = particleColor.r;
+    colors[i * 3 + 1] = particleColor.g;
+    colors[i * 3 + 2] = particleColor.b;
+
+    sizes[i] = Math.random() * 0.2 + 0.05;
   }
 
   particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   particles.geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
-  explosionGroup.add(particles);
+  particles.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  particles.geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
   explosionGroup.position.copy(position);
   scene.add(explosionGroup);
 
-  // Animace částic
-  explosionGroup.userData.animate = function () {
+  explosionGroup.add(particles);
+
+  const startTime = performance.now();
+  const duration = 1000; // Doba trvání exploze v milisekundách
+
+  function animateExplosion() {
+    const currentTime = performance.now();
+    const elapsedTime = currentTime - startTime;
+    const progress = Math.min(elapsedTime / duration, 1);
+
     const positions = particles.geometry.attributes.position.array;
     const velocities = particles.geometry.attributes.velocity.array;
-    for (let i = 0; i < positions.length; i += 3) {
-      positions[i] += velocities[i];
-      positions[i + 1] += velocities[i + 1];
-      positions[i + 2] += velocities[i + 2];
+    const colors = particles.geometry.attributes.color.array;
+    const sizes = particles.geometry.attributes.size.array;
 
-      velocities[i] *= 0.95; // Zpomalení částic
-      velocities[i + 1] *= 0.95;
-      velocities[i + 2] *= 0.95;
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] += velocities[i * 3];
+      positions[i * 3 + 1] += velocities[i * 3 + 1];
+      positions[i * 3 + 2] += velocities[i * 3 + 2];
+
+      colors[i * 3 + 3] = 1 - progress; // Plynulé mizení
+      sizes[i] *= 0.99; // Postupné zmenšování částic
     }
-    particles.geometry.attributes.position.needsUpdate = true;
-  };
 
-  // Automatické odstranění výbuchu po určité době
-  setTimeout(() => {
-    scene.remove(explosionGroup);
-  }, 1000); // Výbuch trvá 1 sekundu
+    particles.geometry.attributes.position.needsUpdate = true;
+    particles.geometry.attributes.color.needsUpdate = true;
+    particles.geometry.attributes.size.needsUpdate = true;
+
+    if (progress < 1) {
+      requestAnimationFrame(animateExplosion);
+    } else {
+      scene.remove(explosionGroup);
+    }
+  }
+
+  animateExplosion();
 
   return explosionGroup;
 }
-
 
 
 
@@ -1286,6 +1313,14 @@ function onKeyDown(event) {
       break;
 
   }
+
+  if (event.key === 'e' || event.key === 'E') {
+    const frostboltSpell = spells.find(spell => spell.name === 'Frostbolt');
+    if (frostboltSpell && frostboltSpell.isReady()) {
+      frostboltSpell.cast();
+      frostboltSpell.lastCastTime = Date.now();
+    }
+  }
 }
 
 function onKeyUp(event) {
@@ -1379,14 +1414,19 @@ function checkCollisionsWhenTeleport() {
 
 function updatePlayerHealthBar() {
   const healthBarFill = document.getElementById('playerHealthFill');
+  const healthText = document.getElementById('playerHealthText');
   const healthPercentage = Math.max(playerHealth, 0) + '%';
-  healthBarFill.style.width = `${playerHealth}%`;
+  healthBarFill.style.width = healthPercentage;
+  healthText.textContent = `${Math.round(playerHealth)} / 100`;
 }
+
 
 function updatePlayerManaBar() {
   const manaBarFill = document.getElementById('playerManaFill');
+  const manaText = document.getElementById('playerManaText');
   const manaPercentage = Math.max(playerMana, 0) + '%';
-  manaBarFill.style.width = `${playerMana}%`;
+  manaBarFill.style.width = manaPercentage;
+  manaText.textContent = `${Math.round(playerMana)} / ${maxMana}`;
 }
 
 function updatePlayerPosition(deltaTime) {
@@ -1856,7 +1896,20 @@ function drawMinimap() {
   drawArrow(ctx, playerX, playerZ, playerAngle, CELL_SIZE * scale);
 }
 
+function changeStaffColor(color) {
+  targetStaffColor.setHex(color);
+}
 
+function updateStaffColor(deltaTime) {
+  currentStaffColor.lerp(targetStaffColor, colorTransitionSpeed * deltaTime);
+  if (staffModel) {
+    staffModel.traverse((child) => {
+      if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
+        child.material.emissive.copy(currentStaffColor);
+      }
+    });
+  }
+}
 
 // Funkce pro načtení modelu kouzelné hole
 async function loadStaffModel() {
@@ -1871,9 +1924,10 @@ async function loadStaffModel() {
         staffModel.traverse((child) => {
           if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
             child.material = new THREE.MeshStandardMaterial({
-              emissive: 0xff4500, // Emisivní oranžová barva
+              color:currentStaffColor,
+              emissive: currentStaffColor, // Emisivní oranžová barva
               emissiveIntensity: 1.5, // Intenzita emisivní barvy
-              metalness: 1,
+              metalness: 0.5,
               roughness: 0.5
             });
 
@@ -1960,6 +2014,430 @@ function rotateTeleports(deltaTime) {
   });
 }
 
+// Přidáme novou funkci castFireball
+function castFireball() {
+  if (playerMana >= 20) {
+    playerMana -= 20;
+    updatePlayerManaBar();
+    lastSpellCastTime = Date.now();
+    changeStaffColor(0xff4500); // Oranžová pro ohnivou kouli
+
+    if (fireballSoundBuffer) {
+      const sound = new THREE.Audio(new THREE.AudioListener());
+      sound.setBuffer(fireballSoundBuffer);
+      sound.play();
+      sound.onEnded = () => {
+        sound.disconnect();
+      };
+    }
+
+    const fireball = createFireball();
+    const staffWorldPosition = new THREE.Vector3();
+    staffModel.getWorldPosition(staffWorldPosition);
+    fireball.position.copy(staffWorldPosition);
+    fireball.position.y += 0.3;
+
+    createCastEffect(staffWorldPosition, 0xff4500);
+
+    const direction = getCameraDirection();
+    fireball.velocity = direction.multiplyScalar(0.25);
+
+    scene.add(fireball);
+    fireBalls.push(fireball);
+  }
+}
+
+function castFrostbolt() {
+  if (playerMana >= 30) {
+    playerMana -= 30;
+    updatePlayerManaBar();
+    lastSpellCastTime = Date.now();
+    changeStaffColor(0x8feaff); // Azurová pro mrazivý šíp
+
+    if (frostBoltSoundBuffer) {
+      const sound = new THREE.Audio(new THREE.AudioListener());
+      sound.setVolume(0.7);
+      sound.setBuffer(frostBoltSoundBuffer);
+      sound.play();
+      sound.onEnded = () => {
+        sound.disconnect();
+      };
+    }
+
+    const frostbolt = createFrostbolt();
+    const staffWorldPosition = new THREE.Vector3();
+    staffModel.getWorldPosition(staffWorldPosition);
+    frostbolt.position.copy(staffWorldPosition);
+    frostbolt.position.y += 0.3;
+
+    createCastEffect(staffWorldPosition, 0x00ffff);
+    const direction = getCameraDirection();
+    frostbolt.velocity = direction.multiplyScalar(0.25);
+    scene.add(frostbolt);
+    frostBalls.push(frostbolt);
+  }
+}
+
+function castArcaneMissile() {
+  if (playerMana >= 10) {
+    playerMana -= 10;
+    updatePlayerManaBar();
+    lastSpellCastTime = Date.now();
+    changeStaffColor(0xff00ff); // Fialová pro arkánovou střelu
+
+    if (magicMissileSoundBuffer) {
+      const sound = new THREE.Audio(new THREE.AudioListener());
+      sound.setBuffer(magicMissileSoundBuffer);
+      sound.play();
+      sound.onEnded = () => {
+        sound.disconnect();
+      };
+    }
+
+    const arcaneMissile = createArcaneMissile();
+    const staffWorldPosition = new THREE.Vector3();
+    staffModel.getWorldPosition(staffWorldPosition);
+    arcaneMissile.position.copy(staffWorldPosition);
+    arcaneMissile.position.y += 0.3;
+
+    createCastEffect(staffWorldPosition, 0xff00ff); 
+
+    const direction = getCameraDirection();
+    arcaneMissile.velocity = direction.multiplyScalar(0.25);
+    scene.add(arcaneMissile);
+    arcaneMissiles.push(arcaneMissile);
+  }
+}
+
+function createSkillbar() {
+  const skillbar = document.getElementById('skillbar');
+  spells.forEach(spell => {
+    const spellElement = document.createElement('div');
+    spellElement.className = 'spell-icon';
+    spellElement.style.backgroundImage = `url(${spell.icon})`;
+    spellElement.style.backgroundSize = 'cover';
+    spellElement.innerHTML = `
+      <div class="spell-key">${spell.key}</div>
+      <div class="spell-cooldown" style="display: none;"></div>
+    `;
+    skillbar.appendChild(spellElement);
+  });
+}
+
+function updateSkillbar() {
+  spells.forEach((spell, index) => {
+    const spellElement = document.querySelectorAll('.spell-icon')[index];
+    const cooldownElement = spellElement.querySelector('.spell-cooldown');
+    if (!spell.isReady()) {
+      const remainingCooldown = Math.ceil((spell.cooldown - (Date.now() - spell.lastCastTime)) / 1000);
+      cooldownElement.textContent = remainingCooldown;
+      cooldownElement.style.display = 'flex';
+    } else {
+      cooldownElement.style.display = 'none';
+    }
+  });
+}
+
+function resetStaffColor() {
+  if (Date.now() - lastSpellCastTime > 500) {
+    changeStaffColor(0xff4500); // Obnovení výchozí oranžové barvy
+  }
+}
+
+class Spell {
+  constructor(name, icon, key, cooldown, castFunction) {
+    this.name = name;
+    this.icon = icon;
+    this.key = key;
+    this.cooldown = cooldown;
+    this.lastCastTime = 0;
+    this.cast = castFunction;
+  }
+
+  isReady() {
+    return Date.now() - this.lastCastTime > this.cooldown;
+  }
+}
+
+const spells = [
+  new Spell('Fireball', fireballIcon, 'LMB', 500, castFireball),
+  new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, castArcaneMissile),
+  new Spell('Frostbolt', frostboltIcon, 'E', 5000, castFrostbolt)
+];
+
+function createFrostbolt() {
+  const frostbolt = new THREE.Group();
+
+  // Core ice sphere
+  const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x87CEFA,
+    emissive: 0x87CEFA,
+    emissiveIntensity: 1.5,
+    transparent: true,
+    opacity: 0.8
+  });
+  const core = new THREE.Mesh(geometry, material);
+  frostbolt.add(core);
+
+  // Snowflake particles
+  const snowflakeParticles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xFFFFFF,
+      size: 0.1,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      map: createSnowflakeTexture()
+    })
+  );
+
+  const snowflakePositions = new Float32Array(150 * 3);
+  for (let i = 0; i < 50; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 0.2 + Math.random() * 0.05;
+    snowflakePositions[i * 3] = Math.cos(angle) * radius;
+    snowflakePositions[i * 3 + 1] = Math.sin(angle) * radius;
+    snowflakePositions[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
+  }
+  snowflakeParticles.geometry.setAttribute('position', new THREE.BufferAttribute(snowflakePositions, 3));
+  frostbolt.add(snowflakeParticles);
+
+  // Ice trail
+  const trailParticles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xADD8E6,
+      size: 0.3,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    })
+  );
+
+  const trailPositions = new Float32Array(60 * 3);
+  trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+  frostbolt.add(trailParticles);
+
+  frostbolt.userData.animate = function(deltaTime) {
+    // Animate snowflakes
+    const snowflakePositions = snowflakeParticles.geometry.attributes.position.array;
+    for (let i = 0; i < snowflakePositions.length; i += 3) {
+      snowflakePositions[i] += (Math.random() - 0.5) * 0.03;
+      snowflakePositions[i + 1] += (Math.random() - 0.5) * 0.03;
+      snowflakePositions[i + 2] += (Math.random() - 0.5) * 0.03;
+    }
+    snowflakeParticles.geometry.attributes.position.needsUpdate = true;
+
+    // Animate ice trail
+    const trailPositions = trailParticles.geometry.attributes.position.array;
+    for (let i = trailPositions.length - 1; i >= 3; i -= 3) {
+      trailPositions[i] = trailPositions[i - 3];
+      trailPositions[i - 1] = trailPositions[i - 4];
+      trailPositions[i - 2] = trailPositions[i - 5];
+    }
+    trailPositions[0] = 0;
+    trailPositions[1] = 0;
+    trailPositions[2] = -0.2;
+    trailParticles.geometry.attributes.position.needsUpdate = true;
+  };
+
+  return frostbolt;
+}
+
+function createSnowflakeTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 32;
+  canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    ctx.moveTo(16, 16);
+    ctx.lineTo(16, 0);
+    ctx.lineTo(20, 4);
+    ctx.moveTo(16, 0);
+    ctx.lineTo(12, 4);
+    ctx.rotate(Math.PI / 3);
+  }
+  ctx.fill();
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createArcaneMissile() {
+  const arcaneMissile = new THREE.Group();
+
+  // Core arcane sphere
+  const geometry = new THREE.SphereGeometry(0.15, 32, 32);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x7c6bfa,
+    emissive: 0x774aff,
+    emissiveIntensity: 3
+  });
+  const core = new THREE.Mesh(geometry, material);
+  arcaneMissile.add(core);
+
+  // Arcane runes
+  const runeParticles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xFFFFFF,
+      size: 0.05,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      map: createRuneTexture()
+    })
+  );
+
+  const runePositions = new Float32Array(20 * 3);
+  for (let i = 0; i < 20; i++) {
+    const angle = (i / 20) * Math.PI * 2;
+    const radius = 0.2;
+    runePositions[i * 3] = Math.cos(angle) * radius;
+    runePositions[i * 3 + 1] = Math.sin(angle) * radius;
+    runePositions[i * 3 + 2] = 0;
+  }
+  runeParticles.geometry.setAttribute('position', new THREE.BufferAttribute(runePositions, 3));
+  arcaneMissile.add(runeParticles);
+
+  // Arcane trail
+  const trailParticles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0x774aff,
+      size: 0.03,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    })
+  );
+
+  const trailPositions = new Float32Array(70 * 3);
+  trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+  arcaneMissile.add(trailParticles);
+
+  arcaneMissile.userData.animate = function(deltaTime) {
+    // Rotate arcane runes
+    runeParticles.rotation.z += deltaTime * 2;
+
+    // Animate arcane trail
+    const trailPositions = trailParticles.geometry.attributes.position.array;
+    for (let i = trailPositions.length - 1; i >= 3; i -= 3) {
+      trailPositions[i] = trailPositions[i - 3];
+      trailPositions[i - 1] = trailPositions[i - 4];
+      trailPositions[i - 2] = trailPositions[i - 5];
+    }
+    trailPositions[0] = 0;
+    trailPositions[1] = 0;
+    trailPositions[2] = -0.2;
+    trailParticles.geometry.attributes.position.needsUpdate = true;
+  };
+
+  return arcaneMissile;
+}
+
+function createRuneTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 32;
+  canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'white';
+  ctx.font = '24px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('ᚠ', 16, 16);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function updateFrostbolts(deltaTime) {
+  for (let i = frostBalls.length - 1; i >= 0; i--) {
+    const frostbolt = frostBalls[i];
+    frostbolt.position.add(frostbolt.velocity.clone().multiplyScalar(deltaTime * 40));
+    frostbolt.userData.animate();
+
+    for (let boss of bosses) {
+      if (boss.checkCollision(frostbolt)) {
+        createExplosion(frostbolt.position, 0x00ffff);
+        boss.freeze();
+        scene.remove(frostbolt);
+        frostBalls.splice(i, 1);
+        break;
+      }
+    }
+
+    const ceilingHeight = isHighWallArea(frostbolt.position.x, frostbolt.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+    if (frostbolt.position.y <= 0 || frostbolt.position.y >= ceilingHeight) {
+      createExplosion(frostbolt.position, 0x00ffff);
+      scene.remove(frostbolt);
+      frostBalls.splice(i, 1);
+      continue;
+    }
+
+    for (let j = walls.length - 1; j >= 0; j--) {
+      const wall = walls[j];
+      if (frostbolt.position.distanceTo(wall.position) < CELL_SIZE / 2) {
+        createExplosion(frostbolt.position, 0x00ffff);
+        scene.remove(frostbolt);
+        frostBalls.splice(i, 1);
+        break;
+      }
+    }
+
+    if (frostbolt.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
+      scene.remove(frostbolt);
+      frostBalls.splice(i, 1);
+    }
+  }
+}
+
+function updateArcaneMissiles(deltaTime) {
+  for (let i = arcaneMissiles.length - 1; i >= 0; i--) {
+    const arcaneMissile = arcaneMissiles[i];
+    arcaneMissile.position.add(arcaneMissile.velocity.clone().multiplyScalar(deltaTime * 50));
+    arcaneMissile.userData.animate();
+
+    for (let boss of bosses) {
+      if (boss.checkCollision(arcaneMissile)) {
+        createExplosion(arcaneMissile.position, 0xf7c6bfa);
+        boss.takeDamage(50);
+        scene.remove(arcaneMissile);
+        arcaneMissiles.splice(i, 1);
+        break;
+      }
+    }
+
+    const ceilingHeight = isHighWallArea(arcaneMissile.position.x, arcaneMissile.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+    if (arcaneMissile.position.y <= 0 || arcaneMissile.position.y >= ceilingHeight) {
+      createExplosion(arcaneMissile.position, 0xf7c6bfa);
+      scene.remove(arcaneMissile);
+      arcaneMissiles.splice(i, 1);
+      continue;
+    }
+
+    for (let j = walls.length - 1; j >= 0; j--) {
+      const wall = walls[j];
+      if (arcaneMissile.position.distanceTo(wall.position) < CELL_SIZE / 2) {
+        createExplosion(arcaneMissile.position, 0xf7c6bfa);
+        scene.remove(arcaneMissile);
+        arcaneMissiles.splice(i, 1);
+        break;
+      }
+    }
+
+    if (arcaneMissile.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
+      scene.remove(arcaneMissile);
+      arcaneMissiles.splice(i, 1);
+    }
+  }
+}
+
+function checkWallCollision(projectile) {
+  for (let wall of walls) {
+    if (projectile.position.distanceTo(wall.position) < CELL_SIZE / 2) {
+      return true;
+    }
+  }
+  return false;
+}
+
 class Boss {
   constructor(position, id, rng) {
     this.id = id;
@@ -1972,6 +2450,8 @@ class Boss {
     this.specialAttackType = this.getSpecialAttackType(rng);
     this.teleportCooldown = 2000; // 2 sekundy cooldown
     this.lastTeleportTime = 0;
+    this.originalMaterial = null;
+    this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
 
 
     // Definování dostupných barev střel
@@ -2021,6 +2501,11 @@ class Boss {
       this.model = gltf.scene;
       this.model.position.copy(this.position);
       this.model.scale.set(0.5, 0.5, 0.5);
+      this.model.traverse((child) => {
+        if (child.isMesh) {
+          this.originalMaterial = child.material;
+        }
+      });
       scene.add(this.model);
 
       this.animations = gltf.animations;
@@ -2041,7 +2526,7 @@ class Boss {
     this.model.add(this.healthBarContainer);
 
     const healthBarGeometry = new THREE.PlaneGeometry(2, 0.2);
-    const healthBarMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const healthBarMaterial = new THREE.MeshBasicMaterial({ color: this.color });
     this.healthBar = new THREE.Mesh(healthBarGeometry, healthBarMaterial);
     this.healthBar.position.set(-1, 0, 0.01); // Posuneme healthbar do levého kraje kontejneru
     const healthRatio = this.health / this.maxHealth;
@@ -2055,18 +2540,27 @@ class Boss {
     const bossHealthElement = document.createElement("div");
     bossHealthElement.id = `boss-${this.id}`;
     bossHealthElement.className = "boss-health";
-    bossHealthElement.style.margin = "10px";
-    bossHealthElement.style.color = "white";
-    bossHealthElement.style.fontSize = "18px";
+    bossHealthElement.innerHTML = `
+      <div class="boss-name">Boss ${this.id}</div>
+      <div class="boss-health-bar">
+        <div class="boss-health-fill" style="background-color: #${this.color.toString(16)}"></div>
+        <div class="boss-health-text"></div>
+      </div>
+    `;
     bossHealthContainer.appendChild(bossHealthElement);
-
+  
     this.updateHealthUI();
   }
+  
 
   updateHealthUI() {
     const bossHealthElement = document.getElementById(`boss-${this.id}`);
     if (bossHealthElement) {
-      bossHealthElement.textContent = `Boss ${this.id}: ${Math.max(this.health, 0)}/${this.maxHealth} HP`;
+      const healthFill = bossHealthElement.querySelector('.boss-health-fill');
+      const healthText = bossHealthElement.querySelector('.boss-health-text');
+      const healthPercentage = (this.health / this.maxHealth) * 100;
+      healthFill.style.width = `${healthPercentage}%`;
+      healthText.textContent = `${Math.round(this.health)} / ${this.maxHealth}`;
     }
   }
 
@@ -2087,6 +2581,32 @@ class Boss {
     }
     this.updateHealthBar();
   }
+
+  setFrozenAppearance(isFrozen) {
+    if (this.model) {
+      this.model.traverse((child) => {
+        if (child.isMesh && child !== this.healthBar && child !== this.healthBarContainer) {
+          if (isFrozen) {
+            child.userData.originalMaterial = child.material;
+            child.material = this.frozenMaterial;
+          } else {
+            child.material = child.userData.originalMaterial || this.originalMaterial;
+          }
+        }
+      });
+    }
+  }
+
+  freeze() {
+    this.isFrozen = true;
+    this.setFrozenAppearance(true);
+    setTimeout(() => {
+      this.isFrozen = false;
+      this.setFrozenAppearance(false);
+    }, 2000);
+  }
+  
+
 
   die() {
     if (this.model) {
@@ -2215,7 +2735,7 @@ class Boss {
 
     // Zkontrolujeme, zda nová pozice není uvnitř zdi
     const newPosition = this.position.clone().add(teleportDirection);
-    if (this.checkCollision(newPosition)) {
+    if (this.checkCollisionOnMove(newPosition)) {
       // Pokud by se teleportoval do zdi, najdeme nejbližší volnou pozici
       teleportDirection = this.findSafePosition(teleportDirection);
     }
@@ -2281,14 +2801,17 @@ class Boss {
     animate();
   }
 
-  checkCollision(position) {
-    for (let wall of walls) {
-      const distance = position.distanceTo(wall.position);
-      if (distance < CELL_SIZE / 2 + 1) { // Přidáme větší odstup pro bosse
-        return true;
-      }
-    }
-    return false;
+  checkCollision(projectile) {
+    if (!this.model) return false;
+  
+    // Vytvoříme bounding box pro celého bosse
+    const bossBox = new THREE.Box3().setFromObject(this.model);
+  
+    // Vytvoříme bounding sphere pro projektil
+    const projectileSphere = new THREE.Sphere(projectile.position, 0.2);
+  
+    // Zkontrolujeme kolizi
+    return bossBox.intersectsSphere(projectileSphere);
   }
 
   findSafePosition(originalDirection) {
@@ -2296,7 +2819,7 @@ class Boss {
     for (let angle of angles) {
       const rotatedDirection = originalDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
       const newPosition = this.position.clone().add(rotatedDirection);
-      if (!this.checkCollision(newPosition)) {
+      if (!this.checkCollisionOnMove(newPosition)) {
         return rotatedDirection;
       }
     }
@@ -2349,7 +2872,7 @@ class Boss {
       nextPosition.z < -halfMazeSize || nextPosition.z > halfMazeSize
     ) {
       this.changeDirection(); // Pokud by boss opustil hranice bludiště, změní směr
-    } else if (!this.checkCollision(nextPosition)) {
+    } else if (!this.checkCollisionOnMove(nextPosition)) {
       this.position.add(moveStep);
       this.model.position.copy(this.position);
     } else {
@@ -2357,7 +2880,7 @@ class Boss {
     }
   }
 
-  checkCollision(position) {
+  checkCollisionOnMove(position) {
     for (let wall of walls) {
       const distance = position.distanceTo(wall.position);
       if (distance < CELL_SIZE / 2 + 0.8) {
@@ -2368,6 +2891,8 @@ class Boss {
   }
 
   update(deltaTime) {
+    if (this.isFrozen) return;
+
     if (this.mixer) {
       this.mixer.update(deltaTime);
     }
@@ -2709,11 +3234,8 @@ function updateFireballs(deltaTime) {
 
     // Kolize s bossy
     for (let boss of bosses) {
-      if (boss.model && fireball.position.distanceTo(boss.model.position) < 1) {
-
-        // Vytvoření výbuchu při kolizi
+      if (boss.checkCollision(fireball)) {
         createExplosion(fireball.position);
-
         boss.takeDamage(100);
         scene.remove(fireball);
         fireBalls.splice(i, 1);
@@ -2783,16 +3305,23 @@ function animate() {
   rotateTeleports(deltaTime);
   animateFire(deltaTime);
   updateFireballs(deltaTime);
+  updateFrostbolts(deltaTime);
+  updateArcaneMissiles(deltaTime);
   updateBosses(deltaTime);
   updateMagicBalls(deltaTime);
   regenerateMana(deltaTime);
   regenerateHealth(deltaTime)
 
+
   if (isMinimapVisible) {
     drawMinimap();
   }
 
+  updateSkillbar();
   updateFootstepsSound();
+
+  resetStaffColor();
+  updateStaffColor(deltaTime);
 
   // Animace létajících objektů
   floatingObjects.forEach(obj => {

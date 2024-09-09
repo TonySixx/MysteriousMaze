@@ -28,13 +28,14 @@ canvas {
   z-index: 1000;
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
+  padding: 8px;
 }
 
 .boss-health {
   font-family: Arial, sans-serif;
 }
 
-#playerHealthBar {
+#playerHealthBar, #playerManaBar {
   width: 200px;
   height: 20px;
   background-color: black;
@@ -43,30 +44,32 @@ canvas {
   border-radius: 4px;
   position: relative;
   overflow: hidden;
+}
+
+#playerManaBar {
+  margin-top: 5px;
 }
 
 #playerHealthFill {
   height: 100%;
   background-color: rgb(173, 42, 42);
-  transition: width 0.3s ease; /* Hladký přechod při změně zdraví */
-}
-
-#playerManaBar {
-  width: 200px;
-  height: 20px;
-  background-color: black;
-  border: 1px solid white;
-  padding: 2px;
-  border-radius: 4px;
-  position: relative;
-  overflow: hidden;
-  margin-top: 5px; /* Trochu místa mezi healthbarem a manabarem */
+  transition: width 0.3s ease;
 }
 
 #playerManaFill {
   height: 100%;
   background-color: rgb(42, 42, 216);
-  transition: width 0.3s ease; /* Hladký přechod při změně many */
+  transition: width 0.3s ease;
+}
+
+#playerHealthText, #playerManaText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px black;
 }
 
 #game-ui {
@@ -279,4 +282,86 @@ canvas {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+
+#skillbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.spell-icon {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  border: 2px solid #fff;
+  border-radius: 5px;
+}
+
+.spell-key {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 4px;
+  font-size: 12px;
+}
+
+.spell-cooldown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 14px;
+}
+
+.boss-health {
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.boss-name {
+  font-weight: bold;
+  margin-bottom: 2px;
+  font-size: 12px;
+}
+
+.boss-health-bar {
+  width: 150px;
+  height: 15px;
+  background-color: #333;
+  border: 1px solid #ffffff;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  
+}
+
+.boss-health-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.boss-health-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  text-shadow: 1px 1px 1px black;
+  white-space: nowrap;
 }
