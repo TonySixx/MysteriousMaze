@@ -148,6 +148,9 @@ export function setTotalKeys(value) {
 }
 
 async function init() {
+    // Načtení nastavení z local storage
+  MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem('maxVisibleLights')) || 10;
+
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
     75,
@@ -2463,6 +2466,7 @@ function updateFPS() {
 }
 
 function showSettingsModal() {
+  document.getElementById("lightSettings").value = MAX_VISIBLE_LIGHTS.toString();
   document.getElementById("settingsModal").style.display = "block";
 }
 
@@ -2472,6 +2476,7 @@ function hideSettingsModal() {
 
 function saveSettings() {
   MAX_VISIBLE_LIGHTS = parseInt(document.getElementById("lightSettings").value);
+  localStorage.setItem('maxVisibleLights', MAX_VISIBLE_LIGHTS.toString());
   lightManager.maxVisibleLights = MAX_VISIBLE_LIGHTS;
   hideSettingsModal();
 }
