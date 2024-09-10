@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer } from './main.js';
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera } from './main.js';
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -18,13 +18,12 @@ export function setBossCounter(value) {
 class Boss {
     constructor(position, id, rng) {
         this.id = id;
-        this.maxHealth = Math.floor(rng() * 1500) + 1000; // Náhodné HP v rozmezí 1000 - 2500
+        this.maxHealth = this.generateHealth(rng);
         this.health = this.maxHealth;
         this.position = position;
         this.attackCooldown = rng() * 0.5 + 0.5; // Náhodný cooldown útoku v rozmezí 0.5 - 1 vteřina
         this.type = this.getBossType(rng);
-        this.specialAttackType = this.getSpecialAttackType(rng);
-        this.specialAttackProbability = this.getSpecialAttackProbability();
+        this.specialAttacks = this.getSpecialAttacks(rng);
         this.teleportCooldown = 2000; // 2 sekundy cooldown
         this.lastTeleportTime = 0;
         this.originalMaterial = null;
@@ -57,9 +56,55 @@ class Boss {
         this.createHealthUI();
     }
 
+    generateHealth(rng) {
+        const minHealth = 1000;
+        const maxHealth = 5000;
+        const interval = 200;
+
+        // Vypočítáme počet možných hodnot HP
+        const possibleValues = Math.floor((maxHealth - minHealth) / interval) + 1;
+
+        // Vygenerujeme náhodné číslo v rozsahu možných hodnot
+        const randomIndex = Math.floor(rng() * possibleValues);
+
+        // Vypočítáme výsledné HP
+        let health = minHealth + (randomIndex * interval);
+
+        // Zajistíme, že HP je v rozmezí 1000 - 5000
+        return Math.max(minHealth, Math.min(maxHealth, health));
+    }
+
     getBossType(rng) {
         const types = ['Dragon', 'Golem', 'Wizard', 'Shadow'];
         return types[Math.floor(rng() * types.length)];
+    }
+
+    getSpecialAttacks(rng) {
+        const allAttacks = ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'];
+        const maxAttacks = Math.min(3, Math.floor((this.maxHealth - 1000) / 1333) + 1);
+        const attacks = [];
+
+        while (attacks.length < maxAttacks) {
+            const attack = allAttacks[Math.floor(rng() * allAttacks.length)];
+            if (!attacks.includes(attack)) {
+                attacks.push(attack);
+            }
+        }
+
+        return attacks;
+    }
+
+    getSpecialAttackProbability(attackType) {
+        switch (attackType) {
+            case 'frostbolt':
+                return 0.4; // 40% šance pro frostbolt
+            case 'multiShot':
+            case 'aoeBlast':
+            case 'teleport':
+                return 0.5; // 50% šance pro ostatní útoky
+            default:
+                return 0.5; // Výchozí hodnota pro případ, že by byl přidán nový typ útoku
+        }
     }
 
     getBossColor(rng) {
@@ -86,7 +131,7 @@ class Boss {
             case 'aoeBlast':
                 return 0.3;
             case 'teleport':
-                return 0.5; 
+                return 0.5;
             default:
                 return 0.5; // Výchozí hodnota pro případ, že by byl přidán nový typ útoku
         }
@@ -173,10 +218,58 @@ class Boss {
 
     takeDamage(damage) {
         this.health -= damage;
+        this.showDamageText(damage);
         if (this.health <= 0) {
             this.die();
         }
         this.updateHealthBar();
+    }
+
+    showDamageText(damage) {
+        if (this.model) {
+            const damageText = document.createElement('div');
+            damageText.textContent = `-${damage}`;
+            damageText.style.position = 'absolute';
+            damageText.style.color = 'red';
+            damageText.style.fontSize = '24px';
+            damageText.style.fontWeight = 'bold';
+            damageText.style.textShadow = '2px 2px 2px black';
+            damageText.style.pointerEvents = 'none';
+
+            document.body.appendChild(damageText);
+
+            const startTime = performance.now();
+            const duration = 2000; // 2 sekundy
+
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                if (elapsed < duration) {
+                    const bossScreenPosition = this.getScreenPosition();
+                    damageText.style.left = `${bossScreenPosition.x}px`;
+                    damageText.style.top = `${bossScreenPosition.y - 50 - (elapsed / duration) * 50}px`;
+                    damageText.style.opacity = 1 - (elapsed / duration);
+                    requestAnimationFrame(animate);
+                } else {
+                    document.body.removeChild(damageText);
+                }
+            };
+
+            requestAnimationFrame(animate);
+        }
+    }
+
+    getScreenPosition() {
+        const vector = new THREE.Vector3();
+        this.model.getWorldPosition(vector);
+        vector.project(camera);
+
+        const widthHalf = window.innerWidth / 2;
+        const heightHalf = window.innerHeight / 2;
+
+        return {
+            x: (vector.x * widthHalf) + widthHalf,
+            y: -(vector.y * heightHalf) + heightHalf
+        };
     }
 
     setFrozenAppearance(isFrozen) {
@@ -212,6 +305,39 @@ class Boss {
         }, 2000);
     }
 
+    showExpText(exp) {
+        if (this.model) {
+            const expText = document.createElement('div');
+            expText.textContent = `+${exp} EXP`;
+            expText.style.position = 'absolute';
+            expText.style.color = 'purple';
+            expText.style.fontSize = '28px';
+            expText.style.fontWeight = 'bold';
+            expText.style.textShadow = '2px 2px 2px black';
+            expText.style.pointerEvents = 'none';
+    
+            document.body.appendChild(expText);
+    
+            const startTime = performance.now();
+            const duration = 3000; // 3 sekundy
+    
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                if (elapsed < duration) {
+                    const bossScreenPosition = this.getScreenPosition();
+                    expText.style.left = `${bossScreenPosition.x}px`;
+                    expText.style.top = `${bossScreenPosition.y - 100 - (elapsed / duration) * 100}px`;
+                    expText.style.opacity = 1 - (elapsed / duration);
+                    requestAnimationFrame(animate);
+                } else {
+                    document.body.removeChild(expText);
+                }
+            };
+    
+            requestAnimationFrame(animate);
+        }
+    }
+
 
 
     die() {
@@ -232,7 +358,9 @@ class Boss {
         }
 
         // Přidání exp za zabití bosse
-        addExperience(this.maxHealth);
+        const expGained = this.maxHealth;
+        addExperience(expGained);
+        this.showExpText(expGained);
     }
 
     attack() {
@@ -247,9 +375,13 @@ class Boss {
                 };
             }
 
-            if (this.health < this.maxHealth / 2 && this.rng() < this.specialAttackProbability) {
-                // Šance na speciální útok, pokud má boss méně než polovinu života
-                this.specialAttack();
+            if (this.health < this.maxHealth / 2 && this.specialAttacks.length > 0) {
+                const attackType = this.specialAttacks[Math.floor(this.rng() * this.specialAttacks.length)];
+                if (this.rng() < this.getSpecialAttackProbability(attackType)) {
+                    this.specialAttack(attackType);
+                } else {
+                    this.performStandardAttack();
+                }
             } else {
                 this.performStandardAttack();
             }
@@ -269,8 +401,8 @@ class Boss {
     }
 
 
-    specialAttack() {
-        switch (this.specialAttackType) {
+    specialAttack(attackType) {
+        switch (attackType) {
             case 'multiShot':
                 this.multiShotAttack();
                 break;
