@@ -1333,7 +1333,7 @@ function showGoalMessage(keyCount, totalKeys) {
   }, 4000);
 }
 
-function teleportPlayer(teleport) {
+export function teleportPlayer(teleport) {
   const currentTime = performance.now();
   if (currentTime - lastTeleportTime > teleportCooldown) {
     console.log("Teleportuji se");
