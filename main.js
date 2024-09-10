@@ -7,9 +7,21 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Frustum, Matrix4 } from 'three';
 import { AudioLoader } from 'three';
-import frostboltIcon from './public/frostbolt-icon.png';
-import arcaneMissileIcon from './public/arcane-missile-icon.png';
-import fireballIcon from './public/fireball-icon.png';
+import { setBossCounter, setBosses, spawnBossInMaze,bosses } from './boss.js';
+import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime } from './spells.js';
+import {
+  createPlayer,
+  updatePlayerPosition,
+  updatePlayerHealthBar,
+  updatePlayerManaBar,
+  regenerateMana,
+  regenerateHealth,
+  setPlayerHealth,
+  setPlayerMana,
+  maxMana,
+  playerHealth,
+  player, moveBackward, moveForward, moveLeft, moveRight, onMouseClick, onMouseMove, onKeyDown, onKeyUp
+} from './player.js';
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -59,56 +71,40 @@ const textureSets = [
   },
 ];
 
-let scene, camera, renderer, maze, player;
+export let scene, camera, renderer, maze
 let startTime, timerInterval;
 let moveCount = 0,
   keyCount = 0;
-let MAZE_SIZE = 20;
-let totalKeys = 3; // Přidání deklarace proměnné totalKeys
-const WALL_HEIGHT = 2.8;
-const CELL_SIZE = 2.4;
-const OBJECT_HEIGHT = 1.6;
-let walls = [];
-let highWallAreas = [];
+export var MAZE_SIZE = 20;
+export var totalKeys = 3; // Přidání deklarace proměnné totalKeys
+export const WALL_HEIGHT = 2.8;
+export const CELL_SIZE = 2.4;
+export const OBJECT_HEIGHT = 1.6;
+export var walls = [];
+export var highWallAreas = [];
 
-let playerHealth = 100;
-let playerMana = 100;
-const maxMana = 100;
-const manaRegenRate = 0.5; // Počet MP, které se obnoví za interval
 
-let moveForward = false,
-  moveBackward = false,
-  moveLeft = false,
-  moveRight = false;
-let playerRotation = 0;
-let playerVelocity = new THREE.Vector3();
 let lastTeleportTime = 0;
 const teleportCooldown = 1000;
-let nearTeleport = null;
+export var nearTeleport = null;
 
 const torches = [];
 // Globální proměnné
 let composer, lightManager;
 let MAX_VISIBLE_LIGHTS = 10; // Default value
 
-let keyModel;
+export var keyModel;
 let treasureModel;
 // Přidejte globální proměnné
 const BLOCKING_WALL = 2;
-let staffModel;
-let fireBalls = [];
-let frostBalls = [];
-let arcaneMissiles = [];
-let magicBalls = [];
-let bosses = [];
-let bossCounter = 0; // Globální počítadlo pro ID bossů
+export var staffModel;
+export let magicBalls = [];
 
 let isConsoleOpen = false;
 let consoleInput = '';
-let canWalkThroughWalls = false;
-let isFlying = false;
+export let canWalkThroughWalls = false;
+export let isFlying = false;
 
-let lastSpellCastTime = 0;
 let currentStaffColor = new THREE.Color(0xff4500);
 let targetStaffColor = new THREE.Color(0xff4500);
 let colorTransitionSpeed = 5; // Rychlost přechodu barev
@@ -127,12 +123,12 @@ let teleportPairsCount = 0;
 
 let nebula, nebulaMaterial;
 
-let fireballSoundBuffer;
-let frostBoltSoundBuffer;
-let magicMissileSoundBuffer;
+export var fireballSoundBuffer;
+export var frostBoltSoundBuffer;
+export var magicMissileSoundBuffer;
 
-let bossSoundBuffer;
-let backgroundMusic;
+export var bossSoundBuffer;
+export var backgroundMusic;
 let isMusicPlaying = true;
 let footstepsSound;
 
@@ -141,6 +137,10 @@ const audioLoader = new AudioLoader();
 // Přidejte globální proměnné
 const frustum = new Frustum();
 const projScreenMatrix = new Matrix4();
+
+export function setTotalKeys(value){
+  totalKeys = value;
+}
 
 async function init() {
   scene = new THREE.Scene();
@@ -419,7 +419,7 @@ function updateMagicBalls(deltaTime) {
     var player_position_for_collision = { ...player.position };
     player_position_for_collision.y = 1;
     if (magicBall.position.distanceTo(player_position_for_collision) < 0.5) {
-      playerHealth -= 20;
+      setPlayerHealth(playerHealth-20);
       updatePlayerHealthBar();
       if (playerHealth <= 0) {
         playerDeath();
@@ -449,11 +449,6 @@ function updateMagicBalls(deltaTime) {
   }
 }
 
-function canSeePlayer(bossPosition, playerPosition) {
-  const raycaster = new THREE.Raycaster(bossPosition, new THREE.Vector3().subVectors(playerPosition, bossPosition).normalize());
-  const intersects = raycaster.intersectObjects(walls);
-  return intersects.length === 0;
-}
 
 function updateFootstepsSound() {
   if (moveForward || moveBackward || moveLeft || moveRight) {
@@ -467,77 +462,16 @@ function updateFootstepsSound() {
   }
 }
 
-function playerDeath() {
+export function playerDeath() {
   // Restart hry
   startGame();
 }
 
-function regenerateMana(deltaTime) {
-  if (playerMana < maxMana) {
-    playerMana = Math.min(playerMana + (manaRegenRate * (deltaTime * 40)), maxMana);
-    updatePlayerManaBar();
-  }
-}
-
-function regenerateHealth(deltaTime) {
-  if (playerHealth < 100) {
-    playerHealth = Math.min(playerHealth + (0.05 * (deltaTime * 40)), 100);
-    updatePlayerHealthBar();
-  }
-}
 
 
-// Funkce pro vytvoření ohnivé koule
-function createFireball() {
-  const fireball = new THREE.Group();
 
-  // Vytvoření základní koule s emissive materiálem
-  const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xff6a32,
-    emissive: 0xff6a32,
-    emissiveIntensity: 3
-  });
-  const core = new THREE.Mesh(geometry, material);
-  fireball.add(core);
 
-  // Přidání částicového efektu
-  const particleCount = 50;
-  const particles = new THREE.Points(
-    new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({
-      color: 0xff6600,
-      size: 0.05,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-    })
-  );
-
-  const positions = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 0.45;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 0.45;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.45;
-  }
-
-  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  fireball.add(particles);
-
-  // Animace částic
-  fireball.userData.animate = function () {
-    const positions = particles.geometry.attributes.position.array;
-    for (let i = 0; i < positions.length; i += 3) {
-      positions[i] += (Math.random() - 0.5) * 0.02;
-      positions[i + 1] += (Math.random() - 0.5) * 0.01;
-      positions[i + 2] += (Math.random() - 0.5) * 0.04;
-    }
-    particles.geometry.attributes.position.needsUpdate = true;
-  };
-
-  return fireball;
-}
-
-function createCastEffect(position, color = 0xffa500) {
+export function createCastEffect(position, color = 0xffa500) {
   const castEffectGroup = new THREE.Group();
 
   const particleCount = 30;
@@ -582,7 +516,7 @@ function createCastEffect(position, color = 0xffa500) {
   return castEffectGroup;
 }
 
-function createExplosion(position, color = 0xff8f45) {
+export function createExplosion(position, color = 0xff8f45) {
   const explosionGroup = new THREE.Group();
 
   const particleCount = 100;
@@ -675,8 +609,8 @@ function createMaze(inputText = "") {
     bossHealthContainer.removeChild(bossHealthContainer.firstChild);
   }
 
-  bosses = [];
-  bossCounter = 0;
+  setBosses([]);
+  setBossCounter(0);
 
   // Odstraňte existující mlhovinu a mlhu, pokud existují
   if (nebula) {
@@ -875,8 +809,8 @@ function createMaze(inputText = "") {
   }
 
   // Resetování zdraví hráče při vytvoření nového bludiště
-  playerHealth = 100;
-  playerMana = maxMana;
+  setPlayerHealth(100);
+  setPlayerMana(maxMana);
   updatePlayerHealthBar();
   updatePlayerManaBar();
 
@@ -886,7 +820,7 @@ function createMaze(inputText = "") {
 }
 
 
-function getHash(str) {
+export function getHash(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
@@ -1256,142 +1190,11 @@ function createTeleportModel(color) {
   return teleport;
 }
 
-function createPlayer() {
-  if (player) {
-    scene.remove(player);
-    camera.parent.remove(camera);
-  }
 
-  player = new THREE.Group();
-  camera.position.set(0, 1.6, 0);
-  player.add(camera);
-  scene.add(player);
 
-  const seed = getHash(document.getElementById("mazeInput").value);
-  let rng = new seedrandom(seed);
-  // Najděme volnou buňku v bludišti pro umístění hráče
-  let freeCells = [];
-  for (let i = 0; i < MAZE_SIZE; i++) {
-    for (let j = 0; j < MAZE_SIZE; j++) {
-      if (maze[i][j] === 0) {
-        freeCells.push({ x: i, z: j });
-      }
-    }
-  }
 
-  if (freeCells.length > 0) {
-    // Vybereme náhodnou volnou buňku a umístíme na ni hráče
-    let cell = freeCells[Math.floor(rng() * freeCells.length)];
-    player.position.set(
-      (cell.x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
-      0,
-      (cell.z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
-    );
-  } else {
-    console.error("Nepodařilo se najít volnou buňku pro umístění hráče.");
-  }
-}
 
-function onKeyDown(event) {
 
-  switch (event.code) {
-    case "KeyW":
-      moveForward = true;
-      break;
-    case "KeyS":
-      moveBackward = true;
-      break;
-    case "KeyA":
-      moveLeft = true;
-      break;
-    case "KeyD":
-      moveRight = true;
-      break;
-    case "KeyF": // Přidáno: reakce na stisknutí klávesy F
-      if (nearTeleport) {
-        teleportPlayer(nearTeleport);
-      }
-      break;
-    case "KeyV":
-      toggleMinimap();
-      break;
-
-  }
-
-  if (event.key === 'e' || event.key === 'E') {
-    const frostboltSpell = spells.find(spell => spell.name === 'Frostbolt');
-    if (frostboltSpell && frostboltSpell.isReady()) {
-      let fired = frostboltSpell.cast();
-      if (fired) {
-        frostboltSpell.lastCastTime = Date.now();
-      }
-    }
-  }
-}
-
-function onKeyUp(event) {
-  switch (event.code) {
-    case "KeyW":
-      moveForward = false;
-      break;
-    case "KeyS":
-      moveBackward = false;
-      break;
-    case "KeyA":
-      moveLeft = false;
-      break;
-    case "KeyD":
-      moveRight = false;
-      break;
-  }
-}
-
-function onMouseMove(event) {
-  if (document.pointerLockElement === document.body) {
-    const movementX =
-      event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-    const movementY =
-      event.movementY || event.mozMovementY || event.webkitMovementY || 0;
-
-    playerRotation -= movementX * 0.002;
-    player.rotation.y = playerRotation;
-
-    const verticalRotation = camera.rotation.x - movementY * 0.002;
-    camera.rotation.x = Math.max(
-      Math.min(verticalRotation, Math.PI / 2),
-      -Math.PI / 2
-    );
-  }
-}
-
-function onMouseClick() {
-  if (document.pointerLockElement !== document.body) {
-    document.body.requestPointerLock();
-  }
-}
-
-function checkCollisions(newPosition) {
-  const playerRadius = 0.4;
-  const wallMargin = 0.3;
-
-  let collisionNormal = new THREE.Vector3();
-  let hasCollision = false;
-
-  for (let wall of walls) {
-    const dx = newPosition.x - wall.position.x;
-    const dz = newPosition.z - wall.position.z;
-    const distance = Math.sqrt(dx * dx + dz * dz);
-
-    if (distance < CELL_SIZE / 2 + playerRadius + wallMargin) {
-      const normal = new THREE.Vector3(dx, 0, dz).normalize();
-      const penetrationDepth = CELL_SIZE / 2 + playerRadius + wallMargin - distance;
-      collisionNormal.add(normal.multiplyScalar(penetrationDepth));
-      hasCollision = true;
-    }
-  }
-
-  return { normal: collisionNormal, collision: hasCollision };
-}
 
 function checkCollisionsWhenTeleport() {
   if (canWalkThroughWalls) {
@@ -1418,104 +1221,13 @@ function checkCollisionsWhenTeleport() {
   return false;
 }
 
-function updatePlayerHealthBar() {
-  const healthBarFill = document.getElementById('playerHealthFill');
-  const healthText = document.getElementById('playerHealthText');
-  const healthPercentage = Math.max(playerHealth, 0) + '%';
-  healthBarFill.style.width = healthPercentage;
-  healthText.textContent = `${Math.round(playerHealth)} / 100`;
-}
-
-
-function updatePlayerManaBar() {
-  const manaBarFill = document.getElementById('playerManaFill');
-  const manaText = document.getElementById('playerManaText');
-  const manaPercentage = Math.max(playerMana, 0) + '%';
-  manaBarFill.style.width = manaPercentage;
-  manaText.textContent = `${Math.round(playerMana)} / ${maxMana}`;
-}
-
-function updatePlayerPosition(deltaTime) {
-  playerVelocity.set(0, 0, 0);
-
-  const speed = 6.5; // Základní rychlost hráče
-  const flySpeed = 6.5; // Rychlost při letu
-
-  if (isFlying) {
-    // Při letu se pohybujeme ve směru kamery, pokud jsou stisknuty klávesy
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
-
-    if (moveForward) playerVelocity.add(direction.clone().multiplyScalar(flySpeed * deltaTime));
-    if (moveBackward) playerVelocity.add(direction.clone().multiplyScalar(-flySpeed * deltaTime));
-    if (moveLeft) {
-      const leftDirection = new THREE.Vector3(direction.z, 0, -direction.x).normalize();
-      playerVelocity.add(leftDirection.clone().multiplyScalar(flySpeed * deltaTime));
-    }
-    if (moveRight) {
-      const rightDirection = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
-      playerVelocity.add(rightDirection.clone().multiplyScalar(flySpeed * deltaTime));
-    }
-  } else {
-    if (moveForward) playerVelocity.z -= speed * deltaTime;
-    if (moveBackward) playerVelocity.z += speed * deltaTime;
-    if (moveLeft) playerVelocity.x -= speed * deltaTime;
-    if (moveRight) playerVelocity.x += speed * deltaTime;
-
-    playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
-  }
-
-  const oldPosition = player.position.clone();
-  const newPosition = oldPosition.clone().add(playerVelocity);
-
-  if (!canWalkThroughWalls) {
-    const { normal, collision } = checkCollisions(newPosition);
-    if (collision) {
-      normal.normalize();
-      const dot = playerVelocity.dot(normal);
-
-      // Only apply sliding if the player is not moving directly into the wall
-      if (Math.abs(dot) < 0.9) {
-        playerVelocity.sub(normal.multiplyScalar(dot));
-        newPosition.copy(oldPosition).add(playerVelocity);
-      } else {
-        // If moving directly into the wall, stop the player
-        newPosition.copy(oldPosition);
-      }
-
-      // Perform a final collision check
-      const finalCollision = checkCollisions(newPosition);
-      if (finalCollision.collision) {
-        newPosition.add(finalCollision.normal);
-      }
-    }
-  }
-
-  player.position.copy(newPosition);
-  // Limit player movement to the maze area
-  player.position.x = Math.max(
-    Math.min(player.position.x, (MAZE_SIZE * CELL_SIZE) / 2),
-    (-MAZE_SIZE * CELL_SIZE) / 2
-  );
-  player.position.z = Math.max(
-    Math.min(player.position.z, (MAZE_SIZE * CELL_SIZE) / 2),
-    (-MAZE_SIZE * CELL_SIZE) / 2
-  );
-
-  if (!isFlying) {
-    player.position.y = Math.max(0, player.position.y); // Neumožní pád pod podlahu
-  }
-
-  checkObjectInteractions();
-}
-
 
 
 let lastTeleport = null;
 
 let keysAlertShown = false; // Přidáme proměnnou pro kontrolu zobrazení alertu
 
-function checkObjectInteractions() {
+export function checkObjectInteractions() {
   const currentTime = performance.now();
   nearTeleport = null;
 
@@ -1768,7 +1480,7 @@ function drawArrow(ctx, x, y, angle, size) {
 }
 
 // Přidejte novou funkci pro přepínání minimapy
-function toggleMinimap() {
+export function toggleMinimap() {
   if (!canOpenMinimap && !isMinimapVisible) return;
 
   isMinimapVisible = !isMinimapVisible;
@@ -1902,7 +1614,7 @@ function drawMinimap() {
   drawArrow(ctx, playerX, playerZ, playerAngle, CELL_SIZE * scale);
 }
 
-function changeStaffColor(color) {
+export function changeStaffColor(color) {
   targetStaffColor.setHex(color);
 }
 
@@ -2020,106 +1732,9 @@ function rotateTeleports(deltaTime) {
   });
 }
 
-// Přidáme novou funkci castFireball
-function castFireball() {
-  if (playerMana >= 20) {
-    playerMana -= 20;
-    updatePlayerManaBar();
-    lastSpellCastTime = Date.now();
-    changeStaffColor(0xff4500); // Oranžová pro ohnivou kouli
 
-    if (fireballSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setBuffer(fireballSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
 
-    const fireball = createFireball();
-    const staffWorldPosition = new THREE.Vector3();
-    staffModel.getWorldPosition(staffWorldPosition);
-    fireball.position.copy(staffWorldPosition);
-    fireball.position.y += 0.3;
 
-    createCastEffect(staffWorldPosition, 0xff4500);
-
-    const direction = getCameraDirection();
-    fireball.velocity = direction.multiplyScalar(0.25);
-
-    scene.add(fireball);
-    fireBalls.push(fireball);
-    return true;
-  }
-  return false;
-}
-
-function castFrostbolt() {
-  if (playerMana >= 30) {
-    playerMana -= 30;
-    updatePlayerManaBar();
-    lastSpellCastTime = Date.now();
-    changeStaffColor(0x8feaff); // Azurová pro mrazivý šíp
-
-    if (frostBoltSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setVolume(0.7);
-      sound.setBuffer(frostBoltSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
-
-    const frostbolt = createFrostbolt();
-    const staffWorldPosition = new THREE.Vector3();
-    staffModel.getWorldPosition(staffWorldPosition);
-    frostbolt.position.copy(staffWorldPosition);
-    frostbolt.position.y += 0.3;
-
-    createCastEffect(staffWorldPosition, 0x00ffff);
-    const direction = getCameraDirection();
-    frostbolt.velocity = direction.multiplyScalar(0.25);
-    scene.add(frostbolt);
-    frostBalls.push(frostbolt);
-    return true;
-  }
-  return false;
-}
-
-function castArcaneMissile() {
-  if (playerMana >= 10) {
-    playerMana -= 10;
-    updatePlayerManaBar();
-    lastSpellCastTime = Date.now();
-    changeStaffColor(0xff00ff); // Fialová pro arkánovou střelu
-
-    if (magicMissileSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setBuffer(magicMissileSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
-
-    const arcaneMissile = createArcaneMissile();
-    const staffWorldPosition = new THREE.Vector3();
-    staffModel.getWorldPosition(staffWorldPosition);
-    arcaneMissile.position.copy(staffWorldPosition);
-    arcaneMissile.position.y += 0.3;
-
-    createCastEffect(staffWorldPosition, 0xff00ff);
-
-    const direction = getCameraDirection();
-    arcaneMissile.velocity = direction.multiplyScalar(0.25);
-    scene.add(arcaneMissile);
-    arcaneMissiles.push(arcaneMissile);
-    return true;
-  }
-  return false
-}
 
 function createSkillbar() {
   const skillbar = document.getElementById('skillbar');
@@ -2156,290 +1771,13 @@ function resetStaffColor() {
   }
 }
 
-class Spell {
-  constructor(name, icon, key, cooldown, castFunction) {
-    this.name = name;
-    this.icon = icon;
-    this.key = key;
-    this.cooldown = cooldown;
-    this.lastCastTime = 0;
-    this.cast = castFunction;
-  }
 
-  isReady() {
-    return Date.now() - this.lastCastTime > this.cooldown;
-  }
-}
 
-const spells = [
-  new Spell('Fireball', fireballIcon, 'LMB', 500, castFireball),
-  new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, castArcaneMissile),
-  new Spell('Frostbolt', frostboltIcon, 'E', 5000, castFrostbolt)
-];
 
-function createFrostbolt() {
-  const frostbolt = new THREE.Group();
 
-  // Core ice sphere
-  const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x87CEFA,
-    emissive: 0x87CEFA,
-    emissiveIntensity: 1.5,
-    transparent: true,
-    opacity: 0.8
-  });
-  const core = new THREE.Mesh(geometry, material);
-  frostbolt.add(core);
 
-  // Snowflake particles
-  const snowflakeParticles = new THREE.Points(
-    new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({
-      color: 0xFFFFFF,
-      size: 0.1,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      map: createSnowflakeTexture()
-    })
-  );
 
-  const snowflakePositions = new Float32Array(150 * 3);
-  for (let i = 0; i < 50; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = 0.2 + Math.random() * 0.05;
-    snowflakePositions[i * 3] = Math.cos(angle) * radius;
-    snowflakePositions[i * 3 + 1] = Math.sin(angle) * radius;
-    snowflakePositions[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
-  }
-  snowflakeParticles.geometry.setAttribute('position', new THREE.BufferAttribute(snowflakePositions, 3));
-  frostbolt.add(snowflakeParticles);
 
-  // Ice trail
-  const trailParticles = new THREE.Points(
-    new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({
-      color: 0xADD8E6,
-      size: 0.3,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-    })
-  );
-
-  const trailPositions = new Float32Array(60 * 3);
-  trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
-  frostbolt.add(trailParticles);
-
-  frostbolt.userData.animate = function (deltaTime) {
-    // Animate snowflakes
-    const snowflakePositions = snowflakeParticles.geometry.attributes.position.array;
-    for (let i = 0; i < snowflakePositions.length; i += 3) {
-      snowflakePositions[i] += (Math.random() - 0.5) * 0.03;
-      snowflakePositions[i + 1] += (Math.random() - 0.5) * 0.03;
-      snowflakePositions[i + 2] += (Math.random() - 0.5) * 0.03;
-    }
-    snowflakeParticles.geometry.attributes.position.needsUpdate = true;
-
-    // Animate ice trail
-    const trailPositions = trailParticles.geometry.attributes.position.array;
-    for (let i = trailPositions.length - 1; i >= 3; i -= 3) {
-      trailPositions[i] = trailPositions[i - 3];
-      trailPositions[i - 1] = trailPositions[i - 4];
-      trailPositions[i - 2] = trailPositions[i - 5];
-    }
-    trailPositions[0] = 0;
-    trailPositions[1] = 0;
-    trailPositions[2] = -0.2;
-    trailParticles.geometry.attributes.position.needsUpdate = true;
-  };
-
-  return frostbolt;
-}
-
-function createSnowflakeTexture() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 32;
-  canvas.height = 32;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    ctx.moveTo(16, 16);
-    ctx.lineTo(16, 0);
-    ctx.lineTo(20, 4);
-    ctx.moveTo(16, 0);
-    ctx.lineTo(12, 4);
-    ctx.rotate(Math.PI / 3);
-  }
-  ctx.fill();
-  return new THREE.CanvasTexture(canvas);
-}
-
-function createArcaneMissile() {
-  const arcaneMissile = new THREE.Group();
-
-  // Core arcane sphere
-  const geometry = new THREE.SphereGeometry(0.15, 32, 32);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x7c6bfa,
-    emissive: 0x774aff,
-    emissiveIntensity: 3
-  });
-  const core = new THREE.Mesh(geometry, material);
-  arcaneMissile.add(core);
-
-  // Arcane runes
-  const runeParticles = new THREE.Points(
-    new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({
-      color: 0xFFFFFF,
-      size: 0.05,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      map: createRuneTexture()
-    })
-  );
-
-  const runePositions = new Float32Array(20 * 3);
-  for (let i = 0; i < 20; i++) {
-    const angle = (i / 20) * Math.PI * 2;
-    const radius = 0.2;
-    runePositions[i * 3] = Math.cos(angle) * radius;
-    runePositions[i * 3 + 1] = Math.sin(angle) * radius;
-    runePositions[i * 3 + 2] = 0;
-  }
-  runeParticles.geometry.setAttribute('position', new THREE.BufferAttribute(runePositions, 3));
-  arcaneMissile.add(runeParticles);
-
-  // Arcane trail
-  const trailParticles = new THREE.Points(
-    new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({
-      color: 0x774aff,
-      size: 0.03,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-    })
-  );
-
-  const trailPositions = new Float32Array(70 * 3);
-  trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
-  arcaneMissile.add(trailParticles);
-
-  arcaneMissile.userData.animate = function (deltaTime) {
-    // Rotate arcane runes
-    runeParticles.rotation.z += deltaTime * 2;
-
-    // Animate arcane trail
-    const trailPositions = trailParticles.geometry.attributes.position.array;
-    for (let i = trailPositions.length - 1; i >= 3; i -= 3) {
-      trailPositions[i] = trailPositions[i - 3];
-      trailPositions[i - 1] = trailPositions[i - 4];
-      trailPositions[i - 2] = trailPositions[i - 5];
-    }
-    trailPositions[0] = 0;
-    trailPositions[1] = 0;
-    trailPositions[2] = -0.2;
-    trailParticles.geometry.attributes.position.needsUpdate = true;
-  };
-
-  return arcaneMissile;
-}
-
-function createRuneTexture() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 32;
-  canvas.height = 32;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'white';
-  ctx.font = '24px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('ᚠ', 16, 16);
-  return new THREE.CanvasTexture(canvas);
-}
-
-function updateFrostbolts(deltaTime) {
-  for (let i = frostBalls.length - 1; i >= 0; i--) {
-    const frostbolt = frostBalls[i];
-    frostbolt.position.add(frostbolt.velocity.clone().multiplyScalar(deltaTime * 40));
-    frostbolt.userData.animate();
-
-    for (let boss of bosses) {
-      if (boss.model && frostbolt.position.distanceTo(boss.model.position) < 1.4) {
-        createExplosion(frostbolt.position, 0x00ffff);
-        boss.freeze();
-        scene.remove(frostbolt);
-        frostBalls.splice(i, 1);
-        break;
-      }
-    }
-
-    const ceilingHeight = isHighWallArea(frostbolt.position.x, frostbolt.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
-    if (frostbolt.position.y <= 0 || frostbolt.position.y >= ceilingHeight) {
-      createExplosion(frostbolt.position, 0x00ffff);
-      scene.remove(frostbolt);
-      frostBalls.splice(i, 1);
-      continue;
-    }
-
-    for (let j = walls.length - 1; j >= 0; j--) {
-      const wall = walls[j];
-      if (frostbolt.position.distanceTo(wall.position) < CELL_SIZE / 2) {
-        createExplosion(frostbolt.position, 0x00ffff);
-        scene.remove(frostbolt);
-        frostBalls.splice(i, 1);
-        break;
-      }
-    }
-
-    if (frostbolt.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
-      scene.remove(frostbolt);
-      frostBalls.splice(i, 1);
-    }
-  }
-}
-
-function updateArcaneMissiles(deltaTime) {
-  for (let i = arcaneMissiles.length - 1; i >= 0; i--) {
-    const arcaneMissile = arcaneMissiles[i];
-    arcaneMissile.position.add(arcaneMissile.velocity.clone().multiplyScalar(deltaTime * 50));
-    arcaneMissile.userData.animate();
-
-    for (let boss of bosses) {
-      if (boss.model && arcaneMissile.position.distanceTo(boss.model.position) < 1.4) {
-        createExplosion(arcaneMissile.position, 0xf7c6bfa);
-        boss.takeDamage(50);
-        scene.remove(arcaneMissile);
-        arcaneMissiles.splice(i, 1);
-        break;
-      }
-    }
-
-    const ceilingHeight = isHighWallArea(arcaneMissile.position.x, arcaneMissile.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
-    if (arcaneMissile.position.y <= 0 || arcaneMissile.position.y >= ceilingHeight) {
-      createExplosion(arcaneMissile.position, 0xf7c6bfa);
-      scene.remove(arcaneMissile);
-      arcaneMissiles.splice(i, 1);
-      continue;
-    }
-
-    for (let j = walls.length - 1; j >= 0; j--) {
-      const wall = walls[j];
-      if (arcaneMissile.position.distanceTo(wall.position) < CELL_SIZE / 2) {
-        createExplosion(arcaneMissile.position, 0xf7c6bfa);
-        scene.remove(arcaneMissile);
-        arcaneMissiles.splice(i, 1);
-        break;
-      }
-    }
-
-    if (arcaneMissile.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
-      scene.remove(arcaneMissile);
-      arcaneMissiles.splice(i, 1);
-    }
-  }
-}
 
 function checkWallCollision(projectile) {
   for (let wall of walls) {
@@ -2448,482 +1786,6 @@ function checkWallCollision(projectile) {
     }
   }
   return false;
-}
-
-class Boss {
-  constructor(position, id, rng) {
-    this.id = id;
-    this.maxHealth = Math.floor(rng() * 1500) + 1000; // Náhodné HP v rozmezí 1000 - 2500
-    this.health = this.maxHealth;
-    this.position = position;
-    this.attackCooldown = rng() * 0.5 + 0.5; // Náhodný cooldown útoku v rozmezí 0.5 - 1 vteřina
-    this.type = this.getBossType(rng);
-    this.specialAttackType = this.getSpecialAttackType(rng);
-    this.teleportCooldown = 2000; // 2 sekundy cooldown
-    this.lastTeleportTime = 0;
-    this.originalMaterial = null;
-    this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
-
-
-    // Definování dostupných barev střel
-    const colors = [
-      new THREE.Color(0x33adff), // Modrá
-      new THREE.Color(0x66ff99), // Zelená
-      new THREE.Color(0xffff66), // Žlutá
-      new THREE.Color(0xff66ff)  // Růžová
-    ];
-
-    // Náhodně vybereme jednu barvu
-    this.attackColor = colors[Math.floor(rng() * colors.length)];
-
-    this.model = null;
-    this.healthBar = null;
-    this.healthBarContainer = null;
-    this.mixer = null;
-    this.idleAction = null;
-    this.attackAction = null;
-    this.clock = new THREE.Clock();
-    this.lastAttackTime = 0;
-    this.moveDirection = new THREE.Vector3();
-    this.rng = rng; // Uložení rng pro pozdější použití
-    this.loadModel();
-    this.changeDirection();
-    this.createHealthUI();
-  }
-
-  getBossType(rng) {
-    const types = ['Dragon', 'Golem', 'Wizard', 'Shadow'];
-    return types[Math.floor(rng() * types.length)];
-  }
-
-  getBossColor(rng) {
-    const colors = [
-      new THREE.Color(0x33adff), // Modrá
-      new THREE.Color(0x66ff99), // Zelená
-      new THREE.Color(0xffff66), // Žlutá
-      new THREE.Color(0xff66ff)  // Růžová
-    ];
-    return colors[Math.floor(rng() * colors.length)];
-  }
-
-  getSpecialAttackType(rng) {
-    const attacks = ['multiShot', 'aoeBlast', 'teleport'];
-    return attacks[Math.floor(rng() * attacks.length)];
-  }
-
-  loadModel() {
-    const loader = new GLTFLoader();
-    loader.load('Dragon.glb', (gltf) => {
-      this.model = gltf.scene;
-      this.model.position.copy(this.position);
-      this.model.scale.set(0.5, 0.5, 0.5);
-      this.model.traverse((child) => {
-        if (child.isMesh) {
-          this.originalMaterial = child.material;
-        }
-      });
-      scene.add(this.model);
-
-      this.animations = gltf.animations;
-      this.mixer = new THREE.AnimationMixer(this.model);
-      this.idleAction = this.mixer.clipAction(this.animations.find(clip => clip.name === 'CharacterArmature|Flying_Idle'));
-      this.attackAction = this.mixer.clipAction(this.animations.find(clip => clip.name === 'CharacterArmature|Punch'));
-      this.idleAction.play();
-
-      this.createHealthBar();
-    });
-  }
-
-  createHealthBar() {
-    const healthBarContainerGeometry = new THREE.PlaneGeometry(2, 0.2);
-    const healthBarContainerMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    this.healthBarContainer = new THREE.Mesh(healthBarContainerGeometry, healthBarContainerMaterial);
-    this.healthBarContainer.position.set(0, 3, 0);
-    this.model.add(this.healthBarContainer);
-
-    const healthBarGeometry = new THREE.PlaneGeometry(2, 0.2);
-    const healthBarMaterial = new THREE.MeshBasicMaterial({ color: this.attackColor });
-    this.healthBar = new THREE.Mesh(healthBarGeometry, healthBarMaterial);
-    this.healthBar.position.set(-1, 0, 0.01); // Posuneme healthbar do levého kraje kontejneru
-    const healthRatio = this.health / this.maxHealth;
-    this.healthBar.scale.x = healthRatio;
-    this.healthBar.position.x = -1 + healthRatio;
-    this.healthBarContainer.add(this.healthBar);
-  }
-
-  createHealthUI() {
-    const bossHealthContainer = document.getElementById("bossHealthContainer");
-    const bossHealthElement = document.createElement("div");
-    bossHealthElement.id = `boss-${this.id}`;
-    bossHealthElement.className = "boss-health";
-    bossHealthElement.innerHTML = `
-      <div class="boss-name">Boss ${this.id}</div>
-      <div class="boss-health-bar">
-        <div class="boss-health-fill" style="background-color: ${this.attackColor.getStyle()}"></div>
-        <div class="boss-health-text"></div>
-      </div>
-    `;
-    bossHealthContainer.appendChild(bossHealthElement);
-
-    this.updateHealthUI();
-  }
-
-
-  updateHealthUI() {
-    const bossHealthElement = document.getElementById(`boss-${this.id}`);
-    if (bossHealthElement) {
-      const healthFill = bossHealthElement.querySelector('.boss-health-fill');
-      const healthText = bossHealthElement.querySelector('.boss-health-text');
-      const healthPercentage = (this.health / this.maxHealth) * 100;
-      healthFill.style.width = `${healthPercentage}%`;
-      healthText.textContent = `${Math.round(this.health)} / ${this.maxHealth}`;
-    }
-  }
-
-  updateHealthBar() {
-    if (this.healthBar) {
-      const healthRatio = this.health / this.maxHealth;
-      this.healthBar.scale.x = healthRatio;
-      this.healthBar.position.x = -1 + healthRatio;
-    }
-
-    this.updateHealthUI();
-  }
-
-  takeDamage(damage) {
-    this.health -= damage;
-    if (this.health <= 0) {
-      this.die();
-    }
-    this.updateHealthBar();
-  }
-
-  setFrozenAppearance(isFrozen) {
-    if (this.model) {
-      this.model.traverse((child) => {
-        if (child.isMesh && child !== this.healthBar && child !== this.healthBarContainer) {
-          if (isFrozen) {
-            child.userData.originalMaterial = child.material;
-            child.material = this.frozenMaterial;
-          } else {
-            child.material = child.userData.originalMaterial || this.originalMaterial;
-          }
-        }
-      });
-    }
-  }
-
-  freeze() {
-    this.isFrozen = true;
-    this.setFrozenAppearance(true);
-    setTimeout(() => {
-      this.isFrozen = false;
-      this.setFrozenAppearance(false);
-    }, 2000);
-  }
-
-
-
-  die() {
-    if (this.model) {
-      scene.remove(this.model); // Odstranění modelu bosse ze scény
-    }
-
-    // Přidání klíče na místo, kde boss zemřel
-    const key = keyModel.clone();
-    key.userData.isKey = true;
-    key.position.copy(this.position);
-    scene.add(key);
-
-    // Odstranění bosse z pole bossů
-    bosses = bosses.filter(b => b !== this);
-
-    // Odstranění UI elementu z DOMu
-    const bossHealthElement = document.getElementById(`boss-${this.id}`);
-    if (bossHealthElement) {
-      bossHealthElement.remove();
-    }
-  }
-
-  attack() {
-    const currentTime = performance.now();
-    if (currentTime - this.lastAttackTime >= this.attackCooldown * 1000) {
-      if (bossSoundBuffer) {
-        const sound = new THREE.Audio(new THREE.AudioListener());
-        sound.setBuffer(bossSoundBuffer);
-        sound.play();
-        sound.onEnded = () => {
-          sound.disconnect();
-        };
-      }
-
-      if (this.health < this.maxHealth / 2 && this.rng() < 0.5) {
-        // 50% šance na speciální útok, pokud má boss méně než polovinu života
-        this.specialAttack();
-      } else {
-        this.performStandardAttack();
-      }
-      this.lastAttackTime = currentTime;
-    }
-  }
-
-  performStandardAttack() {
-    if (this.attackAction) {
-      this.attackAction.reset().play();
-      this.attackAction.clampWhenFinished = true;
-      this.attackAction.setLoop(THREE.LoopOnce);
-    }
-    const magicBall = this.createMagicBall(this.position, player.position);
-    scene.add(magicBall);
-    magicBalls.push(magicBall);
-  }
-
-
-  specialAttack() {
-    switch (this.specialAttackType) {
-      case 'multiShot':
-        this.multiShotAttack();
-        break;
-      case 'aoeBlast':
-        this.aoeBlastAttack();
-        break;
-      case 'teleport':
-        this.teleportAttack();
-        break;
-    }
-  }
-
-  multiShotAttack() {
-    for (let i = 0; i < 5; i++) {
-      const angle = (i - 2) * Math.PI / 10;
-      const direction = new THREE.Vector3()
-        .subVectors(player.position, this.position)
-        .normalize()
-        .applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-      const magicBall = this.createMagicBall(this.position, this.position.clone().add(direction));
-      scene.add(magicBall);
-      magicBalls.push(magicBall);
-    }
-  }
-
-  aoeBlastAttack() {
-    const blastRadius = 5;
-    const blastGeometry = new THREE.SphereGeometry(blastRadius, 32, 32);
-    const blastMaterial = new THREE.MeshBasicMaterial({
-      color: this.attackColor,
-      transparent: true,
-      opacity: 0.3,
-      side: THREE.DoubleSide
-    });
-    const blast = new THREE.Mesh(blastGeometry, blastMaterial);
-    blast.position.copy(this.position);
-    scene.add(blast);
-
-
-
-    // Damage player if within blast radius
-    if (player.position.distanceTo(this.position) < blastRadius) {
-      playerHealth -= 20;
-      updatePlayerHealthBar();
-      if (playerHealth <= 0) {
-        playerDeath();
-      }
-    }
-
-    // Remove blast effect after a short delay
-    setTimeout(() => {
-      scene.remove(blast);
-    }, 1000);
-  }
-
-  teleportAttack() {
-    const currentTime = performance.now();
-    if (currentTime - this.lastTeleportTime < this.teleportCooldown) {
-      return; // Pokud je teleport na cooldownu, neprovedeme ho
-    }
-
-    const teleportDistance = 5;
-    let teleportDirection = new THREE.Vector3()
-      .subVectors(player.position, this.position)
-      .normalize()
-      .multiplyScalar(teleportDistance);
-    teleportDirection.y = 0; // Zachováme původní výšku
-
-    // Vytvoříme particle efekt na původní pozici
-    this.createTeleportParticles(this.position);
-
-    // Zkontrolujeme, zda nová pozice není uvnitř zdi
-    const newPosition = this.position.clone().add(teleportDirection);
-    if (this.checkCollisionOnMove(newPosition)) {
-      // Pokud by se teleportoval do zdi, najdeme nejbližší volnou pozici
-      teleportDirection = this.findSafePosition(teleportDirection);
-    }
-
-    this.position.add(teleportDirection);
-    this.model.position.copy(this.position);
-
-    // Vytvoříme particle efekt na nové pozici
-    this.createTeleportParticles(this.position);
-
-    // Nastavíme čas posledního teleportu
-    this.lastTeleportTime = currentTime;
-
-    // Perform a quick attack after teleporting
-    this.performStandardAttack();
-  }
-
-  createTeleportParticles(position) {
-    const particleCount = 100;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-
-    for (let i = 0; i < particleCount; i++) {
-      const x = (Math.random() - 0.5) * 2;
-      const y = Math.random() * 2;
-      const z = (Math.random() - 0.5) * 2;
-      positions[i * 3] = x;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = z;
-    }
-
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-    const material = new THREE.PointsMaterial({
-      color: this.attackColor,
-      size: 0.1,
-      transparent: true,
-      blending: THREE.AdditiveBlending
-    });
-
-    const particles = new THREE.Points(geometry, material);
-    particles.position.copy(position);
-    scene.add(particles);
-
-    // Animace částic
-    const animate = () => {
-      const positions = particles.geometry.attributes.position.array;
-      for (let i = 0; i < positions.length; i += 3) {
-        positions[i] += (Math.random() - 0.5) * 0.1;
-        positions[i + 1] += 0.1;
-        positions[i + 2] += (Math.random() - 0.5) * 0.1;
-      }
-      particles.geometry.attributes.position.needsUpdate = true;
-      material.opacity -= 0.02;
-
-      if (material.opacity > 0) {
-        requestAnimationFrame(animate);
-      } else {
-        scene.remove(particles);
-      }
-    };
-
-    animate();
-  }
-
-
-  findSafePosition(originalDirection) {
-    const angles = [0, Math.PI / 4, Math.PI / 2, 3 * Math.PI / 4, Math.PI, 5 * Math.PI / 4, 3 * Math.PI / 2, 7 * Math.PI / 4];
-    for (let angle of angles) {
-      const rotatedDirection = originalDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-      const newPosition = this.position.clone().add(rotatedDirection);
-      if (!this.checkCollisionOnMove(newPosition)) {
-        return rotatedDirection;
-      }
-    }
-    return new THREE.Vector3(0, 0, 0); // Pokud nenajdeme bezpečnou pozici, zůstaneme na místě
-  }
-
-
-
-
-  createMagicBall(startPosition, targetPosition) {
-    const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-    const material = new THREE.MeshBasicMaterial({
-      color: this.attackColor, emissive: this.attackColor,
-      emissiveIntensity: 2
-    });
-    const magicBall = new THREE.Mesh(geometry, material);
-    magicBall.position.copy(startPosition);
-    magicBall.position.y += 1;
-
-    const direction = new THREE.Vector3().subVectors(targetPosition, startPosition).normalize();
-
-    // Nastavení rychlosti na základě rng, v rozmezí 0.2 - 0.3
-    const speed = 0.2 + this.rng() * 0.1;
-    magicBall.velocity = direction.multiplyScalar(speed);
-
-    return magicBall;
-  }
-
-  changeDirection() {
-    const randomAngle = Math.random() * 2 * Math.PI;
-    this.moveDirection.set(Math.cos(randomAngle), 0, Math.sin(randomAngle));
-  }
-
-  move(deltaTime) {
-    if (!this.model || !this.position) {
-      return;
-    }
-
-    if (this.moveDirection.length() === 0) {
-      this.changeDirection();
-    }
-
-    const speed = 5.0; // Základní rychlost pohybu bosse
-    const moveStep = this.moveDirection.clone().multiplyScalar(speed * deltaTime);
-    const nextPosition = this.position.clone().add(moveStep);
-
-    const halfMazeSize = (MAZE_SIZE * CELL_SIZE) / 2;
-    if (
-      nextPosition.x < -halfMazeSize || nextPosition.x > halfMazeSize ||
-      nextPosition.z < -halfMazeSize || nextPosition.z > halfMazeSize
-    ) {
-      this.changeDirection(); // Pokud by boss opustil hranice bludiště, změní směr
-    } else if (!this.checkCollisionOnMove(nextPosition)) {
-      this.position.add(moveStep);
-      this.model.position.copy(this.position);
-    } else {
-      this.changeDirection();
-    }
-  }
-
-  // checkCollisionOnMove(position) {
-  //   for (let wall of walls) {
-  //     const distance = position.distanceTo(wall.position);
-  //     if (distance < CELL_SIZE / 2 + 0.8) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }  
-
-  checkCollisionOnMove(position) {
-    for (let wall of walls) {
-      const distance = position.distanceTo(wall.position);
-      if (distance < CELL_SIZE / 2 + 1) { // Přidáme větší odstup pro bosse
-        return true;
-      }
-    }
-    return false;
-  }
-
-  update(deltaTime) {
-    if (this.isFrozen) return;
-
-    if (this.mixer) {
-      this.mixer.update(deltaTime);
-    }
-
-    if (this.model) {
-      this.model.lookAt(player.position);
-    }
-
-    if (canSeePlayer(this.position, player.position) && this.position.distanceTo(player.position) < 20) {
-      this.attack();
-    } else {
-      this.move(deltaTime); // Předání deltaTime do funkce move
-    }
-  }
 }
 
 
@@ -2938,38 +1800,6 @@ function convertColorToCSS(hexColor) {
 
   // Přidáme na začátek znak #
   return `#${hexString}`;
-}
-
-
-function spawnBossInMaze(maze, rng) {
-  let freeCells = [];
-
-  // Projdeme celé bludiště a najdeme volné buňky
-  for (let i = 0; i < MAZE_SIZE; i++) {
-    for (let j = 0; j < MAZE_SIZE; j++) {
-      if (maze[i][j] === 0) {
-        freeCells.push({ x: i, z: j });
-      }
-    }
-  }
-
-  if (freeCells.length > 0) {
-    // Vybereme náhodnou volnou buňku
-    let cell = freeCells[Math.floor(rng() * freeCells.length)];
-    const bossPosition = new THREE.Vector3(
-      (cell.x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
-      0.5,
-      (cell.z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
-    );
-
-    // Vytvoříme bosse a přidáme ho do scény
-    const boss = new Boss(bossPosition, ++bossCounter, rng);
-    boss.health = boss.maxHealth;
-    bosses.push(boss);
-    totalKeys++;
-  } else {
-    console.error("Nepodařilo se najít volnou buňku pro umístění bosse.");
-  }
 }
 
 
@@ -3238,7 +2068,7 @@ function addNebula() {
   return { material, object: nebula };
 }
 
-function isHighWallArea(x, z) {
+export function isHighWallArea(x, z) {
   if (highWallAreas.length === 0) {
     return false;
   }
@@ -3253,70 +2083,7 @@ function isHighWallArea(x, z) {
   return highWallAreas[mazeX][mazeZ];
 }
 
-// Funkce pro aktualizaci pozic a animace ohnivých koulí
-function updateFireballs(deltaTime) {
-  for (let i = fireBalls.length - 1; i >= 0; i--) {
-    const fireball = fireBalls[i];
-    fireball.position.add(fireball.velocity.clone().multiplyScalar(deltaTime * 40));
 
-    // Animace částic v ohnivé kouli
-    fireball.userData.animate();
-
-    // Kolize s bossy
-    for (let boss of bosses) {
-      if (boss.model && fireball.position.distanceTo(boss.model.position) < 1.4) {
-        createExplosion(fireball.position);
-        boss.takeDamage(100);
-        scene.remove(fireball);
-        fireBalls.splice(i, 1);
-        break;
-      }
-    }
-
-    // Detekce kolize s podlahou a stropem
-    const ceilingHeight = isHighWallArea(fireball.position.x, fireball.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
-    if (fireball.position.y <= 0 || fireball.position.y >= ceilingHeight) {
-      // Vytvoření výbuchu při kolizi
-      createExplosion(fireball.position);
-
-      scene.remove(fireball);
-      fireBalls.splice(i, 1);
-      continue;
-    }
-
-    // Detekce kolize s zdmi
-    for (let j = walls.length - 1; j >= 0; j--) {
-      const wall = walls[j];
-      if (fireball.position.distanceTo(wall.position) < CELL_SIZE / 2) {
-        console.log("Collision detected with wall at", wall.position);
-
-        // Vytvoření výbuchu při kolizi
-        createExplosion(fireball.position);
-
-        scene.remove(fireball);
-        fireBalls.splice(i, 1);
-
-        if (wall.userData.isBlockingWall) {
-          console.log("Destroying blocking wall at", wall.position);
-          scene.remove(wall);
-          walls.splice(j, 1);
-          // Aktualizujte matici bludiště
-          const x = Math.round((wall.position.x / CELL_SIZE) + (MAZE_SIZE / 2) - 0.5);
-          const z = Math.round((wall.position.z / CELL_SIZE) + (MAZE_SIZE / 2) - 0.5);
-          maze[x][z] = 0;
-        }
-
-        break;
-      }
-    }
-
-    // Odstraňte ohnivou kouli, pokud je příliš daleko
-    if (fireball.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
-      scene.remove(fireball);
-      fireBalls.splice(i, 1);
-    }
-  }
-}
 
 
 
@@ -3403,7 +2170,7 @@ function animate() {
   composer.render();
 }
 
-function getCameraDirection() {
+export function getCameraDirection() {
   const direction = new THREE.Vector3();
   camera.getWorldDirection(direction);
   return direction;
