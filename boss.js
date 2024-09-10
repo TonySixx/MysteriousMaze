@@ -491,37 +491,68 @@ class Boss {
         if (currentTime - this.lastTeleportTime < this.teleportCooldown) {
             return; // Pokud je teleport na cooldownu, neprovedeme ho
         }
-
+    
         const teleportDistance = 5;
         let teleportDirection = new THREE.Vector3()
             .subVectors(player.position, this.position)
             .normalize()
             .multiplyScalar(teleportDistance);
         teleportDirection.y = 0; // Zachováme původní výšku
-
+    
         // Vytvoříme particle efekt na původní pozici
         this.createTeleportParticles(this.position);
-
-        // Zkontrolujeme, zda nová pozice není uvnitř zdi
-        const newPosition = this.position.clone().add(teleportDirection);
-        if (this.checkCollisionOnMove(newPosition)) {
-            // Pokud by se teleportoval do zdi, najdeme nejbližší volnou pozici
-            teleportDirection = this.findSafePosition(teleportDirection);
+    
+        const originalPosition = this.position.clone();
+        let newPosition = this.position.clone().add(teleportDirection);
+    
+        // Hledání bezpečné pozice pro teleportaci
+        newPosition = this.findSafeTeleportPosition(newPosition, originalPosition);
+    
+        if (newPosition) {
+            this.position.copy(newPosition);
+            this.model.position.copy(this.position);
+    
+            // Omezení pozice bosse na hranice bludiště
+            const halfMazeSize = (MAZE_SIZE * CELL_SIZE) / 2;
+            this.position.x = Math.max(Math.min(this.position.x, halfMazeSize), -halfMazeSize);
+            this.position.z = Math.max(Math.min(this.position.z, halfMazeSize), -halfMazeSize);
+    
+            // Vytvoříme particle efekt na nové pozici
+            this.createTeleportParticles(this.position);
+    
+            // Nastavíme čas posledního teleportu
+            this.lastTeleportTime = currentTime;
+    
+            // Perform a quick attack after teleporting
+            this.performStandardAttack();
+        } else {
+            console.log("Boss nemohl najít bezpečnou pozici pro teleportaci");
         }
-
-        this.position.add(teleportDirection);
-        this.model.position.copy(this.position);
-
-        // Vytvoříme particle efekt na nové pozici
-        this.createTeleportParticles(this.position);
-
-        // Nastavíme čas posledního teleportu
-        this.lastTeleportTime = currentTime;
-
-        // Perform a quick attack after teleporting
-        this.performStandardAttack();
     }
-
+    
+    findSafeTeleportPosition(targetPosition, originalPosition) {
+        if (!this.checkCollisionOnMove(targetPosition)) {
+            return targetPosition;
+        }
+    
+        const directions = [
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(-1, 0, 0),
+            new THREE.Vector3(0, 0, 1),
+            new THREE.Vector3(0, 0, -1),
+        ];
+    
+        for (let i = 1; i <= 10; i++) { // Zkusíme až 10 pozic
+            for (const direction of directions) {
+                const testPosition = targetPosition.clone().add(direction.clone().multiplyScalar(i * 0.5));
+                if (!this.checkCollisionOnMove(testPosition)) {
+                    return testPosition;
+                }
+            }
+        }
+    
+        return null; // Pokud nebyla nalezena žádná bezpečná pozice
+    }
     createTeleportParticles(position) {
         const particleCount = 100;
         const geometry = new THREE.BufferGeometry();
@@ -570,18 +601,6 @@ class Boss {
         animate();
     }
 
-
-    findSafePosition(originalDirection) {
-        const angles = [0, Math.PI / 4, Math.PI / 2, 3 * Math.PI / 4, Math.PI, 5 * Math.PI / 4, 3 * Math.PI / 2, 7 * Math.PI / 4];
-        for (let angle of angles) {
-            const rotatedDirection = originalDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-            const newPosition = this.position.clone().add(rotatedDirection);
-            if (!this.checkCollisionOnMove(newPosition)) {
-                return rotatedDirection;
-            }
-        }
-        return new THREE.Vector3(0, 0, 0); // Pokud nenajdeme bezpečnou pozici, zůstaneme na místě
-    }
 
 
 
