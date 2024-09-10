@@ -381,14 +381,18 @@ function onMouseDown(event) {
   if (event.button === 0) {
     const fireballSpell = spells.find(spell => spell.name === 'Fireball');
     if (fireballSpell && fireballSpell.isReady()) {
-      fireballSpell.cast();
-      fireballSpell.lastCastTime = Date.now();
+      let fired = fireballSpell.cast();
+      if (fired) {
+        fireballSpell.lastCastTime = Date.now();
+      }
     }
   } else if (event.button === 2) {
     const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
     if (arcaneMissileSpell && arcaneMissileSpell.isReady()) {
-      arcaneMissileSpell.cast();
-      arcaneMissileSpell.lastCastTime = Date.now();
+      let fired = arcaneMissileSpell.cast();
+      if (fired) {
+        arcaneMissileSpell.lastCastTime = Date.now();
+      }
     }
   }
 }
@@ -453,13 +457,13 @@ function canSeePlayer(bossPosition, playerPosition) {
 
 function updateFootstepsSound() {
   if (moveForward || moveBackward || moveLeft || moveRight) {
-      if (!footstepsSound.isPlaying) {
-          footstepsSound.play();
-      }
+    if (!footstepsSound.isPlaying) {
+      footstepsSound.play();
+    }
   } else {
-      if (footstepsSound.isPlaying) {
-          footstepsSound.stop();
-      }
+    if (footstepsSound.isPlaying) {
+      footstepsSound.stop();
+    }
   }
 }
 
@@ -1289,7 +1293,7 @@ function createPlayer() {
 }
 
 function onKeyDown(event) {
-  
+
   switch (event.code) {
     case "KeyW":
       moveForward = true;
@@ -1317,8 +1321,10 @@ function onKeyDown(event) {
   if (event.key === 'e' || event.key === 'E') {
     const frostboltSpell = spells.find(spell => spell.name === 'Frostbolt');
     if (frostboltSpell && frostboltSpell.isReady()) {
-      frostboltSpell.cast();
-      frostboltSpell.lastCastTime = Date.now();
+      let fired = frostboltSpell.cast();
+      if (fired) {
+        frostboltSpell.lastCastTime = Date.now();
+      }
     }
   }
 }
@@ -1924,7 +1930,7 @@ async function loadStaffModel() {
         staffModel.traverse((child) => {
           if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
             child.material = new THREE.MeshStandardMaterial({
-              color:currentStaffColor,
+              color: currentStaffColor,
               emissive: currentStaffColor, // Emisivní oranžová barva
               emissiveIntensity: 1.5, // Intenzita emisivní barvy
               metalness: 0.5,
@@ -2044,7 +2050,9 @@ function castFireball() {
 
     scene.add(fireball);
     fireBalls.push(fireball);
+    return true;
   }
+  return false;
 }
 
 function castFrostbolt() {
@@ -2075,7 +2083,9 @@ function castFrostbolt() {
     frostbolt.velocity = direction.multiplyScalar(0.25);
     scene.add(frostbolt);
     frostBalls.push(frostbolt);
+    return true;
   }
+  return false;
 }
 
 function castArcaneMissile() {
@@ -2100,13 +2110,15 @@ function castArcaneMissile() {
     arcaneMissile.position.copy(staffWorldPosition);
     arcaneMissile.position.y += 0.3;
 
-    createCastEffect(staffWorldPosition, 0xff00ff); 
+    createCastEffect(staffWorldPosition, 0xff00ff);
 
     const direction = getCameraDirection();
     arcaneMissile.velocity = direction.multiplyScalar(0.25);
     scene.add(arcaneMissile);
     arcaneMissiles.push(arcaneMissile);
+    return true;
   }
+  return false
 }
 
 function createSkillbar() {
@@ -2218,7 +2230,7 @@ function createFrostbolt() {
   trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
   frostbolt.add(trailParticles);
 
-  frostbolt.userData.animate = function(deltaTime) {
+  frostbolt.userData.animate = function (deltaTime) {
     // Animate snowflakes
     const snowflakePositions = snowflakeParticles.geometry.attributes.position.array;
     for (let i = 0; i < snowflakePositions.length; i += 3) {
@@ -2314,7 +2326,7 @@ function createArcaneMissile() {
   trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
   arcaneMissile.add(trailParticles);
 
-  arcaneMissile.userData.animate = function(deltaTime) {
+  arcaneMissile.userData.animate = function (deltaTime) {
     // Rotate arcane runes
     runeParticles.rotation.z += deltaTime * 2;
 
@@ -2354,7 +2366,7 @@ function updateFrostbolts(deltaTime) {
     frostbolt.userData.animate();
 
     for (let boss of bosses) {
-      if (boss.checkCollision(frostbolt)) {
+      if (boss.model && frostbolt.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(frostbolt.position, 0x00ffff);
         boss.freeze();
         scene.remove(frostbolt);
@@ -2395,7 +2407,7 @@ function updateArcaneMissiles(deltaTime) {
     arcaneMissile.userData.animate();
 
     for (let boss of bosses) {
-      if (boss.checkCollision(arcaneMissile)) {
+      if (boss.model && arcaneMissile.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(arcaneMissile.position, 0xf7c6bfa);
         boss.takeDamage(50);
         scene.remove(arcaneMissile);
@@ -2446,7 +2458,6 @@ class Boss {
     this.position = position;
     this.attackCooldown = rng() * 0.5 + 0.5; // Náhodný cooldown útoku v rozmezí 0.5 - 1 vteřina
     this.type = this.getBossType(rng);
-    this.color = this.getBossColor(rng);
     this.specialAttackType = this.getSpecialAttackType(rng);
     this.teleportCooldown = 2000; // 2 sekundy cooldown
     this.lastTeleportTime = 0;
@@ -2486,7 +2497,12 @@ class Boss {
   }
 
   getBossColor(rng) {
-    const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff];
+    const colors = [
+      new THREE.Color(0x33adff), // Modrá
+      new THREE.Color(0x66ff99), // Zelená
+      new THREE.Color(0xffff66), // Žlutá
+      new THREE.Color(0xff66ff)  // Růžová
+    ];
     return colors[Math.floor(rng() * colors.length)];
   }
 
@@ -2526,7 +2542,7 @@ class Boss {
     this.model.add(this.healthBarContainer);
 
     const healthBarGeometry = new THREE.PlaneGeometry(2, 0.2);
-    const healthBarMaterial = new THREE.MeshBasicMaterial({ color: this.color });
+    const healthBarMaterial = new THREE.MeshBasicMaterial({ color: this.attackColor });
     this.healthBar = new THREE.Mesh(healthBarGeometry, healthBarMaterial);
     this.healthBar.position.set(-1, 0, 0.01); // Posuneme healthbar do levého kraje kontejneru
     const healthRatio = this.health / this.maxHealth;
@@ -2543,15 +2559,15 @@ class Boss {
     bossHealthElement.innerHTML = `
       <div class="boss-name">Boss ${this.id}</div>
       <div class="boss-health-bar">
-        <div class="boss-health-fill" style="background-color: #${this.color.toString(16)}"></div>
+        <div class="boss-health-fill" style="background-color: ${this.attackColor.getStyle()}"></div>
         <div class="boss-health-text"></div>
       </div>
     `;
     bossHealthContainer.appendChild(bossHealthElement);
-  
+
     this.updateHealthUI();
   }
-  
+
 
   updateHealthUI() {
     const bossHealthElement = document.getElementById(`boss-${this.id}`);
@@ -2605,7 +2621,7 @@ class Boss {
       this.setFrozenAppearance(false);
     }, 2000);
   }
-  
+
 
 
   die() {
@@ -2709,6 +2725,9 @@ class Boss {
     if (player.position.distanceTo(this.position) < blastRadius) {
       playerHealth -= 20;
       updatePlayerHealthBar();
+      if (playerHealth <= 0) {
+        playerDeath();
+      }
     }
 
     // Remove blast effect after a short delay
@@ -2770,7 +2789,7 @@ class Boss {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     const material = new THREE.PointsMaterial({
-      color: this.color,
+      color: this.attackColor,
       size: 0.1,
       transparent: true,
       blending: THREE.AdditiveBlending
@@ -2801,18 +2820,6 @@ class Boss {
     animate();
   }
 
-  checkCollision(projectile) {
-    if (!this.model) return false;
-  
-    // Vytvoříme bounding box pro celého bosse
-    const bossBox = new THREE.Box3().setFromObject(this.model);
-  
-    // Vytvoříme bounding sphere pro projektil
-    const projectileSphere = new THREE.Sphere(projectile.position, 0.2);
-  
-    // Zkontrolujeme kolizi
-    return bossBox.intersectsSphere(projectileSphere);
-  }
 
   findSafePosition(originalDirection) {
     const angles = [0, Math.PI / 4, Math.PI / 2, 3 * Math.PI / 4, Math.PI, 5 * Math.PI / 4, 3 * Math.PI / 2, 7 * Math.PI / 4];
@@ -2880,10 +2887,20 @@ class Boss {
     }
   }
 
+  // checkCollisionOnMove(position) {
+  //   for (let wall of walls) {
+  //     const distance = position.distanceTo(wall.position);
+  //     if (distance < CELL_SIZE / 2 + 0.8) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }  
+
   checkCollisionOnMove(position) {
     for (let wall of walls) {
       const distance = position.distanceTo(wall.position);
-      if (distance < CELL_SIZE / 2 + 0.8) {
+      if (distance < CELL_SIZE / 2 + 1) { // Přidáme větší odstup pro bosse
         return true;
       }
     }
@@ -2910,6 +2927,18 @@ class Boss {
 }
 
 
+function convertColorToCSS(hexColor) {
+  // Převedeme číslo na řetězec a odstraníme prefix "0x" nebo "0X"
+  let hexString = hexColor.toString(16).slice(2);
+
+  // Zajistíme, že řetězec má 6 znaků (doplníme nulami zleva, pokud je potřeba)
+  while (hexString.length < 6) {
+    hexString = '0' + hexString;
+  }
+
+  // Přidáme na začátek znak #
+  return `#${hexString}`;
+}
 
 
 function spawnBossInMaze(maze, rng) {
@@ -2935,8 +2964,9 @@ function spawnBossInMaze(maze, rng) {
 
     // Vytvoříme bosse a přidáme ho do scény
     const boss = new Boss(bossPosition, ++bossCounter, rng);
+    boss.health = boss.maxHealth;
     bosses.push(boss);
-    totalKeys++; // Aktualizace celkového počtu klíčů při přidání bosse
+    totalKeys++;
   } else {
     console.error("Nepodařilo se najít volnou buňku pro umístění bosse.");
   }
@@ -3234,7 +3264,7 @@ function updateFireballs(deltaTime) {
 
     // Kolize s bossy
     for (let boss of bosses) {
-      if (boss.checkCollision(fireball)) {
+      if (boss.model && fireball.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(fireball.position);
         boss.takeDamage(100);
         scene.remove(fireball);
