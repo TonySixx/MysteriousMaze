@@ -1528,14 +1528,14 @@ function drawMinimap() {
   ctx.clearRect(0, 0, minimap.width, minimap.height);
 
   // Vykreslení pozadí
-  ctx.fillStyle = "#6e6e6e";
+  ctx.fillStyle = "#55535e";
   ctx.fillRect(0, 0, minimap.width, minimap.height);
 
   // Vykreslení zdí
   for (let i = 0; i < MAZE_SIZE; i++) {
     for (let j = 0; j < MAZE_SIZE; j++) {
       if (maze[i][j] === 1) {
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "#282633";
         ctx.fillRect(
           i * CELL_SIZE * scale,
           j * CELL_SIZE * scale,
@@ -1543,7 +1543,7 @@ function drawMinimap() {
           CELL_SIZE * scale
         );
       } else if (maze[i][j] === BLOCKING_WALL) {
-        ctx.fillStyle = "orange";
+        ctx.fillStyle = "#cc7e54";
         ctx.fillRect(
           i * CELL_SIZE * scale,
           j * CELL_SIZE * scale,
@@ -1573,7 +1573,7 @@ function drawMinimap() {
   // Vykreslení klíčů
   scene.children.forEach((child) => {
     if (child.userData.isKey) {
-      ctx.fillStyle = "yellow";
+      ctx.fillStyle = "#fffc4d";
       ctx.beginPath();
       ctx.arc(
         (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
@@ -1589,7 +1589,7 @@ function drawMinimap() {
   // Vykreslení cíle
   scene.children.forEach((child) => {
     if (child.userData.isGoal) {
-      ctx.fillStyle = "cyan";
+      ctx.fillStyle = "#5fd0f5";
       ctx.beginPath();
       ctx.arc(
         (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
@@ -1620,7 +1620,7 @@ function drawMinimap() {
   });
 
   // Vykreslení pozice hráče jako šipky
-  ctx.fillStyle = "blue";
+  ctx.fillStyle = "#9ec0ff";
   const playerX = (player.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
   const playerZ = (player.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
   const playerAngle = -player.rotation.y - Math.PI / 2; // Úprava úhlu rotace
