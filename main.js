@@ -7,7 +7,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Frustum, Matrix4 } from 'three';
 import { AudioLoader } from 'three';
-import { setBossCounter, setBosses, spawnBossInMaze,bosses } from './boss.js';
+import { setBossCounter, setBosses, spawnBossInMaze, bosses } from './boss.js';
 import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime } from './spells.js';
 import {
   createPlayer,
@@ -129,6 +129,8 @@ let nebula, nebulaMaterial;
 export var fireballSoundBuffer;
 export var frostBoltSoundBuffer;
 export var magicMissileSoundBuffer;
+export var frostBoltHitSoundBuffer;
+
 
 export var bossSoundBuffer;
 export var backgroundMusic;
@@ -141,7 +143,7 @@ const audioLoader = new AudioLoader();
 const frustum = new Frustum();
 const projScreenMatrix = new Matrix4();
 
-export function setTotalKeys(value){
+export function setTotalKeys(value) {
   totalKeys = value;
 }
 
@@ -185,6 +187,9 @@ async function init() {
   });
   audioLoader.load('snd_frostbolt.wav', function (buffer) {
     frostBoltSoundBuffer = buffer;
+  });
+  audioLoader.load('snd_frostbolt_hit.wav', function (buffer) {
+    frostBoltHitSoundBuffer = buffer;
   });
   audioLoader.load('snd_magicmissile.wav', function (buffer) {
     magicMissileSoundBuffer = buffer;
@@ -391,6 +396,8 @@ function attachStaffToCamera() {
 }
 
 function onMouseDown(event) {
+  if (player.isFrozen) return; // Přidáme tuto kontrolu
+
   if (event.button === 0) {
     const fireballSpell = spells.find(spell => spell.name === 'Fireball');
     if (fireballSpell && fireballSpell.isReady()) {
@@ -424,6 +431,85 @@ function toggleBackgroundMusic() {
 }
 
 
+
+let freezeEndTime = 0;
+
+function freezePlayer() {
+  const currentTime = Date.now();
+  const freezeDuration = 2000; // 2 sekundy
+
+  // Aktualizujeme čas konce zmrazení
+  freezeEndTime = Math.max(freezeEndTime, currentTime + freezeDuration);
+
+  player.isFrozen = true;
+
+  // Vytvoření nebo aktualizace ledového efektu
+  if (!player.iceEffect) {
+    const iceGeometry = new THREE.BoxGeometry(2, 2, 0.1);
+    const iceMaterial = new THREE.MeshPhongMaterial({
+      color: 0xADD8E6,
+      transparent: true,
+      opacity: 0.4,
+      shininess: 100,
+      side: THREE.DoubleSide
+    });
+    player.iceEffect = new THREE.Mesh(iceGeometry, iceMaterial);
+    player.iceEffect.position.set(0, 0, -0.5);
+    camera.add(player.iceEffect);
+  }
+
+  // Přidání zvukového efektu zmrazení
+  if (frostBoltHitSoundBuffer) {
+    const sound = new THREE.Audio(new THREE.AudioListener());
+    sound.setVolume(0.7);
+    sound.setBuffer(frostBoltHitSoundBuffer);
+    sound.play();
+    sound.onEnded = () => {
+      sound.disconnect();
+    };
+  }
+}
+
+function removeFreezeEffect() {
+  if (player.iceEffect) {
+    camera.remove(player.iceEffect);
+    player.iceEffect.geometry.dispose();
+    player.iceEffect.material.dispose();
+    player.iceEffect = null;
+    
+  }
+   // Odstraňte vizuální efekt zamrznutí z ikon kouzel
+   document.querySelectorAll('.spell-icon').forEach(icon => {
+    icon.classList.remove('frozen');
+  });
+  player.isFrozen = false;
+  freezeEndTime = 0;
+}
+
+function updateFreezeEffect() {
+  const currentTime = Date.now();
+
+  if (currentTime < freezeEndTime) {
+    player.isFrozen = true;
+    if (player.iceEffect) {
+      player.iceEffect.visible = true;
+    }
+    // Přidejte vizuální efekt zamrznutí na ikony kouzel
+    document.querySelectorAll('.spell-icon').forEach(icon => {
+      icon.classList.add('frozen');
+    });
+  } else {
+    player.isFrozen = false;
+    if (player.iceEffect) {
+      player.iceEffect.visible = false;
+    }
+    // Odstraňte vizuální efekt zamrznutí z ikon kouzel
+    document.querySelectorAll('.spell-icon').forEach(icon => {
+      icon.classList.remove('frozen');
+    });
+  }
+}
+
 function updateMagicBalls(deltaTime) {
   for (let i = magicBalls.length - 1; i >= 0; i--) {
     const magicBall = magicBalls[i];
@@ -432,12 +518,16 @@ function updateMagicBalls(deltaTime) {
     var player_position_for_collision = { ...player.position };
     player_position_for_collision.y = 1;
     if (magicBall.position.distanceTo(player_position_for_collision) < 0.5) {
-      setPlayerHealth(playerHealth-20);
-      updatePlayerHealthBar();
-      if (playerHealth <= 0) {
-        playerDeath();
+      if (magicBall.isFrostbolt) {
+        freezePlayer();
+      } else {
+        setPlayerHealth(playerHealth - 20);
+        updatePlayerHealthBar();
+        if (playerHealth <= 0) {
+          playerDeath();
+        }
       }
-      createExplosion(magicBall.position, magicBall.material.color.getHex()); // Vytvoření exploze s barvou střely
+      createExplosion(magicBall.position, magicBall.material.color.getHex());
       scene.remove(magicBall);
       magicBalls.splice(i, 1);
     }
@@ -1050,35 +1140,7 @@ function generateMaze(width, height, seed) {
   return maze;
 }
 
-// function placeObjectInHall(hallCenter, hallSize, rng) {
-//   const halfSize = Math.floor(hallSize / 2);
-//   let freeCells = [];
 
-//   const startX = Math.floor(hallCenter.x / CELL_SIZE) - halfSize + MAZE_SIZE / 2;
-//   const startZ = Math.floor(hallCenter.z / CELL_SIZE) - halfSize + MAZE_SIZE / 2;
-
-//   // Projdeme všechny buňky v oblasti haly
-//   for (let x = startX; x <= startX + hallSize; x++) {
-//     for (let z = startZ; z <= startZ + hallSize; z++) {
-//       // Kontrola, zda se jedná o platné indexy a buňku ve volném prostoru
-//       if (x >= 0 && x < MAZE_SIZE && z >= 0 && z < MAZE_SIZE && maze[x] && maze[x][z] === 0) {
-//         freeCells.push({ x, z });
-//       }
-//     }
-//   }
-
-//   if (freeCells.length > 0) {
-//     let cell = freeCells[Math.floor(rng() * freeCells.length)];
-//     return new THREE.Vector3(
-//       (cell.x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
-//       0.5,
-//       (cell.z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
-//     );
-//   } else {
-//     console.error("Nepodařilo se najít volnou buňku pro umístění objektu v hale.");
-//     return null;
-//   }
-// }
 
 
 
@@ -1384,6 +1446,7 @@ function showTeleportPrompt() {
 async function startGame() {
   const inputText = document.getElementById("mazeInput").value;
   getBestTime(inputText);
+  removeFreezeEffect();
   createMaze(inputText);
   createPlayer();
   moveCount = 0;
@@ -2108,6 +2171,7 @@ function animate() {
   previousTime = currentTime;
 
   requestAnimationFrame(animate);
+  updateFreezeEffect();
   updatePlayerPosition(deltaTime);
   checkObjectInteractions();
   animateKeys(deltaTime);

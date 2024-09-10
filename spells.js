@@ -404,7 +404,7 @@ function updateFireballs(deltaTime) {
         // Detekce kolize s zdmi
         for (let j = walls.length - 1; j >= 0; j--) {
             const wall = walls[j];
-            if (fireball.position.distanceTo(wall.position) < CELL_SIZE / 2) {
+            if (fireball.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
                 console.log("Collision detected with wall at", wall.position);
 
                 // Vytvoření výbuchu při kolizi
@@ -461,7 +461,7 @@ function updateFrostbolts(deltaTime) {
 
         for (let j = walls.length - 1; j >= 0; j--) {
             const wall = walls[j];
-            if (frostbolt.position.distanceTo(wall.position) < CELL_SIZE / 2) {
+            if (frostbolt.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
                 createExplosion(frostbolt.position, 0x00ffff);
                 scene.remove(frostbolt);
                 frostBalls.splice(i, 1);
@@ -502,7 +502,7 @@ function updateArcaneMissiles(deltaTime) {
 
         for (let j = walls.length - 1; j >= 0; j--) {
             const wall = walls[j];
-            if (arcaneMissile.position.distanceTo(wall.position) < CELL_SIZE / 2) {
+            if (arcaneMissile.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
                 createExplosion(arcaneMissile.position, 0xf7c6bfa);
                 scene.remove(arcaneMissile);
                 arcaneMissiles.splice(i, 1);

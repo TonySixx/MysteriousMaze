@@ -1,13 +1,13 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { player,setPlayerHealth,playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys,bossSoundBuffer,keyModel, playerDeath } from './main.js';
+import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer } from './main.js';
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
 
-export function setBosses(value){
-  bosses = value;
+export function setBosses(value) {
+    bosses = value;
 }
 
 export function setBossCounter(value) {
@@ -24,6 +24,7 @@ class Boss {
         this.attackCooldown = rng() * 0.5 + 0.5; // Náhodný cooldown útoku v rozmezí 0.5 - 1 vteřina
         this.type = this.getBossType(rng);
         this.specialAttackType = this.getSpecialAttackType(rng);
+        this.specialAttackProbability = this.getSpecialAttackProbability();
         this.teleportCooldown = 2000; // 2 sekundy cooldown
         this.lastTeleportTime = 0;
         this.originalMaterial = null;
@@ -72,8 +73,23 @@ class Boss {
     }
 
     getSpecialAttackType(rng) {
-        const attacks = ['multiShot', 'aoeBlast', 'teleport'];
+        const attacks = ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'];
         return attacks[Math.floor(rng() * attacks.length)];
+    }
+
+    getSpecialAttackProbability() {
+        switch (this.specialAttackType) {
+            case 'frostbolt':
+                return 0.2;
+            case 'multiShot':
+                return 0.5;
+            case 'aoeBlast':
+                return 0.3;
+            case 'teleport':
+                return 0.5; 
+            default:
+                return 0.5; // Výchozí hodnota pro případ, že by byl přidán nový typ útoku
+        }
     }
 
     loadModel() {
@@ -181,6 +197,15 @@ class Boss {
     freeze() {
         this.isFrozen = true;
         this.setFrozenAppearance(true);
+        if (frostBoltHitSoundBuffer) {
+            const sound = new THREE.Audio(new THREE.AudioListener());
+            sound.setVolume(0.7);
+            sound.setBuffer(frostBoltHitSoundBuffer);
+            sound.play();
+            sound.onEnded = () => {
+                sound.disconnect();
+            };
+        }
         setTimeout(() => {
             this.isFrozen = false;
             this.setFrozenAppearance(false);
@@ -191,24 +216,24 @@ class Boss {
 
     die() {
         if (this.model) {
-          scene.remove(this.model);
+            scene.remove(this.model);
         }
-      
+
         const key = keyModel.clone();
         key.userData.isKey = true;
         key.position.copy(this.position);
         scene.add(key);
-      
+
         bosses = bosses.filter(b => b !== this);
-      
+
         const bossHealthElement = document.getElementById(`boss-${this.id}`);
         if (bossHealthElement) {
-          bossHealthElement.remove();
+            bossHealthElement.remove();
         }
-      
+
         // Přidání exp za zabití bosse
         addExperience(this.maxHealth);
-      }
+    }
 
     attack() {
         const currentTime = performance.now();
@@ -222,8 +247,8 @@ class Boss {
                 };
             }
 
-            if (this.health < this.maxHealth / 2 && this.rng() < 0.5) {
-                // 50% šance na speciální útok, pokud má boss méně než polovinu života
+            if (this.health < this.maxHealth / 2 && this.rng() < this.specialAttackProbability) {
+                // Šance na speciální útok, pokud má boss méně než polovinu života
                 this.specialAttack();
             } else {
                 this.performStandardAttack();
@@ -255,7 +280,35 @@ class Boss {
             case 'teleport':
                 this.teleportAttack();
                 break;
+            case 'frostbolt':
+                this.frostboltAttack();
+                break;
         }
+    }
+
+    frostboltAttack() {
+        const frostbolt = this.createFrostbolt(this.position, player.position);
+        scene.add(frostbolt);
+        magicBalls.push(frostbolt);
+    }
+
+    createFrostbolt(startPosition, targetPosition) {
+        const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x87CEFA,
+            emissive: 0x87CEFA,
+            emissiveIntensity: 2
+        });
+        const frostbolt = new THREE.Mesh(geometry, material);
+        frostbolt.position.copy(startPosition);
+        frostbolt.position.y += 1;
+
+        const direction = new THREE.Vector3().subVectors(targetPosition, startPosition).normalize();
+        const speed = 0.3;
+        frostbolt.velocity = direction.multiplyScalar(speed);
+        frostbolt.isFrostbolt = true;
+
+        return frostbolt;
     }
 
     multiShotAttack() {
@@ -527,6 +580,6 @@ function canSeePlayer(bossPosition, playerPosition) {
     const raycaster = new THREE.Raycaster(bossPosition, new THREE.Vector3().subVectors(playerPosition, bossPosition).normalize());
     const intersects = raycaster.intersectObjects(walls);
     return intersects.length === 0;
-  }
+}
 
 export { Boss, spawnBossInMaze };

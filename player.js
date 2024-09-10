@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions,toggleMinimap,nearTeleport, teleportPlayer } from './main.js';
+import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer } from './main.js';
 import { spells } from "./spells.js";
 import seedrandom from "seedrandom";
 
@@ -38,72 +38,71 @@ export function savePlayerProgress() {
     localStorage.setItem('playerLevel', playerLevel);
     localStorage.setItem('playerExp', playerExp);
     localStorage.setItem('expToNextLevel', expToNextLevel);
-  }
-  
-  export function loadPlayerProgress() {
+}
+
+export function loadPlayerProgress() {
     const savedLevel = localStorage.getItem('playerLevel');
     const savedExp = localStorage.getItem('playerExp');
     const savedExpToNextLevel = localStorage.getItem('expToNextLevel');
-  
-    if (savedLevel && savedExp && savedExpToNextLevel) {
-      playerLevel = parseInt(savedLevel);
-      playerExp = parseInt(savedExp);
-      expToNextLevel = parseInt(savedExpToNextLevel);
-      updatePlayerStats();
-      updateExpBar();
-    }
-  }
-  
 
-  export function addExperience(exp) {
+    if (savedLevel && savedExp && savedExpToNextLevel) {
+        playerLevel = parseInt(savedLevel);
+        playerExp = parseInt(savedExp);
+        expToNextLevel = parseInt(savedExpToNextLevel);
+        updatePlayerStats();
+        updateExpBar();
+    }
+}
+
+
+export function addExperience(exp) {
     playerExp += exp;
     while (playerExp >= expToNextLevel) {
-      playerLevel++;
-      playerExp -= expToNextLevel;
-      expToNextLevel = Math.floor(expToNextLevel * 1.5);
-      updatePlayerStats();
+        playerLevel++;
+        playerExp -= expToNextLevel;
+        expToNextLevel = Math.floor(expToNextLevel * 1.5);
+        updatePlayerStats();
     }
     updateExpBar();
     savePlayerProgress(); // Přidáno: ukládání po každém získání exp
-  }
-  
-  function createExpSegments() {
+}
+
+function createExpSegments() {
     const expSegments = document.getElementById('expSegments');
     expSegments.innerHTML = ''; // Vyčistíme existující segmenty
     for (let i = 0; i < EXP_SEGMENTS; i++) {
-      const segment = document.createElement('div');
-      segment.className = 'expSegment';
-      expSegments.appendChild(segment);
+        const segment = document.createElement('div');
+        segment.className = 'expSegment';
+        expSegments.appendChild(segment);
     }
-  }
-  
-  function updateExpBar() {
+}
+
+function updateExpBar() {
     const expPercentage = (playerExp / expToNextLevel) * 100;
     document.getElementById('expFill').style.width = `${expPercentage}%`;
     document.getElementById('expText').textContent = `${playerExp} / ${expToNextLevel}`;
-  }
-  
-  function updatePlayerStats() {
+}
+
+function updatePlayerStats() {
     document.getElementById('playerLevel').textContent = `Level ${playerLevel}`;
     // Zde můžete přidat další aktualizace statistik hráče při levelování
-  }
-  
-  export function initPlayerUI() {
+}
+
+export function initPlayerUI() {
     loadPlayerProgress();
     updatePlayerHealthBar();
     updatePlayerManaBar();
     createExpSegments(); // Přidáno: vytvoření segmentů EXP baru
     updateExpBar();
     document.getElementById('playerLevel').textContent = `Level ${playerLevel}`;
-  }
-  
+}
+
 
 function createPlayer() {
     if (player) {
         scene.remove(player);
         camera.parent.remove(camera);
     }
-
     player = new THREE.Group();
     camera.position.set(0, 1.6, 0);
     player.add(camera);
@@ -135,6 +134,12 @@ function createPlayer() {
 }
 
 function updatePlayerPosition(deltaTime) {
+
+    if (player.isFrozen) {
+        // Pokud je hráč zmražený, neaktualizujeme jeho pozici
+        return;
+    }
+
     playerVelocity.set(0, 0, 0);
 
     const speed = 6.5; // Základní rychlost hráče
@@ -312,6 +317,8 @@ export function onKeyDown(event) {
             break;
 
     }
+
+    if (player.isFrozen) return; // Přidáme tuto kontrolu
 
     if (event.key === 'e' || event.key === 'E') {
         const frostboltSpell = spells.find(spell => spell.name === 'Frostbolt');

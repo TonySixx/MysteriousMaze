@@ -306,6 +306,11 @@ canvas {
   border-radius: 5px;
 }
 
+.spell-icon.frozen {
+  filter: grayscale(100%) brightness(50%);
+  pointer-events: none;
+}
+
 .spell-key {
   position: absolute;
   bottom: 0;
