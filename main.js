@@ -20,7 +20,10 @@ import {
   setPlayerMana,
   maxMana,
   playerHealth,
-  player, moveBackward, moveForward, moveLeft, moveRight, onMouseClick, onMouseMove, onKeyDown, onKeyUp
+  player, moveBackward, moveForward, moveLeft, moveRight, onMouseClick, onMouseMove, onKeyDown, onKeyUp,
+  initPlayerUI,
+  savePlayerProgress,
+  loadPlayerProgress
 } from './player.js';
 
 // Initialize Supabase client
@@ -210,6 +213,9 @@ async function init() {
     const crosshair = createCrosshair();
     camera.add(crosshair);
 
+    loadPlayerProgress(); // Přidáno: načtení progress hráče
+    initPlayerUI();
+
     // Načtení jména hráče z local storage
     playerName = localStorage.getItem("playerName");
     if (!playerName) {
@@ -334,6 +340,13 @@ function processConsoleCommand(command) {
       break;
   }
 }
+
+function saveGameState() {
+  savePlayerProgress();
+  // Zde můžete přidat další ukládání stavu hry, pokud je potřeba
+}
+
+window.addEventListener('beforeunload', saveGameState);
 
 function enableGhostMode() {
   canWalkThroughWalls = true;

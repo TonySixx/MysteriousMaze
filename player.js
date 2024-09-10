@@ -7,6 +7,9 @@ import seedrandom from "seedrandom";
 var player;
 var playerHealth = 100;
 var playerMana = 100;
+var playerLevel = 1;
+var playerExp = 0;
+var expToNextLevel = 1000;
 const maxMana = 100;
 const manaRegenRate = 0.5;
 
@@ -19,6 +22,8 @@ var moveForward = false,
 var playerRotation = 0;
 var playerVelocity = new THREE.Vector3();
 
+const EXP_SEGMENTS = 20; // Počet segmentů v EXP baru
+
 export function setPlayerHealth(health) {
     playerHealth = health;
     updatePlayerHealthBar();
@@ -28,6 +33,70 @@ export function setPlayerMana(mana) {
     playerMana = mana;
     updatePlayerManaBar();
 }
+
+export function savePlayerProgress() {
+    localStorage.setItem('playerLevel', playerLevel);
+    localStorage.setItem('playerExp', playerExp);
+    localStorage.setItem('expToNextLevel', expToNextLevel);
+  }
+  
+  export function loadPlayerProgress() {
+    const savedLevel = localStorage.getItem('playerLevel');
+    const savedExp = localStorage.getItem('playerExp');
+    const savedExpToNextLevel = localStorage.getItem('expToNextLevel');
+  
+    if (savedLevel && savedExp && savedExpToNextLevel) {
+      playerLevel = parseInt(savedLevel);
+      playerExp = parseInt(savedExp);
+      expToNextLevel = parseInt(savedExpToNextLevel);
+      updatePlayerStats();
+      updateExpBar();
+    }
+  }
+  
+
+  export function addExperience(exp) {
+    playerExp += exp;
+    while (playerExp >= expToNextLevel) {
+      playerLevel++;
+      playerExp -= expToNextLevel;
+      expToNextLevel = Math.floor(expToNextLevel * 1.5);
+      updatePlayerStats();
+    }
+    updateExpBar();
+    savePlayerProgress(); // Přidáno: ukládání po každém získání exp
+  }
+  
+  function createExpSegments() {
+    const expSegments = document.getElementById('expSegments');
+    expSegments.innerHTML = ''; // Vyčistíme existující segmenty
+    for (let i = 0; i < EXP_SEGMENTS; i++) {
+      const segment = document.createElement('div');
+      segment.className = 'expSegment';
+      expSegments.appendChild(segment);
+    }
+  }
+  
+  function updateExpBar() {
+    const expPercentage = (playerExp / expToNextLevel) * 100;
+    document.getElementById('expFill').style.width = `${expPercentage}%`;
+    document.getElementById('expText').textContent = `${playerExp} / ${expToNextLevel}`;
+  }
+  
+  function updatePlayerStats() {
+    document.getElementById('playerLevel').textContent = `Level ${playerLevel}`;
+    // Zde můžete přidat další aktualizace statistik hráče při levelování
+  }
+  
+  export function initPlayerUI() {
+    loadPlayerProgress();
+    updatePlayerHealthBar();
+    updatePlayerManaBar();
+    createExpSegments(); // Přidáno: vytvoření segmentů EXP baru
+    updateExpBar();
+    document.getElementById('playerLevel').textContent = `Level ${playerLevel}`;
+  }
+  
 
 function createPlayer() {
     if (player) {

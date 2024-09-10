@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { player,setPlayerHealth,playerHealth, updatePlayerHealthBar } from "./player.js"
+import { player,setPlayerHealth,playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
 import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys,bossSoundBuffer,keyModel, playerDeath } from './main.js';
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
@@ -191,24 +191,24 @@ class Boss {
 
     die() {
         if (this.model) {
-            scene.remove(this.model); // Odstranění modelu bosse ze scény
+          scene.remove(this.model);
         }
-
-        // Přidání klíče na místo, kde boss zemřel
+      
         const key = keyModel.clone();
         key.userData.isKey = true;
         key.position.copy(this.position);
         scene.add(key);
-
-        // Odstranění bosse z pole bossů
+      
         bosses = bosses.filter(b => b !== this);
-
-        // Odstranění UI elementu z DOMu
+      
         const bossHealthElement = document.getElementById(`boss-${this.id}`);
         if (bossHealthElement) {
-            bossHealthElement.remove();
+          bossHealthElement.remove();
         }
-    }
+      
+        // Přidání exp za zabití bosse
+        addExperience(this.maxHealth);
+      }
 
     attack() {
         const currentTime = performance.now();
