@@ -117,6 +117,12 @@ canvas {
   margin-left: 15px;
 }
 
+#showSkillTreeText {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-left: 15px;
+}
+
 #showHintText{
   font-size: 14px;
   opacity: 0.8;
@@ -298,6 +304,12 @@ canvas {
   border-radius: 10px;
 }
 
+@media (max-width: 1368px) {
+  #skillbar {
+    bottom: 60px;
+  }
+}
+
 .spell-icon {
   width: 40px;
   height: 40px;
@@ -418,4 +430,85 @@ canvas {
   margin-left: 10px;
   font-weight: bold;
   color: #ffd700;
+}
+
+.skill-tree {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.skill-tree-container {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.spell {
+  background-color: rgba(50, 50, 50, 0.7);
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px;
+  width: 200px;
+  text-align: center;
+}
+
+.spell-icon {
+  width: 64px;
+  height: 64px;
+  border: 2px solid gold;
+  border-radius: 50%;
+}
+
+.spell-info h3 {
+  margin: 10px 0;
+  color: #ffd700;
+}
+
+.upgrades-container {
+  margin-top: 10px;
+}
+
+.upgrade {
+  background-color: rgba(30, 30, 30, 0.7);
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px 0;
+}
+
+.upgrade-icon {
+  width: 32px;
+  height: 32px;
+  border: 1px solid silver;
+  border-radius: 50%;
+}
+
+.upgrade-icon.locked {
+  filter: grayscale(100%);
+}
+
+.upgrade-info h4 {
+  margin: 5px 0;
+  color: #c0c0c0;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
 }

@@ -7,9 +7,13 @@ import seedrandom from "seedrandom";
 var player;
 var playerHealth = 100;
 var playerMana = 100;
-var playerLevel = 1;
-var playerExp = 0;
-var expToNextLevel = 1000;
+
+export let playerLevel = 1;
+export let playerExp = 0;
+export let expToNextLevel = 100;
+export let skillPoints = 0;
+
+
 const maxMana = 100;
 const manaRegenRate = 0.5;
 
@@ -38,34 +42,50 @@ export function savePlayerProgress() {
     localStorage.setItem('playerLevel', playerLevel);
     localStorage.setItem('playerExp', playerExp);
     localStorage.setItem('expToNextLevel', expToNextLevel);
+    localStorage.setItem('skillPoints', skillPoints);
 }
 
 export function loadPlayerProgress() {
     const savedLevel = localStorage.getItem('playerLevel');
     const savedExp = localStorage.getItem('playerExp');
     const savedExpToNextLevel = localStorage.getItem('expToNextLevel');
+    const savedSkillPoints = localStorage.getItem('skillPoints');
 
-    if (savedLevel && savedExp && savedExpToNextLevel) {
+    if (savedLevel && savedExp && savedExpToNextLevel && savedSkillPoints) {
         playerLevel = parseInt(savedLevel);
         playerExp = parseInt(savedExp);
         expToNextLevel = parseInt(savedExpToNextLevel);
-        updatePlayerStats();
-        updateExpBar();
+        skillPoints = parseInt(savedSkillPoints);
+    } else {
+        // Pokud nemáme uložená data, nastavíme výchozí hodnoty
+        playerLevel = 1;
+        playerExp = 0;
+        expToNextLevel = 1000;
+        skillPoints = 0;
     }
+    updatePlayerStats();
+    updateExpBar();
 }
-
 
 export function addExperience(exp) {
     playerExp += exp;
     while (playerExp >= expToNextLevel) {
-        playerLevel++;
-        playerExp -= expToNextLevel;
-        expToNextLevel = Math.floor(expToNextLevel * 1.5);
-        updatePlayerStats();
+        levelUp();
     }
     updateExpBar();
-    savePlayerProgress(); // Přidáno: ukládání po každém získání exp
+    savePlayerProgress();
 }
+
+function levelUp() {
+    playerLevel++;
+    playerExp -= expToNextLevel;
+    expToNextLevel = Math.floor(expToNextLevel * 1.5);
+    addSkillPoint();
+    updatePlayerStats();
+}
+
+
+
 
 function createExpSegments() {
     const expSegments = document.getElementById('expSegments');
@@ -85,14 +105,40 @@ function updateExpBar() {
 
 function updatePlayerStats() {
     document.getElementById('playerLevel').textContent = `Level ${playerLevel}`;
-    // Zde můžete přidat další aktualizace statistik hráče při levelování
+    updateSkillPointsDisplay();
+}
+
+
+export function getSkillPoints() {
+    return skillPoints;
+}
+
+export function addSkillPoint() {
+    skillPoints++;
+    updateSkillPointsDisplay();
+}
+
+function updateSkillPointsDisplay() {
+    const skillPointsElement = document.getElementById('skillPoints');
+    if (skillPointsElement) {
+        skillPointsElement.textContent = `Dovednostní body: ${skillPoints}`;
+    }
+}
+
+export function useSkillPoint() {
+    if (skillPoints > 0) {
+        skillPoints--;
+        savePlayerProgress();
+        return true;
+    }
+    return false;
 }
 
 export function initPlayerUI() {
     loadPlayerProgress();
     updatePlayerHealthBar();
     updatePlayerManaBar();
-    createExpSegments(); // Přidáno: vytvoření segmentů EXP baru
+    createExpSegments();
     updateExpBar();
     document.getElementById('playerLevel').textContent = `Level ${playerLevel}`;
 }

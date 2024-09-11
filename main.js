@@ -22,9 +22,10 @@ import {
   playerHealth,
   player, moveBackward, moveForward, moveLeft, moveRight, onMouseClick, onMouseMove, onKeyDown, onKeyUp,
   initPlayerUI,
-  savePlayerProgress,
-  loadPlayerProgress
+  loadPlayerProgress,
+  addExperience,
 } from './player.js';
+import { initSkillTree } from "./skillTree.js";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -70,6 +71,15 @@ const textureSets = [
       "wall-mythical-sign-1.jpg",
       "wall-mythical-sign-2.jpg",
       "wall-mythical-sign-3.jpg",
+    ],
+  },
+  {
+    wallTexture: "wall-obsidian.jpg",
+    ceilingTexture: "wall-obsidian.jpg",
+    specialTextures: [
+      "wall-obsidian-sign-1.jpg",
+      "wall-obsidian-sign-2.jpg",
+      "wall-obsidian-sign-3.jpg",
     ],
   },
 ];
@@ -130,6 +140,9 @@ export var fireballSoundBuffer;
 export var frostBoltSoundBuffer;
 export var magicMissileSoundBuffer;
 export var frostBoltHitSoundBuffer;
+export var teleportSoundBuffer;
+export var killConfirmationSoundBuffer;
+
 
 
 export var bossSoundBuffer;
@@ -148,7 +161,7 @@ export function setTotalKeys(value) {
 }
 
 async function init() {
-    // Načtení nastavení z local storage
+  // Načtení nastavení z local storage
   MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem('maxVisibleLights')) || 10;
 
   scene = new THREE.Scene();
@@ -198,6 +211,14 @@ async function init() {
     magicMissileSoundBuffer = buffer;
   });
 
+  audioLoader.load('snd_teleport.mp3', function (buffer) {
+    teleportSoundBuffer = buffer;
+  });
+
+  audioLoader.load('snd_kill_confirm.mp3', function (buffer) {
+    killConfirmationSoundBuffer = buffer;
+  });
+
   audioLoader.load('snd_boss_attack.wav', function (buffer) {
     bossSoundBuffer = buffer;
   });
@@ -216,6 +237,7 @@ async function init() {
     createMaze(_inputText);
     createPlayer();
     createSkillbar()
+    initSkillTree();
     attachStaffToCamera();
     startTimer();
     const crosshair = createCrosshair();
@@ -343,18 +365,15 @@ function processConsoleCommand(command) {
     case 'fly.cmd':
       toggleFlyMode();
       break;
+    case 'exp.cmd':
+      addExperience(2000);
+      break;
     default:
       console.log('Neznámý příkaz:', command);
       break;
   }
 }
 
-function saveGameState() {
-  savePlayerProgress();
-  // Zde můžete přidat další ukládání stavu hry, pokud je potřeba
-}
-
-window.addEventListener('beforeunload', saveGameState);
 
 function enableGhostMode() {
   canWalkThroughWalls = true;
@@ -479,10 +498,10 @@ function removeFreezeEffect() {
     player.iceEffect.geometry.dispose();
     player.iceEffect.material.dispose();
     player.iceEffect = null;
-    
+
   }
-   // Odstraňte vizuální efekt zamrznutí z ikon kouzel
-   document.querySelectorAll('.spell-icon').forEach(icon => {
+  // Odstraňte vizuální efekt zamrznutí z ikon kouzel
+  document.querySelectorAll('.spell-icon').forEach(icon => {
     icon.classList.remove('frozen');
   });
   player.isFrozen = false;
@@ -1943,7 +1962,8 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
     { light: 0xffa500, particles: 0xff4500 }, // Original orange color
     { light: 0x00bfff, particles: 0x1e90ff }, // Magical blue
     { light: 0x00ff7f, particles: 0x2ecc71 },  // Emerald green
-    { light: 0xa35ee8, particles: 0xa35ee8 }  // Amethyst purple
+    { light: 0xa35ee8, particles: 0xa35ee8 },  // Amethyst purple
+    { light: 0x9896ff, particles: 0x9896ff }
   ];
 
   // Choose a color based on the seed

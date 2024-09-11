@@ -2,9 +2,9 @@ import * as THREE from "three";
 import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel,createCastEffect,getCameraDirection,isHighWallArea,maze } from './main.js';
 import { player } from "./player.js"
 import { createExplosion,changeStaffColor,fireballSoundBuffer,frostBoltSoundBuffer,magicMissileSoundBuffer } from "./main.js"
-import frostboltIcon from './public/frostbolt-icon.png';
-import arcaneMissileIcon from './public/arcane-missile-icon.png';
-import fireballIcon from './public/fireball-icon.png';
+import frostboltIcon from './public/spells/frostbolt-icon.png';
+import arcaneMissileIcon from './public/spells/arcane-missile-icon.png';
+import fireballIcon from './public/spells/fireball-icon.png';
 import { setPlayerMana, updatePlayerManaBar, playerMana } from "./player.js"
 import { bosses } from "./boss.js";
 
@@ -15,12 +15,13 @@ export let lastSpellCastTime = 0;
 
 
 class Spell {
-    constructor(name, icon, key, cooldown, castFunction) {
+    constructor(name, icon, key, cooldown, id, castFunction) {
         this.name = name;
         this.icon = icon;
         this.key = key;
         this.cooldown = cooldown;
         this.lastCastTime = 0;
+        this.id = id;
         this.cast = castFunction;
     }
 
@@ -30,11 +31,31 @@ class Spell {
 }
 
 // Definice kouzel
-const spells = [
-    new Spell('Fireball', fireballIcon, 'LMB', 500, castFireball),
-    new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, castArcaneMissile),
-    new Spell('Frostbolt', frostboltIcon, 'E', 5000, castFrostbolt)
+var spells = [
+  new Spell('Fireball', fireballIcon, 'LMB', 500, "fireball", castFireball),
+  new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, "arcaneMissile", castArcaneMissile),
+  new Spell('Frostbolt', frostboltIcon, 'E', 5000, "frostbolt", castFrostbolt)
 ];
+
+export function updateSpellUpgrades(skillTree) {
+  spells.forEach(spell => {
+    const spellInfo = skillTree[spell.id];
+    if (spellInfo && spellInfo.upgrades) {
+      spellInfo.upgrades.forEach(upgrade => {
+        if (upgrade.unlocked) {
+          if (upgrade.name === 'Inferno Touch') {
+            spell.burningEffect = true;
+          } else if (upgrade.name === 'Ice Explosion') {
+            spell.iceExplosion = true;
+          } else if (upgrade.name === 'Multi-shot') {
+            spell.multiShot = true;
+          }
+        }
+      });
+    }
+  });
+}
+
 
 // Funkce pro vytvoření ohnivé koule
 function createFireball() {
@@ -271,124 +292,185 @@ function createFireball() {
 
 // Přidáme novou funkci castFireball
 function castFireball() {
-    if (playerMana >= 20) {
-        setPlayerMana(playerMana - 20);
-        updatePlayerManaBar();
-        lastSpellCastTime = Date.now();
-        changeStaffColor(0xff4500); // Oranžová pro ohnivou kouli
+  if (playerMana >= 20) {
+      setPlayerMana(playerMana - 20);
+      updatePlayerManaBar();
+      lastSpellCastTime = Date.now();
+      changeStaffColor(0xff4500);
 
-        if (fireballSoundBuffer) {
-            const sound = new THREE.Audio(new THREE.AudioListener());
-            sound.setBuffer(fireballSoundBuffer);
-            sound.play();
-            sound.onEnded = () => {
-                sound.disconnect();
-            };
-        }
+      if (fireballSoundBuffer) {
+          const sound = new THREE.Audio(new THREE.AudioListener());
+          sound.setBuffer(fireballSoundBuffer);
+          sound.play();
+          sound.onEnded = () => {
+              sound.disconnect();
+          };
+      }
 
-        const fireball = createFireball();
-        const staffWorldPosition = new THREE.Vector3();
-        staffModel.getWorldPosition(staffWorldPosition);
-        fireball.position.copy(staffWorldPosition);
-        fireball.position.y += 0.3;
+      const fireball = createFireball();
+      const staffWorldPosition = new THREE.Vector3();
+      staffModel.getWorldPosition(staffWorldPosition);
+      fireball.position.copy(staffWorldPosition);
+      fireball.position.y += 0.3;
 
-        createCastEffect(staffWorldPosition, 0xff4500);
+      createCastEffect(staffWorldPosition, 0xff4500);
 
-        const direction = getCameraDirection();
-        fireball.velocity = direction.multiplyScalar(0.25);
+      const direction = getCameraDirection();
+      fireball.velocity = direction.multiplyScalar(0.25);
 
-        scene.add(fireball);
-        fireBalls.push(fireball);
-        return true;
+      // Přidáme informaci o hořícím efektu do ohnivé koule
+      const fireballSpell = spells.find(spell => spell.name === 'Fireball');
+      fireball.burningEffect = fireballSpell ? fireballSpell.burningEffect : false;
+
+      scene.add(fireball);
+      fireBalls.push(fireball);
+      return true;
+  }
+  return false;
+}
+
+function createIceExplosion(position) {
+  // Implementace ledové exploze
+  const explosionGeometry = new THREE.SphereGeometry(3, 32, 32);
+  const explosionMaterial = new THREE.MeshBasicMaterial({
+    color: 0x87CEFA,
+    transparent: true,
+    opacity: 0.5
+  });
+  const explosion = new THREE.Mesh(explosionGeometry, explosionMaterial);
+  explosion.position.copy(position);
+  scene.add(explosion);
+
+  // Animace exploze
+  const animate = () => {
+    explosion.scale.multiplyScalar(1.05);
+    explosion.material.opacity -= 0.05;
+    if (explosion.material.opacity > 0) {
+      requestAnimationFrame(animate);
+    } else {
+      scene.remove(explosion);
     }
-    return false;
+  };
+  animate();
+
+  // Efekt na nepřátele
+  bosses.forEach(boss => {
+    if (boss.position.distanceTo(position) <= 5) {
+      if (boss.isFrozen == false) boss.freeze(1000); // Zmrazí bosse na 1 sekundu
+      boss.takeDamage(50); // Způsobí 50 poškození
+    }
+  });
 }
 
 function castFrostbolt() {
-    if (playerMana >= 30) {
-        setPlayerMana(playerMana - 30);
-        updatePlayerManaBar();
-        lastSpellCastTime = Date.now();
-        changeStaffColor(0x8feaff); // Azurová pro mrazivý šíp
+  if (playerMana >= 30) {
+    setPlayerMana(playerMana - 30);
+    updatePlayerManaBar();
+    lastSpellCastTime = Date.now();
+    changeStaffColor(0x8feaff);
 
-        if (frostBoltSoundBuffer) {
-            const sound = new THREE.Audio(new THREE.AudioListener());
-            sound.setVolume(0.7);
-            sound.setBuffer(frostBoltSoundBuffer);
-            sound.play();
-            sound.onEnded = () => {
-                sound.disconnect();
-            };
-        }
-
-        const frostbolt = createFrostbolt();
-        const staffWorldPosition = new THREE.Vector3();
-        staffModel.getWorldPosition(staffWorldPosition);
-        frostbolt.position.copy(staffWorldPosition);
-        frostbolt.position.y += 0.3;
-
-        createCastEffect(staffWorldPosition, 0x00ffff);
-        const direction = getCameraDirection();
-        frostbolt.velocity = direction.multiplyScalar(0.25);
-        scene.add(frostbolt);
-        frostBalls.push(frostbolt);
-        return true;
+    if (frostBoltSoundBuffer) {
+      const sound = new THREE.Audio(new THREE.AudioListener());
+      sound.setVolume(0.7);
+      sound.setBuffer(frostBoltSoundBuffer);
+      sound.play();
+      sound.onEnded = () => {
+        sound.disconnect();
+      };
     }
-    return false;
+
+    const frostbolt = createFrostbolt();
+    const staffWorldPosition = new THREE.Vector3();
+    staffModel.getWorldPosition(staffWorldPosition);
+    frostbolt.position.copy(staffWorldPosition);
+    frostbolt.position.y += 0.3;
+
+    createCastEffect(staffWorldPosition, 0x00ffff);
+    const direction = getCameraDirection();
+    frostbolt.velocity = direction.multiplyScalar(0.25);
+    
+    // Přidáme informaci o vylepšení do frostboltu
+    const frostboltSpell = spells.find(spell => spell.name === 'Frostbolt');
+    frostbolt.iceExplosion = frostboltSpell ? frostboltSpell.iceExplosion : false;
+    
+    scene.add(frostbolt);
+    frostBalls.push(frostbolt);
+    return true;
+  }
+  return false;
 }
 
 function castArcaneMissile() {
-    if (playerMana >= 10) {
-        setPlayerMana(playerMana - 10);
-        updatePlayerManaBar();
-        lastSpellCastTime = Date.now();
-        changeStaffColor(0xff00ff); // Fialová pro arkánovou střelu
+  if (playerMana >= 10) {
+    setPlayerMana(playerMana - 10);
+    updatePlayerManaBar();
+    lastSpellCastTime = Date.now();
+    changeStaffColor(0x9661ff);
 
-        if (magicMissileSoundBuffer) {
-            const sound = new THREE.Audio(new THREE.AudioListener());
-            sound.setBuffer(magicMissileSoundBuffer);
-            sound.play();
-            sound.onEnded = () => {
-                sound.disconnect();
-            };
-        }
-
-        const arcaneMissile = createArcaneMissile();
-        const staffWorldPosition = new THREE.Vector3();
-        staffModel.getWorldPosition(staffWorldPosition);
-        arcaneMissile.position.copy(staffWorldPosition);
-        arcaneMissile.position.y += 0.3;
-
-        createCastEffect(staffWorldPosition, 0xff00ff);
-
-        const direction = getCameraDirection();
-        arcaneMissile.velocity = direction.multiplyScalar(0.25);
-        scene.add(arcaneMissile);
-        arcaneMissiles.push(arcaneMissile);
-        return true;
+    if (magicMissileSoundBuffer) {
+      const sound = new THREE.Audio(new THREE.AudioListener());
+      sound.setBuffer(magicMissileSoundBuffer);
+      sound.play();
+      sound.onEnded = () => {
+        sound.disconnect();
+      };
     }
-    return false
+
+    const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
+    const multiShot = arcaneMissileSpell ? arcaneMissileSpell.multiShot : false;
+    const missileCount = multiShot ? 3 : 1;
+
+    for (let i = 0; i < missileCount; i++) {
+      const arcaneMissile = createArcaneMissile();
+      const staffWorldPosition = new THREE.Vector3();
+      staffModel.getWorldPosition(staffWorldPosition);
+      arcaneMissile.position.copy(staffWorldPosition);
+      arcaneMissile.position.y += 0.3;
+
+      createCastEffect(staffWorldPosition, 0x9661ff);
+
+      const direction = getCameraDirection();
+      if (multiShot) {
+        // Přidáme mírnou odchylku pro každou střelu
+        const spread = new THREE.Vector3(
+          (Math.random() - 0.5) * 0.1,
+          (Math.random() - 0.5) * 0.1,
+          (Math.random() - 0.5) * 0.1
+        );
+        direction.add(spread).normalize();
+      }
+      arcaneMissile.velocity = direction.multiplyScalar(0.25);
+      
+      // Nastavíme sílu střely
+      arcaneMissile.power = multiShot ? 0.7 : 1;
+
+      scene.add(arcaneMissile);
+      arcaneMissiles.push(arcaneMissile);
+    }
+    return true;
+  }
+  return false;
 }
 
 // Funkce pro aktualizaci pozic a animace ohnivých koulí
 function updateFireballs(deltaTime) {
-    for (let i = fireBalls.length - 1; i >= 0; i--) {
-        const fireball = fireBalls[i];
-        fireball.position.add(fireball.velocity.clone().multiplyScalar(deltaTime * 40));
+  for (let i = fireBalls.length - 1; i >= 0; i--) {
+      const fireball = fireBalls[i];
+      fireball.position.add(fireball.velocity.clone().multiplyScalar(deltaTime * 40));
 
-        // Animace částic v ohnivé kouli
-        fireball.userData.animate();
+      // Animace částic v ohnivé kouli
+      fireball.userData.animate();
 
-        // Kolize s bossy
-        for (let boss of bosses) {
-            if (boss.model && fireball.position.distanceTo(boss.model.position) < 1.4) {
-                createExplosion(fireball.position);
-                boss.takeDamage(100);
-                scene.remove(fireball);
-                fireBalls.splice(i, 1);
-                break;
-            }
-        }
+      // Kolize s bossy
+      for (let boss of bosses) {
+          if (boss.model && fireball.position.distanceTo(boss.model.position) < 1.4) {
+              createExplosion(fireball.position);
+              boss.takeDamage(100, fireball.burningEffect);
+              scene.remove(fireball);
+              fireBalls.splice(i, 1);
+              break;
+          }
+      }
 
         // Detekce kolize s podlahou a stropem
         const ceilingHeight = isHighWallArea(fireball.position.x, fireball.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
@@ -436,24 +518,27 @@ function updateFireballs(deltaTime) {
 }
 
 function updateFrostbolts(deltaTime) {
-    for (let i = frostBalls.length - 1; i >= 0; i--) {
-        const frostbolt = frostBalls[i];
-        frostbolt.position.add(frostbolt.velocity.clone().multiplyScalar(deltaTime * 40));
-        frostbolt.userData.animate();
+  for (let i = frostBalls.length - 1; i >= 0; i--) {
+    const frostbolt = frostBalls[i];
+    frostbolt.position.add(frostbolt.velocity.clone().multiplyScalar(deltaTime * 40));
+    frostbolt.userData.animate();
 
-        for (let boss of bosses) {
-            if (boss.model && frostbolt.position.distanceTo(boss.model.position) < 1.4) {
-                createExplosion(frostbolt.position, 0x00ffff);
-                boss.freeze();
-                scene.remove(frostbolt);
-                frostBalls.splice(i, 1);
-                break;
-            }
+    for (let boss of bosses) {
+      if (boss.model && frostbolt.position.distanceTo(boss.model.position) < 1.4) {
+        createExplosion(frostbolt.position, 0xa6d9ff);
+        boss.freeze();
+        if (frostbolt.iceExplosion) {
+          createIceExplosion(frostbolt.position);
         }
+        scene.remove(frostbolt);
+        frostBalls.splice(i, 1);
+        break;
+      }
+    }
 
         const ceilingHeight = isHighWallArea(frostbolt.position.x, frostbolt.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
         if (frostbolt.position.y <= 0 || frostbolt.position.y >= ceilingHeight) {
-            createExplosion(frostbolt.position, 0x00ffff);
+            createExplosion(frostbolt.position, 0xa6d9ff);
             scene.remove(frostbolt);
             frostBalls.splice(i, 1);
             continue;
@@ -462,7 +547,7 @@ function updateFrostbolts(deltaTime) {
         for (let j = walls.length - 1; j >= 0; j--) {
             const wall = walls[j];
             if (frostbolt.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
-                createExplosion(frostbolt.position, 0x00ffff);
+                createExplosion(frostbolt.position, 0xa6d9ff);
                 scene.remove(frostbolt);
                 frostBalls.splice(i, 1);
                 break;
@@ -477,20 +562,20 @@ function updateFrostbolts(deltaTime) {
 }
 
 function updateArcaneMissiles(deltaTime) {
-    for (let i = arcaneMissiles.length - 1; i >= 0; i--) {
-        const arcaneMissile = arcaneMissiles[i];
-        arcaneMissile.position.add(arcaneMissile.velocity.clone().multiplyScalar(deltaTime * 50));
-        arcaneMissile.userData.animate();
+  for (let i = arcaneMissiles.length - 1; i >= 0; i--) {
+    const arcaneMissile = arcaneMissiles[i];
+    arcaneMissile.position.add(arcaneMissile.velocity.clone().multiplyScalar(deltaTime * 50));
+    arcaneMissile.userData.animate();
 
-        for (let boss of bosses) {
-            if (boss.model && arcaneMissile.position.distanceTo(boss.model.position) < 1.4) {
-                createExplosion(arcaneMissile.position, 0xf7c6bfa);
-                boss.takeDamage(50);
-                scene.remove(arcaneMissile);
-                arcaneMissiles.splice(i, 1);
-                break;
-            }
-        }
+    for (let boss of bosses) {
+      if (boss.model && arcaneMissile.position.distanceTo(boss.model.position) < 1.4) {
+        createExplosion(arcaneMissile.position, 0xf7c6bfa);
+        boss.takeDamage(50 * arcaneMissile.power);
+        scene.remove(arcaneMissile);
+        arcaneMissiles.splice(i, 1);
+        break;
+      }
+    }
 
         const ceilingHeight = isHighWallArea(arcaneMissile.position.x, arcaneMissile.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
         if (arcaneMissile.position.y <= 0 || arcaneMissile.position.y >= ceilingHeight) {

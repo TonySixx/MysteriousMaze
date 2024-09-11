@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera } from './main.js';
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer} from './main.js';
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -28,6 +28,12 @@ class Boss {
         this.lastTeleportTime = 0;
         this.originalMaterial = null;
         this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
+        this.isFrozen = false;
+
+        this.isBurning = false;
+        this.burningTimer = 0;
+        this.lastBurningDamageTime = 0;
+        this.fireParticles = null;
 
 
         // Definování dostupných barev střel
@@ -216,13 +222,106 @@ class Boss {
         this.updateHealthUI();
     }
 
-    takeDamage(damage) {
+    takeDamage(damage, burningEffect = false) {
         this.health -= damage;
         this.showDamageText(damage);
         if (this.health <= 0) {
             this.die();
+        } else {
+            if (burningEffect && !this.isBurning) {
+                this.startBurning();
+            }
         }
         this.updateHealthBar();
+    }
+
+    startBurning() {
+        this.isBurning = true;
+        this.burningTimer = 2000; // 2 sekundy
+        this.lastBurningDamageTime = Date.now();
+        this.createFireParticles();
+    }
+
+    createFireParticles() {
+        const particleCount = 100;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 2;
+            positions[i * 3 + 1] = Math.random() * 2;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 2;
+
+            colors[i * 3] = 1;
+            colors[i * 3 + 1] = Math.random() * 0.5 + 0.5;
+            colors[i * 3 + 2] = 0;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.1,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        this.fireParticles = new THREE.Points(geometry, material);
+        this.model.add(this.fireParticles);
+    }
+
+    updateBurning(deltaTime) {
+        if (this.isBurning) {
+            this.burningTimer -= deltaTime * 1000;
+            const currentTime = Date.now();
+            if (currentTime - this.lastBurningDamageTime >= 500) { // každých 0.5 sekundy
+                this.health -= 20;
+                this.showDamageText(20);
+                this.updateHealthBar();
+                this.lastBurningDamageTime = currentTime;
+            }
+            if (this.burningTimer <= 0) {
+                this.stopBurning();
+            }
+
+            if (this.fireParticles) {
+                this.updateFireParticles(deltaTime);
+            }
+        }
+    }
+
+    updateFireParticles(deltaTime) {
+        const positions = this.fireParticles.geometry.attributes.position.array;
+        const colors = this.fireParticles.geometry.attributes.color.array;
+
+        for (let i = 0; i < positions.length; i += 3) {
+            positions[i + 1] += deltaTime * 2; // Pohyb částic nahoru
+
+            if (positions[i + 1] > 2) {
+                positions[i + 1] = 0;
+                positions[i] = (Math.random() - 0.5) * 2;
+                positions[i + 2] = (Math.random() - 0.5) * 2;
+            }
+
+            // Změna barvy částic
+            colors[i + 1] = Math.max(0, colors[i + 1] - deltaTime * 0.5);
+        }
+
+        this.fireParticles.geometry.attributes.position.needsUpdate = true;
+        this.fireParticles.geometry.attributes.color.needsUpdate = true;
+    }
+
+    stopBurning() {
+        this.isBurning = false;
+        if (this.fireParticles) {
+            this.model.remove(this.fireParticles);
+            this.fireParticles.geometry.dispose();
+            this.fireParticles.material.dispose();
+            this.fireParticles = null;
+        }
     }
 
     showDamageText(damage) {
@@ -287,7 +386,7 @@ class Boss {
         }
     }
 
-    freeze() {
+    freeze(time = 2000) {
         this.isFrozen = true;
         this.setFrozenAppearance(true);
         if (frostBoltHitSoundBuffer) {
@@ -302,7 +401,7 @@ class Boss {
         setTimeout(() => {
             this.isFrozen = false;
             this.setFrozenAppearance(false);
-        }, 2000);
+        }, time);
     }
 
     showExpText(exp) {
@@ -344,6 +443,16 @@ class Boss {
         if (this.model) {
             scene.remove(this.model);
         }
+        this.stopBurning();
+
+        if (killConfirmationSoundBuffer) {
+            const sound = new THREE.Audio(new THREE.AudioListener());
+            sound.setBuffer(killConfirmationSoundBuffer);
+            sound.play();
+            sound.onEnded = () => {
+                sound.disconnect();
+            };
+        }
 
         const key = keyModel.clone();
         key.userData.isKey = true;
@@ -365,16 +474,7 @@ class Boss {
 
     attack() {
         const currentTime = performance.now();
-        if (currentTime - this.lastAttackTime >= this.attackCooldown * 1000) {
-            if (bossSoundBuffer) {
-                const sound = new THREE.Audio(new THREE.AudioListener());
-                sound.setBuffer(bossSoundBuffer);
-                sound.play();
-                sound.onEnded = () => {
-                    sound.disconnect();
-                };
-            }
-
+        if (currentTime - this.lastAttackTime >= this.attackCooldown * 1000) {    
             if (this.health < this.maxHealth / 2 && this.specialAttacks.length > 0) {
                 const attackType = this.specialAttacks[Math.floor(this.rng() * this.specialAttacks.length)];
                 if (this.rng() < this.getSpecialAttackProbability(attackType)) {
@@ -394,6 +494,14 @@ class Boss {
             this.attackAction.reset().play();
             this.attackAction.clampWhenFinished = true;
             this.attackAction.setLoop(THREE.LoopOnce);
+        }
+        if (bossSoundBuffer) {
+            const sound = new THREE.Audio(new THREE.AudioListener());
+            sound.setBuffer(bossSoundBuffer);
+            sound.play();
+            sound.onEnded = () => {
+                sound.disconnect();
+            };
         }
         const magicBall = this.createMagicBall(this.position, player.position);
         scene.add(magicBall);
@@ -418,7 +526,15 @@ class Boss {
         }
     }
 
-    frostboltAttack() {
+    frostboltAttack() {  
+        if (frostBoltSoundBuffer) {
+            const sound = new THREE.Audio(new THREE.AudioListener());
+            sound.setBuffer(frostBoltSoundBuffer);
+            sound.play();
+            sound.onEnded = () => {
+                sound.disconnect();
+            };
+        }
         const frostbolt = this.createFrostbolt(this.position, player.position);
         scene.add(frostbolt);
         magicBalls.push(frostbolt);
@@ -509,6 +625,16 @@ class Boss {
         newPosition = this.findSafeTeleportPosition(newPosition, originalPosition);
     
         if (newPosition) {
+
+            if (teleportSoundBuffer) {
+                const sound = new THREE.Audio(new THREE.AudioListener());
+                sound.setBuffer(teleportSoundBuffer);
+                sound.play();
+                sound.onEnded = () => {
+                    sound.disconnect();
+                };
+            }
+
             this.position.copy(newPosition);
             this.model.position.copy(this.position);
     
@@ -678,21 +804,24 @@ class Boss {
 
     update(deltaTime) {
         if (this.isFrozen) return;
-
+    
+        this.updateBurning(deltaTime);
+    
         if (this.mixer) {
             this.mixer.update(deltaTime);
         }
-
+    
         if (this.model) {
             this.model.lookAt(player.position);
         }
-
+    
         if (canSeePlayer(this.position, player.position) && this.position.distanceTo(player.position) < 20) {
             this.attack();
         } else {
-            this.move(deltaTime); // Předání deltaTime do funkce move
+            this.move(deltaTime);
         }
     }
+
 }
 
 function spawnBossInMaze(maze, rng) {
