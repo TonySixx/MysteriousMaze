@@ -368,7 +368,7 @@ function processConsoleCommand(command) {
       toggleFlyMode();
       break;
     case 'exp.cmd':
-      addExperience(2000);
+      addExperience(4000);
       break;
     default:
       console.log('Neznámý příkaz:', command);
