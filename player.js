@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer } from './main.js';
+import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version } from './main.js';
 import { spells } from "./spells.js";
 import seedrandom from "seedrandom";
 
@@ -43,9 +43,16 @@ export function savePlayerProgress() {
     localStorage.setItem('playerExp', playerExp);
     localStorage.setItem('expToNextLevel', expToNextLevel);
     localStorage.setItem('skillPoints', skillPoints);
+    localStorage.setItem('version', version);
 }
 
 export function loadPlayerProgress() {
+
+    if (localStorage.getItem('version') !== version) {
+        localStorage.clear();
+        localStorage.setItem('version', version);
+    }
+
     const savedLevel = localStorage.getItem('playerLevel');
     const savedExp = localStorage.getItem('playerExp');
     const savedExpToNextLevel = localStorage.getItem('expToNextLevel');
