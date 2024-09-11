@@ -432,11 +432,14 @@ canvas {
   color: #ffd700;
 }
 
+
 .skill-tree {
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   padding: 20px;
   border-radius: 10px;
+  width: 85%;
+  max-width: 960px;
 }
 
 .skill-tree-container {
@@ -450,8 +453,15 @@ canvas {
   border-radius: 5px;
   padding: 10px;
   margin: 10px;
-  width: 200px;
   text-align: center;
+  width: 200px;
+}
+
+.spell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
 .spell-icon {
@@ -461,9 +471,19 @@ canvas {
   border-radius: 50%;
 }
 
+.spell-cost {
+  font-size: 12px;
+  color: #ffd700;
+}
+
 .spell-info h3 {
   margin: 10px 0;
   color: #ffd700;
+}
+
+.required-level {
+  font-size: 12px;
+  margin: 5px 0;
 }
 
 .upgrades-container {
@@ -493,6 +513,39 @@ canvas {
   color: #c0c0c0;
 }
 
+.spell-icon.locked {
+  filter: grayscale(100%) brightness(50%);
+}
+
+.required-level.not-met {
+  color: orange;
+  font-style: italic;
+}
+
+.cost-badge {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  background-color: #ffd700;
+  color: #000;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #000;
+}
+
+.unlock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
 button {
   background-color: #4CAF50;
   color: white;
@@ -501,14 +554,15 @@ button {
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 14px;
-  margin: 4px 2px;
+  font-size: 12px;
+  margin: 2px;
   cursor: pointer;
   border-radius: 3px;
+  position: relative;
+  margin-top: 5px;
 }
 
 button:disabled {
-  background-color: #cccccc;
-  color: #666666;
+  background-color: #a1a1a1;
   cursor: not-allowed;
 }

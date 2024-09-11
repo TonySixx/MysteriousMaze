@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version } from './main.js';
-import { spells } from "./spells.js";
+import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 
 
@@ -379,6 +379,15 @@ export function onKeyDown(event) {
             let fired = frostboltSpell.cast();
             if (fired) {
                 frostboltSpell.lastCastTime = Date.now();
+            }
+        }
+    }
+    if (event.key === 'r' || event.key === 'R') {
+        const chainLightningSpell = getActiveSpells().find(spell => spell.name === 'Chain Lightning');
+        if (chainLightningSpell && chainLightningSpell.isReady()) {
+            let fired = chainLightningSpell.cast();
+            if (fired) {
+                chainLightningSpell.lastCastTime = Date.now();
             }
         }
     }

@@ -1,16 +1,20 @@
 import * as THREE from "three";
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel,createCastEffect,getCameraDirection,isHighWallArea,maze } from './main.js';
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel,createCastEffect,getCameraDirection,isHighWallArea,maze, chainLightningSoundBuffer } from './main.js';
 import { player } from "./player.js"
 import { createExplosion,changeStaffColor,fireballSoundBuffer,frostBoltSoundBuffer,magicMissileSoundBuffer } from "./main.js"
 import frostboltIcon from './public/spells/frostbolt-icon.png';
 import arcaneMissileIcon from './public/spells/arcane-missile-icon.png';
 import fireballIcon from './public/spells/fireball-icon.png';
+import chainLightningIcon from './public/spells/chain-lightning-icon.png';
 import { setPlayerMana, updatePlayerManaBar, playerMana } from "./player.js"
 import { bosses } from "./boss.js";
+import { isSpellUnlocked } from "./skillTree.js";
 
 export let fireBalls = [];
 export let frostBalls = [];
 export let arcaneMissiles = [];
+export let chainLightnings = [];
+
 export let lastSpellCastTime = 0;
 
 
@@ -34,8 +38,20 @@ class Spell {
 var spells = [
   new Spell('Fireball', fireballIcon, 'LMB', 500, "fireball", castFireball),
   new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, "arcaneMissile", castArcaneMissile),
-  new Spell('Frostbolt', frostboltIcon, 'E', 5000, "frostbolt", castFrostbolt)
+  new Spell('Frostbolt', frostboltIcon, 'E', 5000, "frostbolt", castFrostbolt),
+  new Spell('Chain Lightning', chainLightningIcon, 'R', 8000, "chainLightning", castChainLightning)
 ];
+
+// Funkce pro získání aktivních kouzel
+export function getActiveSpells() {
+  return spells.filter(spell => 
+      spell.name === 'Fireball' || 
+      spell.name === 'Arcane Missile' || 
+      spell.name === 'Frostbolt' || 
+      (spell.name === 'Chain Lightning' && isSpellUnlocked('chainLightning'))
+  );
+}
+
 
 export function updateSpellUpgrades(skillTree) {
   spells.forEach(spell => {
@@ -600,6 +616,238 @@ function updateArcaneMissiles(deltaTime) {
             arcaneMissiles.splice(i, 1);
         }
     }
+}
+
+function castChainLightning() {
+  if (!isSpellUnlocked('chainLightning')) {
+    console.log("Chain Lightning není odemčeno.");
+    return false;
+  }
+
+  if (playerMana >= 50) {
+    setPlayerMana(playerMana - 50);
+    updatePlayerManaBar();
+    lastSpellCastTime = Date.now();
+    changeStaffColor(0xbac5ff);
+
+    if (chainLightningSoundBuffer) {
+      const sound = new THREE.Audio(new THREE.AudioListener());
+      sound.setBuffer(chainLightningSoundBuffer);
+      sound.play();
+      sound.onEnded = () => {
+        sound.disconnect();
+      };
+    }
+
+    const lightning = createChainLightning();
+    const staffWorldPosition = new THREE.Vector3();
+    staffModel.getWorldPosition(staffWorldPosition);
+    lightning.position.copy(staffWorldPosition);
+    lightning.position.y += 0.3;
+
+    createCastEffect(staffWorldPosition, 0xbac5ff);
+
+    const direction = getCameraDirection();
+    lightning.velocity = direction.multiplyScalar(0.35);
+
+    scene.add(lightning);
+    chainLightnings.push(lightning);
+    return true;
+  }
+  return false;
+}
+
+function createChainLightning() {
+  const lightning = new THREE.Group();
+
+
+  // Vytvoření základního "jádra" blesku
+  const geometry = new THREE.CylinderGeometry(0.01, 0.05, 1, 8);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x637bff, 
+    emissive: 0x637bff,
+    emissiveIntensity: 10
+  });
+  const core = new THREE.Mesh(geometry, material);
+  const direction = getCameraDirection();
+  core.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+  lightning.add(core);
+
+
+
+  // Přidání částicového efektu
+  const particleCount = 10;
+  const particles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xbac5ff,
+      size: 0.04,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    })
+  );
+
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 0.1;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 0.1;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
+  }
+
+  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  lightning.add(particles);
+
+  // Animace částic
+  lightning.userData.animate = function (deltaTime) {
+    const positions = particles.geometry.attributes.position.array;
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] += (Math.random() - 0.5) * 0.1;
+      positions[i + 1] += (Math.random() - 0.5) * 0.1;
+      positions[i + 2] += (Math.random() - 0.5) * 0.1;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+ 
+  };
+
+  return lightning;
+}
+
+export function updateChainLightnings(deltaTime) {
+  for (let i = chainLightnings.length - 1; i >= 0; i--) {
+    const lightning = chainLightnings[i];
+    lightning.position.add(lightning.velocity.clone().multiplyScalar(deltaTime * 40));
+
+    // Kolize s bossy
+    for (let boss of bosses) {
+      if (boss.model && lightning.position.distanceTo(boss.model.position) < 1.4) {
+        createExplosion(lightning.position, 0xbac5ff);
+        boss.takeDamage(300);
+        scene.remove(lightning);
+        chainLightnings.splice(i, 1);
+        chainLightningEffect(lightning.position);
+        break;
+      }
+    }
+
+      // Detekce kolize s podlahou a stropem
+      const ceilingHeight = isHighWallArea(lightning.position.x, lightning.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+      if (lightning.position.y <= 0 || lightning.position.y >= ceilingHeight) {
+          // Vytvoření výbuchu při kolizi
+          createExplosion(lightning.position, 0xbac5ff);
+
+          scene.remove(lightning);
+          chainLightnings.splice(i, 1);
+          continue;
+      }
+
+      // Detekce kolize s zdmi
+      for (let j = walls.length - 1; j >= 0; j--) {
+          const wall = walls[j];
+          if (lightning.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
+        
+              // Vytvoření výbuchu při kolizi
+              createExplosion(lightning.position, 0xbac5ff);
+
+              scene.remove(lightning);
+              chainLightnings.splice(i, 1);
+
+              if (wall.userData.isBlockingWall) {
+                  console.log("Destroying blocking wall at", wall.position);
+                  scene.remove(wall);
+                  walls.splice(j, 1);
+                  // Aktualizujte matici bludiště
+                  const x = Math.round((wall.position.x / CELL_SIZE) + (MAZE_SIZE / 2) - 0.5);
+                  const z = Math.round((wall.position.z / CELL_SIZE) + (MAZE_SIZE / 2) - 0.5);
+                  maze[x][z] = 0;
+              }
+
+              break;
+          }
+      }
+
+    // Odstraňte blesk, pokud je příliš daleko
+    if (lightning.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
+      scene.remove(lightning);
+      chainLightnings.splice(i, 1);
+    }
+  }
+}
+
+function chainLightningEffect(position) {
+  const maxJumps = 3;
+  let currentJump = 0;
+  let lastPosition = position.clone();
+  let hitBosses = new Set();
+
+  const jump = () => {
+    if (currentJump >= maxJumps) return;
+
+    const nearestBoss = findNearestUnhitBoss(lastPosition, 10, hitBosses);
+    if (nearestBoss) {
+      createChainLightningVisual(lastPosition, nearestBoss.position);
+      nearestBoss.takeDamage(100);
+      hitBosses.add(nearestBoss);
+      lastPosition = nearestBoss.position.clone();
+      currentJump++;
+      setTimeout(jump, 200);
+    }
+  };
+
+  jump();
+}
+
+function createChainLightningVisual(startPosition, endPosition) {
+  const points = [];
+  const segmentCount = 10;
+  
+  for (let i = 0; i <= segmentCount; i++) {
+    const t = i / segmentCount;
+    const point = new THREE.Vector3().lerpVectors(startPosition, endPosition, t);
+    if (i !== 0 && i !== segmentCount) {
+      point.x += (Math.random() - 0.5) * 0.5;
+      point.y += (Math.random() - 0.5) * 0.5;
+      point.z += (Math.random() - 0.5) * 0.5;
+    }
+    points.push(point);
+  }
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: 0xbac5ff, linewidth: 3 });
+  const chainLightning = new THREE.Line(geometry, material);
+  
+  scene.add(chainLightning);
+
+  // Animace a odstranění efektu
+  let opacity = 1;
+  const animate = () => {
+    opacity -= 0.05;
+    material.opacity = opacity;
+    if (opacity > 0) {
+      requestAnimationFrame(animate);
+    } else {
+      scene.remove(chainLightning);
+      geometry.dispose();
+      material.dispose();
+    }
+  };
+  animate();
+}
+
+function findNearestUnhitBoss(position, maxDistance, hitBosses) {
+  let nearestBoss = null;
+  let minDistance = maxDistance;
+
+  for (const boss of bosses) {
+    if (!hitBosses.has(boss)) { // Kontrola, zda boss již nebyl zasažen
+      const distance = position.distanceTo(boss.position);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestBoss = boss;
+      }
+    }
+  }
+
+  return nearestBoss;
 }
 
 export { spells, Spell, castFireball, castFrostbolt, castArcaneMissile, updateFireballs, updateFrostbolts, updateArcaneMissiles };

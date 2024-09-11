@@ -5,6 +5,8 @@ import iceExplosionIcon from './public/spells/ice-explosion-icon.png';
 import multiShotIcon from './public/spells/multi-shot-icon.png';
 import fireballIcon from './public/spells/fireball-icon.png';
 import infernoTouchIcon from './public/spells/inferno-touch-icon.png';
+import chainLightningIcon from './public/spells/chain-lightning-icon.png';
+import chainExplosionIcon from './public/spells/chain-explosion-icon.png';
 import { spells, updateSpellUpgrades } from './spells.js';
 import { getSkillPoints } from './player.js';
 
@@ -56,6 +58,25 @@ const skillTree = {
                 requiredLevel: 7,
                 unlocked: false,
                 icon: multiShotIcon // Zde by měla být nová ikona pro vylepšení
+            }
+        ]
+    },
+    chainLightning: {
+        name: 'Chain Lightning',
+        level: 0,
+        maxLevel: 2,
+        description: 'Blesk, který přeskakuje mezi nepřáteli',
+        icon: chainLightningIcon,
+        requiredLevel: 10,
+        cost: 1, // Cena v dovednostních bodech
+        upgrades: [
+            {
+                name: 'Chain Explosion',
+                description: 'Poslední zasažený nepřítel exploduje a způsobí 100 poškození všem nepřátelům v okruhu 5 metrů',
+                requiredLevel: 15,
+                unlocked: false,
+                icon: chainExplosionIcon,
+                cost: 2 // Cena vylepšení v dovednostních bodech
             }
         ]
     }
@@ -128,6 +149,9 @@ function createSpellElement(spellKey, spell) {
     spellIcon.src = spell.icon;
     spellIcon.alt = spell.name;
     spellIcon.className = 'spell-icon';
+    if (spellKey === 'chainLightning' && spell.level === 0) {
+        spellIcon.classList.add('locked');
+    }
     spellElement.appendChild(spellIcon);
     
     const spellInfo = document.createElement('div');
@@ -153,6 +177,33 @@ function createSpellElement(spellKey, spell) {
         });
         
         spellElement.appendChild(upgradesContainer);
+    }
+    
+    // Přidáme tlačítko pro odemčení kouzla Chain Lightning
+    if (spellKey === 'chainLightning' && spell.level === 0) {
+        const unlockButton = document.createElement('button');
+        unlockButton.textContent = 'Odemknout';
+        unlockButton.disabled = playerLevel < spell.requiredLevel || getSkillPoints() < spell.cost;
+        unlockButton.onclick = () => unlockSpell(spellKey, unlockButton);
+        
+        const costBadge = document.createElement('span');
+        costBadge.className = 'cost-badge';
+        costBadge.textContent = spell.cost;
+        unlockButton.appendChild(costBadge);
+        
+        const requiredLevel = document.createElement('p');
+        requiredLevel.className = 'required-level';
+        requiredLevel.textContent = `Požadovaný level: ${spell.requiredLevel}`;
+        if (playerLevel < spell.requiredLevel) {
+            requiredLevel.classList.add('not-met');
+        }
+        
+        const unlockContainer = document.createElement('div');
+        unlockContainer.className = 'unlock-container';
+        unlockContainer.appendChild(requiredLevel);
+        unlockContainer.appendChild(unlockButton);
+        
+        spellElement.insertBefore(unlockContainer, spellInfo.nextSibling);
     }
     
     return spellElement;
@@ -186,6 +237,9 @@ function createUpgradeElement(spellKey, upgrade) {
         const requiredLevel = document.createElement('p');
         requiredLevel.textContent = `Požadovaný level: ${upgrade.requiredLevel}`;
         requiredLevel.className = 'required-level';
+        if (playerLevel < upgrade.requiredLevel) {
+            requiredLevel.classList.add('not-met');
+        }
         upgradeInfo.appendChild(requiredLevel);
     }
     
@@ -195,6 +249,12 @@ function createUpgradeElement(spellKey, upgrade) {
     unlockButton.textContent = upgrade.unlocked ? 'Odemčeno' : 'Odemknout';
     unlockButton.disabled = upgrade.unlocked || playerLevel < upgrade.requiredLevel;
     unlockButton.onclick = () => unlockUpgrade(spellKey, upgrade, unlockButton, upgradeIcon);
+    
+    const costBadge = document.createElement('span');
+    costBadge.className = 'cost-badge';
+    costBadge.textContent = upgrade.cost || 1; // Předpokládáme, že výchozí cena je 1, pokud není specifikováno jinak
+    unlockButton.appendChild(costBadge);
+    
     upgradeElement.appendChild(unlockButton);
     
     return upgradeElement;
@@ -214,6 +274,24 @@ function unlockUpgrade(spellKey, upgrade, button, icon) {
         saveSkillTreeProgress();
         updateSpellUpgrades(skillTree);
     }
+}
+
+function unlockSpell(spellKey, button) {
+    const spell = skillTree[spellKey];
+    if (playerLevel >= spell.requiredLevel && useSkillPoint(spell.cost)) {
+        spell.level = 1;
+        button.textContent = 'Odemčeno';
+        button.disabled = true;
+        
+        saveSkillTreeProgress();
+        updateSpellUpgrades(skillTree);
+        updateSkillbar(); // Přidáme volání této funkce, abychom aktualizovali skillbar
+    }
+}
+
+// Funkce pro kontrolu, zda je kouzlo odemčené
+export function isSpellUnlocked(spellName) {
+    return skillTree[spellName].level > 0;
 }
 
 function enableFireballBurningEffect() {

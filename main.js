@@ -8,7 +8,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { Frustum, Matrix4 } from 'three';
 import { AudioLoader } from 'three';
 import { setBossCounter, setBosses, spawnBossInMaze, bosses } from './boss.js';
-import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime } from './spells.js';
+import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings } from './spells.js';
 import {
   createPlayer,
   updatePlayerPosition,
@@ -25,9 +25,9 @@ import {
   loadPlayerProgress,
   addExperience,
 } from './player.js';
-import { initSkillTree } from "./skillTree.js";
+import { initSkillTree, isSpellUnlocked } from "./skillTree.js";
 
-export const version = "1.0.0";
+export const version = "1.0.2";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -144,6 +144,8 @@ export var magicMissileSoundBuffer;
 export var frostBoltHitSoundBuffer;
 export var teleportSoundBuffer;
 export var killConfirmationSoundBuffer;
+export var chainLightningSoundBuffer;
+
 
 
 
@@ -225,7 +227,9 @@ async function init() {
     bossSoundBuffer = buffer;
   });
 
-
+  audioLoader.load('snd_chain_lightning.mp3', function (buffer) {
+    chainLightningSoundBuffer = buffer;
+  });
 
 
   try {
@@ -369,6 +373,9 @@ function processConsoleCommand(command) {
       break;
     case 'exp.cmd':
       addExperience(4000);
+      break;
+      case 'exp2.cmd':
+      addExperience(10000);
       break;
     default:
       console.log('Neznámý příkaz:', command);
@@ -1853,6 +1860,16 @@ function createSkillbar() {
 
 function updateSkillbar() {
   spells.forEach((spell, index) => {
+
+    if (spell.name === 'Chain Lightning' && !isSpellUnlocked('chainLightning')) {
+      const spellElement = document.querySelectorAll('.spell-icon')[index];
+      spellElement.style.display = 'none';
+    }
+    else if (isSpellUnlocked('chainLightning')) {
+      const spellElement = document.querySelectorAll('.spell-icon')[index];
+      spellElement.style.display = 'block';
+    }
+
     const spellElement = document.querySelectorAll('.spell-icon')[index];
     const cooldownElement = spellElement.querySelector('.spell-cooldown');
     if (!spell.isReady()) {
@@ -2206,6 +2223,7 @@ function animate() {
   updateFireballs(deltaTime);
   updateFrostbolts(deltaTime);
   updateArcaneMissiles(deltaTime);
+  updateChainLightnings(deltaTime);
   updateBosses(deltaTime);
   updateMagicBalls(deltaTime);
   regenerateMana(deltaTime);
