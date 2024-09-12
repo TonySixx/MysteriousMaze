@@ -58,7 +58,6 @@ export function updateSpellUpgrades(skillTree) {
       const spellInfo = skillTree[spell.id];
       if (spellInfo) {
           // Aktualizace poškození kouzla
-          debugger;
           spell.damage = calculateSpellDamage(spellInfo);
           
           // Aktualizace dalších vlastností kouzla
@@ -594,7 +593,6 @@ function updateArcaneMissiles(deltaTime) {
     for (let boss of bosses) {
       if (boss.model && arcaneMissile.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(arcaneMissile.position, 0xf7c6bfa);
-        debugger;
         boss.takeDamage(arcaneMissile.damage * (arcaneMissile.power || 1));
         scene.remove(arcaneMissile);
         arcaneMissiles.splice(i, 1);
