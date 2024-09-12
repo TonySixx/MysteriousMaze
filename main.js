@@ -28,7 +28,7 @@ import {
 } from './player.js';
 import { initSkillTree, isSpellUnlocked } from "./skillTree.js";
 
-export const version = "1.0.3";
+export const version = "1.0.4";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
