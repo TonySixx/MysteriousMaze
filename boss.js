@@ -16,8 +16,9 @@ export function setBossCounter(value) {
 
 
 class Boss {
-    constructor(position, id, rng) {
+    constructor(position, id, rng,floor) {
         this.id = id;
+        this.floor = floor;
         this.maxHealth = this.generateHealth(rng);
         this.health = this.maxHealth;
         this.position = position;
@@ -63,8 +64,8 @@ class Boss {
     }
 
     generateHealth(rng) {
-        const minHealth = 1000;
-        const maxHealth = 5000;
+        const minHealth = 1000 * (1 + (this.floor - 1) * 0.5);
+        const maxHealth = 5000 * (1 + (this.floor - 1) * 0.5);
         const interval = 200;
 
         // Vypočítáme počet možných hodnot HP
@@ -76,8 +77,8 @@ class Boss {
         // Vypočítáme výsledné HP
         let health = minHealth + (randomIndex * interval);
 
-        // Zajistíme, že HP je v rozmezí 1000 - 5000
-        return Math.max(minHealth, Math.min(maxHealth, health));
+        // Zajistíme, že HP je v rozmezí 1000 - 5000 * (1 + (floor - 1) * 0.5)
+        return Math.max(minHealth, Math.min(maxHealth * (1 + (this.floor - 1) * 0.5), health));
     }
 
     getBossType(rng) {
@@ -824,7 +825,7 @@ class Boss {
 
 }
 
-function spawnBossInMaze(maze, rng) {
+function spawnBossInMaze(maze, rng,selectedFloor) {
     let freeCells = [];
 
     // Projdeme celé bludiště a najdeme volné buňky
@@ -847,7 +848,7 @@ function spawnBossInMaze(maze, rng) {
 
         // Vytvoříme bosse a přidáme ho do scény
         setBossCounter(bossCounter + 1)
-        const boss = new Boss(bossPosition, bossCounter, rng);
+        const boss = new Boss(bossPosition, bossCounter, rng,selectedFloor);
         boss.health = boss.maxHealth;
         bosses.push(boss);
         setTotalKeys(totalKeys + 1);

@@ -298,7 +298,7 @@ async function init() {
             hideScoreModal();
           } else {
             showScoreModal();
-            getScores().then(updateScoreTable);
+            displayScores(null);
           }
         }
       }
@@ -737,7 +737,7 @@ export function createExplosion(position, color = 0xff8f45) {
 
 
 
-function createMaze(inputText = "") {
+function createMaze(inputText = "", selectedFloor = 1) {
   const bossHealthContainer = document.getElementById("bossHealthContainer");
   while (bossHealthContainer.firstChild) {
     bossHealthContainer.removeChild(bossHealthContainer.firstChild);
@@ -795,7 +795,8 @@ function createMaze(inputText = "") {
   floor.rotation.x = -Math.PI / 2;
   scene.add(floor);
 
-  maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed);
+  maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed,selectedFloor);
+
 
   const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
   const wallMaterial = new THREE.MeshStandardMaterial({ map: brickTexture });
@@ -1068,7 +1069,7 @@ function addSpecialWalls(rng, specialTextures) {
   }
 }
 
-function generateMaze(width, height, seed) {
+function generateMaze(width, height, seed,selectedFloor) {
   let rng = new seedrandom(seed);
   let maze = Array(height)
     .fill()
@@ -1105,7 +1106,9 @@ function generateMaze(width, height, seed) {
   carvePassage(1, 1);
 
   // Přidáme generování hal a bossů
-  const hallProbability = 0.008 + rng() * (0.02 - 0.008);
+  const baseHallProbability = 0.008;
+  const hallProbabilityIncrease = 0.04;
+  const hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityIncrease;
   const hallSize = 2 + Math.floor(rng() * (4 - 2 + 1));
   const bossProbability = 0.8; // 80% šance na spawnutí bosse v hale
 
@@ -1138,7 +1141,7 @@ function generateMaze(width, height, seed) {
 
         // Šance na spawnutí bosse v hale
         if (rng() < bossProbability) {
-          spawnBossInMaze(maze, rng);
+          spawnBossInMaze(maze, rng,selectedFloor);
         }
       }
     }
@@ -1476,9 +1479,17 @@ function showTeleportPrompt() {
 
 async function startGame() {
   const inputText = document.getElementById("mazeInput").value;
-  getBestTime(inputText);
+  const selectedFloor = parseInt(document.getElementById("floorSelect").value);
+  
+  // Kontrola, zda má hráč dostatečnou úroveň pro zvolené podlaží
+  if ((selectedFloor === 2 && playerLevel < 7) || (selectedFloor === 3 && playerLevel < 12)) {
+    alert("Nemáte dostatečnou úroveň pro toto podlaží!");
+    return;
+  }
+
+  getBestTime(inputText, selectedFloor);
   removeFreezeEffect();
-  createMaze(inputText);
+  createMaze(inputText, selectedFloor);
   createPlayer();
   moveCount = 0;
   keyCount = 0;
@@ -1505,13 +1516,14 @@ async function startGame() {
   startTimer(); // Spuštění nového časovače
 }
 
-async function getBestTime(levelName) {
+async function getBestTime(levelName, floor) {
   try {
     const { data, error } = await supabase
       .from("maze_score")
       .select("time_score")
       .eq("playername", playerName)
       .eq("levelname", levelName)
+      .eq("floor", floor || 1)
       .order("time_score", { ascending: true })
       .limit(1);
 
@@ -2313,37 +2325,87 @@ function hideScoreModal() {
   document.getElementById("scoreModal").style.display = "none";
 }
 
-async function submitScore(levelName, time) {
+async function submitScore(levelName, time, floor) {
   try {
     const { data, error } = await supabase
       .from("maze_score")
       .upsert([
-        { playername: playerName, levelname: levelName, time_score: time },
-      ], { onConflict: ['playername', 'levelname'] });
+        {
+          playername: playerName,
+          levelname: levelName,
+          time_score: time,
+          floor: floor
+        }
+      ], {
+        onConflict: ['playername', 'levelname', 'floor']
+      });
 
     if (error) throw error;
-    console.log("Score submitted successfully");
+    console.log("Skóre úspěšně uloženo");
   } catch (error) {
-    console.error("Error submitting score:", error.message);
+    console.error("Chyba při ukládání skóre:", error.message);
   }
 }
 
 
-async function getScores() {
+async function displayScores(floor = null) {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("maze_score")
       .select("*")
-      .order("levelname", { ascending: true })
       .order("time_score", { ascending: true });
 
+    if (floor !== null) {
+      query = query.eq("floor", floor);
+    }
+
+    const { data: scores, error } = await query;
+
     if (error) throw error;
-    return data;
+
+    const tbody = document.querySelector("#scoreTable tbody");
+    tbody.innerHTML = "";
+
+    const groupedScores = groupAndSortScores(scores);
+
+    Object.entries(groupedScores).forEach(([levelName, levelScores]) => {
+      const groupRow = tbody.insertRow();
+      const groupCell = groupRow.insertCell(0);
+      groupCell.colSpan = 4;
+      groupCell.textContent = levelName;
+      groupCell.style.fontWeight = "bold";
+      groupCell.style.backgroundColor = "#34495e";
+
+      levelScores.forEach((score, index) => {
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = "";
+        row.insertCell(1).textContent = score.playername;
+        row.insertCell(2).textContent = formatTime(score.time_score);
+        row.insertCell(3).textContent = `Podlaží ${score.floor}`;
+      });
+    });
   } catch (error) {
-    console.error("Error fetching scores:", error.message);
-    return [];
+    console.error("Chyba při načítání skóre:", error.message);
   }
 }
+
+function groupAndSortScores(scores) {
+  const groupedScores = {};
+  scores.forEach(score => {
+    if (!groupedScores[score.levelname]) {
+      groupedScores[score.levelname] = [];
+    }
+    groupedScores[score.levelname].push(score);
+  });
+
+  // Seřadíme skóre v každé skupině
+  Object.values(groupedScores).forEach(group => {
+    group.sort((a, b) => a.time_score - b.time_score);
+  });
+
+  return groupedScores;
+}
+
 
 function formatTime(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -2354,22 +2416,6 @@ function formatTime(seconds) {
     .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
-// Přidejte tuto funkci pro seskupování a řazení skóre
-function groupAndSortScores(scores) {
-  const groupedScores = {};
-  scores.forEach((score) => {
-    if (!groupedScores[score.levelname]) {
-      groupedScores[score.levelname] = [];
-    }
-    groupedScores[score.levelname].push(score);
-  });
-
-  Object.values(groupedScores).forEach((group) => {
-    group.sort((a, b) => a.time_score - b.time_score);
-  });
-
-  return groupedScores;
-}
 
 function updateScoreTable(scores) {
   const tbody = document.querySelector("#scoreTable tbody");
@@ -2541,6 +2587,10 @@ function toggleConsole() {
 document.querySelector("#settingsModal .close").addEventListener("click", hideSettingsModal);
 document.getElementById("saveSettings").addEventListener("click", saveSettings);
 
+document.getElementById("floorFilter").addEventListener("change", function() {
+  const selectedFloor = this.value ? parseInt(this.value) : null;
+  displayScores(selectedFloor);
+});
 
 document.addEventListener('keydown', (event) => {
   if (event.key === ';') {

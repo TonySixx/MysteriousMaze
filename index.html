@@ -48,6 +48,11 @@
   <div id="menu">
     <h1>Tajemné bludiště</h1>
     <input type="text" id="mazeInput" placeholder="Zadejte text pro generování bludiště" />
+    <select id="floorSelect">
+      <option value="1">Podlaží 1</option>
+      <option value="2">Podlaží 2 (od úrovně 7)</option>
+      <option value="3">Podlaží 3 (od úrovně 12)</option>
+    </select>
     <button id="generateMaze">Generovat bludiště</button>
   </div>
   <div id="keyMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:yellow; font-size:20px;">Sebral jsi klíč.</div>
@@ -91,8 +96,14 @@
       <span class="close">&times;</span>
       <h2>Nejlepší skóre</h2>
       <div style="display: flex;">
-      <input type="text" id="mazeSearchInput" placeholder="Vyhledat bludiště">
-    </div>
+        <input type="text" id="mazeSearchInput" placeholder="Vyhledat bludiště">
+        <select id="floorFilter">
+          <option value="">Všechna podlaží</option>
+          <option value="1">Podlaží 1</option>
+          <option value="2">Podlaží 2</option>
+          <option value="3">Podlaží 3</option>
+        </select>
+      </div>
       <div id="scoreTableContainer">
         <table id="scoreTable">
           <thead>
@@ -100,6 +111,7 @@
               <th>Bludiště</th>
               <th>Hráč</th>
               <th>Čas</th>
+              <th>Podlaží</th>
             </tr>
           </thead>
           <tbody></tbody>
