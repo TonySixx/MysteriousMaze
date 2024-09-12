@@ -24,10 +24,11 @@ import {
   initPlayerUI,
   loadPlayerProgress,
   addExperience,
+  playerLevel,
 } from './player.js';
 import { initSkillTree, isSpellUnlocked } from "./skillTree.js";
 
-export const version = "1.0.2";
+export const version = "1.0.3";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -47,6 +48,7 @@ const textureSets = [
     wallTexture: "wall.jpg",
     ceilingTexture: "wall.jpg",
     specialTextures: ["wall-sign-1.jpg", "wall-sign-2.jpg", "wall-sign-3.jpg"],
+    torchColor: { light: 0xffa500, particles: 0xff4500 } // Original orange color
   },
   {
     wallTexture: "wall-egypt.jpg",
@@ -56,6 +58,7 @@ const textureSets = [
       "wall-egypt-sign-2.jpg",
       "wall-egypt-sign-3.jpg",
     ],
+    torchColor: { light: 0x00bfff, particles: 0x1e90ff } // Magical blue
   },
   {
     wallTexture: "wall-jungle.jpg",
@@ -65,6 +68,7 @@ const textureSets = [
       "wall-jungle-sign-2.jpg",
       "wall-jungle-sign-3.jpg",
     ],
+    torchColor: { light: 0x00ff7f, particles: 0x2ecc71 } // Emerald green
   },
   {
     wallTexture: "wall-mythical.jpg",
@@ -74,6 +78,7 @@ const textureSets = [
       "wall-mythical-sign-2.jpg",
       "wall-mythical-sign-3.jpg",
     ],
+    torchColor: { light: 0xa35ee8, particles: 0xa35ee8 } // Amethyst purple
   },
   {
     wallTexture: "wall-obsidian.jpg",
@@ -83,6 +88,17 @@ const textureSets = [
       "wall-obsidian-sign-2.jpg",
       "wall-obsidian-sign-3.jpg",
     ],
+    torchColor: { light: 0x9896ff, particles: 0x9896ff }
+  },
+  {
+    wallTexture: "wall-obsidian.jpg",
+    ceilingTexture: "wall-obsidian.jpg",
+    specialTextures: [
+      "wall-obsidian-sign-1.jpg",
+      "wall-obsidian-sign-2.jpg",
+      "wall-obsidian-sign-3.jpg",
+    ],
+    torchColor: { light: 0xfdff6b, particles: 0xfdff6b }
   },
 ];
 
@@ -125,7 +141,6 @@ let targetStaffColor = new THREE.Color(0xff4500);
 let colorTransitionSpeed = 5; // Rychlost přechodu barev
 
 
-// Přidejte nové globální proměnné
 let isMinimapVisible = false;
 let minimapTimeMultiplier = 1;
 let cumulativeTime = 0;
@@ -146,13 +161,16 @@ export var teleportSoundBuffer;
 export var killConfirmationSoundBuffer;
 export var chainLightningSoundBuffer;
 
-
-
-
 export var bossSoundBuffer;
 export var backgroundMusic;
 let isMusicPlaying = true;
 let footstepsSound;
+
+const showFloorSelectBtn = document.getElementById('showFloorSelect');
+const floorSelectModal = document.getElementById('floorSelectModal');
+const floorOptions = document.querySelectorAll('.floor-option');
+let selectedFloor = 1;
+
 
 const audioLoader = new AudioLoader();
 
@@ -231,6 +249,11 @@ async function init() {
     chainLightningSoundBuffer = buffer;
   });
 
+  const floorParam = getUrlParameter('floor');
+  if (floorParam) {
+    selectedFloor = parseInt(floorParam);
+  }
+
 
   try {
     await loadKeyModel();
@@ -240,7 +263,7 @@ async function init() {
     // Use the seed from URL or input to create the maze
     const _inputText = document.getElementById("mazeInput").value;
     await getBestTime(_inputText);
-    createMaze(_inputText);
+    createMaze(_inputText,selectedFloor);
     createPlayer();
     createSkillbar()
     initSkillTree();
@@ -250,6 +273,8 @@ async function init() {
     camera.add(crosshair);
 
     loadPlayerProgress(); // Přidáno: načtení progress hráče
+    showFloorSelectBtn.textContent = `Podlaží ${selectedFloor}`;
+    updateFloorOptions()
     initPlayerUI();
 
     // Načtení jména hráče z local storage
@@ -760,9 +785,23 @@ function createMaze(inputText = "", selectedFloor = 1) {
   // Nastavení seed pro generátor náhodných čísel
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
-  // Vybereme sadu textur
-  const textureSetIndex = Math.floor(rng() * textureSets.length);
-  const selectedTextureSet = textureSets[textureSetIndex];
+
+    // Upravíme výběr textureSets podle podlaží
+    let availableTextureSets;
+    switch(selectedFloor) {
+      case 1:
+        availableTextureSets = textureSets.slice(0, 2);
+        break;
+      case 2:
+        availableTextureSets = textureSets.slice(2, 4);
+        break;
+      case 3:
+        availableTextureSets = textureSets.slice(4, 6);
+        break;
+    }
+    const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
+    const selectedTextureSet = availableTextureSets[textureSetIndex];
+  
 
   const loader = new THREE.TextureLoader();
   const floorTexture = loader.load("cihly.jpg");
@@ -778,7 +817,22 @@ function createMaze(inputText = "", selectedFloor = 1) {
   );
   specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
-  MAZE_SIZE = Math.max(20, Math.min(50, 20 + Math.floor(rng() * 31)));
+  let minSize, maxSize;
+  switch(selectedFloor) {
+    case 1:
+      minSize = 20;
+      maxSize = 25;
+      break;
+    case 2:
+      minSize = 25;
+      maxSize = 35;
+      break;
+    case 3:
+      minSize = 30;
+      maxSize = 50;
+      break;
+  }
+  MAZE_SIZE = Math.floor(rng() * (maxSize - minSize + 1)) + minSize;
   totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
 
   teleportPairsCount = Math.max(1, Math.min(3, 1 + Math.floor(rng() * 3)));
@@ -917,7 +971,7 @@ function createMaze(inputText = "", selectedFloor = 1) {
   }
 
   createKeys(rng);
-  createTorches(walls, maze, CELL_SIZE, MAZE_SIZE);
+  createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, selectedTextureSet.torchColor);
 
   // Použijeme model truhly jako cíl
   const goal = treasureModel.clone();
@@ -1106,10 +1160,21 @@ function generateMaze(width, height, seed,selectedFloor) {
   carvePassage(1, 1);
 
   // Přidáme generování hal a bossů
-  const baseHallProbability = 0.008;
-  const hallProbabilityIncrease = 0.04;
-  const hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityIncrease;
-  const hallSize = 2 + Math.floor(rng() * (4 - 2 + 1));
+  const baseHallProbability = 0.02;
+  const hallProbabilityDecrease = -0.001;
+  const hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
+    // Upravíme velikost haly podle podlaží
+    let minHallSize, maxHallSize;
+    minHallSize = 2;
+
+    if (selectedFloor === 1) {
+      maxHallSize = 3;
+    } else if (selectedFloor === 2) {
+      maxHallSize = 4;
+    } else {
+      maxHallSize = 5;
+    }
+  const hallSize = minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
   const bossProbability = 0.8; // 80% šance na spawnutí bosse v hale
 
   for (let y = 1; y < MAZE_SIZE - hallSize; y += hallSize) {
@@ -1479,10 +1544,9 @@ function showTeleportPrompt() {
 
 async function startGame() {
   const inputText = document.getElementById("mazeInput").value;
-  const selectedFloor = parseInt(document.getElementById("floorSelect").value);
   
   // Kontrola, zda má hráč dostatečnou úroveň pro zvolené podlaží
-  if ((selectedFloor === 2 && playerLevel < 7) || (selectedFloor === 3 && playerLevel < 12)) {
+  if (!canSelectFloor(selectedFloor)) {
     alert("Nemáte dostatečnou úroveň pro toto podlaží!");
     return;
   }
@@ -1516,14 +1580,14 @@ async function startGame() {
   startTimer(); // Spuštění nového časovače
 }
 
-async function getBestTime(levelName, floor) {
+async function getBestTime(levelName) {
   try {
     const { data, error } = await supabase
       .from("maze_score")
       .select("time_score")
       .eq("playername", playerName)
       .eq("levelname", levelName)
-      .eq("floor", floor || 1)
+      .eq("floor", selectedFloor)
       .order("time_score", { ascending: true })
       .limit(1);
 
@@ -1982,24 +2046,13 @@ class LightManager {
 }
 
 
-function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE) {
+function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
   const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
   const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
 
   const rng = new seedrandom(getHash(document.getElementById("mazeInput").value));
 
-  // Define the color options
-  const colorOptions = [
-    { light: 0xffa500, particles: 0xff4500 }, // Original orange color
-    { light: 0x00bfff, particles: 0x1e90ff }, // Magical blue
-    { light: 0x00ff7f, particles: 0x2ecc71 },  // Emerald green
-    { light: 0xa35ee8, particles: 0xa35ee8 },  // Amethyst purple
-    { light: 0x9896ff, particles: 0x9896ff }
-  ];
-
-  // Choose a color based on the seed
-  const colorIndex = Math.floor(rng() * colorOptions.length);
-  const selectedColor = colorOptions[colorIndex];
+  const selectedColor = torchColor;
 
   // Vytvoříme pomocné pole pro sledování, kde už jsou pochodně umístěny
   const torchPositions = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
@@ -2325,7 +2378,7 @@ function hideScoreModal() {
   document.getElementById("scoreModal").style.display = "none";
 }
 
-async function submitScore(levelName, time, floor) {
+async function submitScore(levelName, time) {
   try {
     const { data, error } = await supabase
       .from("maze_score")
@@ -2334,7 +2387,7 @@ async function submitScore(levelName, time, floor) {
           playername: playerName,
           levelname: levelName,
           time_score: time,
-          floor: floor
+          floor: selectedFloor,
         }
       ], {
         onConflict: ['playername', 'levelname', 'floor']
@@ -2416,30 +2469,6 @@ function formatTime(seconds) {
     .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
-
-function updateScoreTable(scores) {
-  const tbody = document.querySelector("#scoreTable tbody");
-  tbody.innerHTML = "";
-
-  const groupedScores = groupAndSortScores(scores);
-
-  Object.entries(groupedScores).forEach(([levelName, levelScores]) => {
-    const groupRow = tbody.insertRow();
-    const groupCell = groupRow.insertCell(0);
-    groupCell.colSpan = 3;
-    groupCell.textContent = levelName;
-    groupCell.style.fontWeight = "bold";
-    groupCell.style.backgroundColor = "#34495e";
-
-    levelScores.forEach((score, index) => {
-      const row = tbody.insertRow();
-      row.insertCell(0).textContent = "" //index === 0 ? "" : levelName;
-      row.insertCell(1).textContent = score.playername;
-      row.insertCell(2).textContent = formatTime(score.time_score);
-    });
-  });
-}
-
 function filterScores() {
   const searchTerm = document
     .getElementById("mazeSearchInput")
@@ -2447,12 +2476,22 @@ function filterScores() {
   const rows = document.querySelectorAll("#scoreTable tbody tr");
 
   let currentGroup = "";
+  let isGroupVisible = false;
+
   rows.forEach((row) => {
-    if (row.cells[0].colSpan === 3) {
+    if (row.cells[0].colSpan === 4) {
+      // Toto je řádek s názvem bludiště
       currentGroup = row.cells[0].textContent.toLowerCase();
-      row.style.display = currentGroup.includes(searchTerm) ? "" : "none";
+      isGroupVisible = currentGroup.includes(searchTerm);
+      row.style.display = isGroupVisible ? "" : "none";
     } else {
-      row.style.display = currentGroup.includes(searchTerm) ? "" : "none";
+      // Toto je řádek s daty hráče
+      if (isGroupVisible) {
+        const playerName = row.cells[1].textContent.toLowerCase();
+        row.style.display = playerName.includes(searchTerm) ? "" : "none";
+      } else {
+        row.style.display = "none";
+      }
     }
   });
 }
@@ -2584,6 +2623,13 @@ function toggleConsole() {
   }
 }
 
+function generateNewMaze() {
+  const inputText = document.getElementById("mazeInput").value;
+  setUrlParameter('seed', inputText);
+  setUrlParameter('floor', selectedFloor);
+  startGame();
+}
+
 document.querySelector("#settingsModal .close").addEventListener("click", hideSettingsModal);
 document.getElementById("saveSettings").addEventListener("click", saveSettings);
 
@@ -2610,8 +2656,50 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.getElementById("generateMaze").addEventListener("click", () => {
-  const inputText = document.getElementById("mazeInput").value;
-  setUrlParameter('seed', inputText);
-  startGame();
+  generateNewMaze();
 });
+
+showFloorSelectBtn.addEventListener('click', () => {
+  floorSelectModal.style.display = 'block';
+});
+
+// Přidáme funkci pro zavření modálu
+function closeFloorSelectModal() {
+  floorSelectModal.style.display = 'none';
+}
+
+// Přidáme event listener pro zavření modálu křížkem
+document.querySelector('#floorSelectModal .close').addEventListener('click', closeFloorSelectModal);
+
+floorOptions.forEach(option => {
+  option.addEventListener('click', () => {
+    const floor = parseInt(option.dataset.floor);
+    if (canSelectFloor(floor)) {
+      selectedFloor = floor;
+      closeFloorSelectModal();
+      showFloorSelectBtn.textContent = `Podlaží ${selectedFloor}`;
+      generateNewMaze(); // Přidáme volání funkce pro generování nového bludiště
+    }
+  });
+});
+function canSelectFloor(floor) {
+  if (floor === 1) return true;
+  if (floor === 2 && playerLevel >= 7) return true;
+  if (floor === 3 && playerLevel >= 12) return true;
+  return false;
+}
+
+// Aktualizujte tuto funkci při změně úrovně hráče
+function updateFloorOptions() {
+  floorOptions.forEach(option => {
+    const floor = parseInt(option.dataset.floor);
+    if (canSelectFloor(floor)) {
+      option.classList.remove('locked');
+    } else {
+      option.classList.add('locked');
+    }
+  });
+}
+
+
 init();

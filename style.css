@@ -6,6 +6,8 @@ body {
   overflow: hidden;
 }
 
+
+
 canvas {
   display: block;
 }
@@ -177,7 +179,7 @@ canvas {
 }
 
 #mazeInput {
-  width: 250px;
+  width: 200px;
   padding: 10px;
   margin-bottom: 10px;
   border: none;

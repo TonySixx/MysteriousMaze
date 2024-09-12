@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tajemné bludiště</title>
   <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/floor.css" />
+  <link rel="stylesheet" href="/floor-filter.css" />
 </head>
 
 <body>
@@ -46,20 +48,40 @@
   </div>
 
   <div id="menu">
-    <h1>Tajemné bludiště</h1>
-    <input type="text" id="mazeInput" placeholder="Zadejte text pro generování bludiště" />
-    <select id="floorSelect">
-      <option value="1">Podlaží 1</option>
-      <option value="2">Podlaží 2 (od úrovně 7)</option>
-      <option value="3">Podlaží 3 (od úrovně 12)</option>
-    </select>
-    <button id="generateMaze">Generovat bludiště</button>
+    <input type="text" id="mazeInput" maxlength="25" placeholder="Zadejte text pro vytvoření bludiště" />
+    <button id="showFloorSelect">Vybrat podlaží</button>
+    <button id="generateMaze">Vstoupit do bludiště</button>
   </div>
+
   <div id="keyMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:yellow; font-size:20px;">Sebral jsi klíč.</div>
   <div id="finishMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:rgb(202, 240, 255); font-size:20px;">Gratulujeme! Dosáhli jste cíle!</div>
   <div id="goalMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:white;font-size:20px;"></div>
   <canvas id="minimap" width="350" height="350" style="position: absolute; bottom: 25px; right: 10px; display: none; background-color: rgba(211, 211, 211, 0.7);"></canvas>
   
+  <div id="floorSelectModal" class="modal">
+    <div class="modal-content floor-select-content">
+      <span class="close">&times;</span>
+      <h2>Vyberte podlaží</h2>
+      <div class="floor-options">
+        <div class="floor-option" data-floor="1">
+          <div class="floor-image floor-1"></div>
+          <h3>Podlaží 1</h3>
+          <p>Dostupné pro všechny úrovně</p>
+        </div>
+        <div class="floor-option" data-floor="2">
+          <div class="floor-image floor-2"></div>
+          <h3>Podlaží 2</h3>
+          <p>Vyžaduje úroveň 7</p>
+        </div>
+        <div class="floor-option" data-floor="3">
+          <div class="floor-image floor-3"></div>
+          <h3>Podlaží 3</h3>
+          <p>Vyžaduje úroveň 12</p>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
   <div id="hintModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
@@ -95,7 +117,7 @@
     <div class="modal-content">
       <span class="close">&times;</span>
       <h2>Nejlepší skóre</h2>
-      <div style="display: flex;">
+      <div class="filter-container">
         <input type="text" id="mazeSearchInput" placeholder="Vyhledat bludiště">
         <select id="floorFilter">
           <option value="">Všechna podlaží</option>

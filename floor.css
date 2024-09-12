@@ -1,0 +1,121 @@
+#showFloorSelect {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  
+  .floor-select-content {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    max-width: 800px;
+  }
+  
+  .floor-options {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+  
+  .floor-option {
+    width: 200px;
+    margin: 10px;
+    text-align: center;
+    background-color: rgba(50, 50, 50, 0.7);
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .floor-option:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .floor-image {
+    width: 100%;
+    height: 150px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .floor-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.7) 80%);
+  }
+  
+  .floor-1 {
+    background-color: #2ecc71;
+    background-image: linear-gradient(45deg, #27ae60 25%, transparent 25%, transparent 75%, #27ae60 75%, #27ae60),
+                      linear-gradient(45deg, #27ae60 25%, transparent 25%, transparent 75%, #27ae60 75%, #27ae60);
+    background-size: 60px 60px;
+    background-position: 0 0, 30px 30px;
+  }
+  
+  .floor-2 {
+    background-color: #3498db;
+    background-image: 
+      radial-gradient(circle at 50% 50%, #2980b9 10%, transparent 10%),
+      radial-gradient(circle at 0% 0%, #2980b9 5%, transparent 5%),
+      radial-gradient(circle at 100% 0%, #2980b9 5%, transparent 5%),
+      radial-gradient(circle at 0% 100%, #2980b9 5%, transparent 5%),
+      radial-gradient(circle at 100% 100%, #2980b9 5%, transparent 5%);
+    background-size: 60px 60px;
+  }
+  
+  .floor-3 {
+    background-color: #9b59b6;
+    background-image: 
+      linear-gradient(30deg, #8e44ad 12%, transparent 12.5%, transparent 87%, #8e44ad 87.5%, #8e44ad),
+      linear-gradient(150deg, #8e44ad 12%, transparent 12.5%, transparent 87%, #8e44ad 87.5%, #8e44ad),
+      linear-gradient(30deg, #8e44ad 12%, transparent 12.5%, transparent 87%, #8e44ad 87.5%, #8e44ad),
+      linear-gradient(150deg, #8e44ad 12%, transparent 12.5%, transparent 87%, #8e44ad 87.5%, #8e44ad),
+      linear-gradient(60deg, #9b59b6 25%, transparent 25.5%, transparent 75%, #9b59b6 75%, #9b59b6),
+      linear-gradient(60deg, #9b59b6 25%, transparent 25.5%, transparent 75%, #9b59b6 75%, #9b59b6);
+    background-size: 80px 140px;
+    background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+  }
+  
+  .floor-option h3 {
+    margin: 10px 0;
+    color: #ffd700;
+  }
+  
+  .floor-option p {
+    font-size: 14px;
+    color: #bdc3c7;
+  }
+  
+  .floor-option.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .floor-option.locked:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .floor-option.locked .floor-image::after {
+    content: '🔒';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    color: #ecf0f1;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
