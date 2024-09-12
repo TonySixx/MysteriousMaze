@@ -12,7 +12,7 @@ import { getSkillPoints } from './player.js';
 
 let skillTreeModal = null;
 
-const skillTree = {
+export const skillTree = {
     fireball: {
         name: 'Fireball',
         level: 1,

@@ -8,7 +8,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { Frustum, Matrix4 } from 'three';
 import { AudioLoader } from 'three';
 import { setBossCounter, setBosses, spawnBossInMaze, bosses } from './boss.js';
-import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings } from './spells.js';
+import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings, updateSpellUpgrades } from './spells.js';
 import {
   createPlayer,
   updatePlayerPosition,
@@ -26,9 +26,9 @@ import {
   addExperience,
   playerLevel,
 } from './player.js';
-import { initSkillTree, isSpellUnlocked } from "./skillTree.js";
+import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 
-export const version = "1.0.4";
+export const version = "1.0.5";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -276,6 +276,7 @@ async function init() {
     showFloorSelectBtn.textContent = `Podlaží ${selectedFloor}`;
     updateFloorOptions()
     initPlayerUI();
+    updateSpellUpgrades(skillTree);
 
     // Načtení jména hráče z local storage
     playerName = localStorage.getItem("playerName");
