@@ -183,7 +183,7 @@ function createSpellElement(spellKey, spell) {
     if (spellKey === 'chainLightning' && spell.level === 0) {
         const unlockButton = document.createElement('button');
         unlockButton.textContent = 'Odemknout';
-        unlockButton.disabled = playerLevel < spell.requiredLevel || getSkillPoints() < spell.cost;
+        unlockButton.disabled = playerLevel < spell.requiredLevel || getSkillPoints() < spell.cost || !canUnlockSpell(spellKey);
         unlockButton.onclick = () => unlockSpell(spellKey, unlockButton);
         
         const costBadge = document.createElement('span');
@@ -247,13 +247,15 @@ function createUpgradeElement(spellKey, upgrade) {
     
     const unlockButton = document.createElement('button');
     unlockButton.textContent = upgrade.unlocked ? 'Odemčeno' : 'Odemknout';
-    unlockButton.disabled = upgrade.unlocked || playerLevel < upgrade.requiredLevel;
+    unlockButton.disabled = upgrade.unlocked || playerLevel < upgrade.requiredLevel || !canUnlockUpgrade(spellKey, upgrade);
     unlockButton.onclick = () => unlockUpgrade(spellKey, upgrade, unlockButton, upgradeIcon);
     
-    const costBadge = document.createElement('span');
-    costBadge.className = 'cost-badge';
-    costBadge.textContent = upgrade.cost || 1; // Předpokládáme, že výchozí cena je 1, pokud není specifikováno jinak
-    unlockButton.appendChild(costBadge);
+    if (!upgrade.unlocked) {
+        const costBadge = document.createElement('span');
+        costBadge.className = 'cost-badge';
+        costBadge.textContent = upgrade.cost || 1;
+        unlockButton.appendChild(costBadge);
+    }
     
     upgradeElement.appendChild(unlockButton);
     
@@ -334,4 +336,22 @@ function updateSkillPointsDisplay() {
     if (skillPointsElement) {
         skillPointsElement.textContent = `Dovednostní body: ${getSkillPoints()}`;
     }
+}
+
+// Nová pomocná funkce pro kontrolu, zda lze odemknout kouzlo
+function canUnlockSpell(spellKey) {
+    const spellKeys = Object.keys(skillTree);
+    const currentIndex = spellKeys.indexOf(spellKey);
+    if (currentIndex === 0) return true;
+    const previousSpell = skillTree[spellKeys[currentIndex - 1]];
+    return previousSpell.level > 0 && previousSpell.upgrades.every(upgrade => upgrade.unlocked);
+}
+
+// Nová pomocná funkce pro kontrolu, zda lze odemknout vylepšení
+function canUnlockUpgrade(spellKey, upgrade) {
+    const spell = skillTree[spellKey];
+    if (spell.level === 0) return false;
+    const upgradeIndex = spell.upgrades.indexOf(upgrade);
+    if (upgradeIndex === 0) return true;
+    return spell.upgrades[upgradeIndex - 1].unlocked;
 }
