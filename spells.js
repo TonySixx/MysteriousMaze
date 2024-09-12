@@ -8,7 +8,7 @@ import fireballIcon from './public/spells/fireball-icon.png';
 import chainLightningIcon from './public/spells/chain-lightning-icon.png';
 import { setPlayerMana, updatePlayerManaBar, playerMana } from "./player.js"
 import { bosses } from "./boss.js";
-import { isSpellUnlocked } from "./skillTree.js";
+import { calculateSpellDamage, isSpellUnlocked } from "./skillTree.js";
 
 export let fireBalls = [];
 export let frostBalls = [];
@@ -55,27 +55,31 @@ export function getActiveSpells() {
 
 export function updateSpellUpgrades(skillTree) {
   spells.forEach(spell => {
-    const spellInfo = skillTree[spell.id];
-    if (spellInfo && spellInfo.upgrades) {
-      spellInfo.upgrades.forEach(upgrade => {
-        if (upgrade.unlocked) {
-          if (upgrade.name === 'Inferno Touch') {
-            spell.burningEffect = true;
-          } else if (upgrade.name === 'Ice Explosion') {
-            spell.iceExplosion = true;
-          } else if (upgrade.name === 'Multi-shot') {
-            spell.multiShot = true;
+      const spellInfo = skillTree[spell.id];
+      if (spellInfo) {
+          // Aktualizace poškození kouzla
+          debugger;
+          spell.damage = calculateSpellDamage(spellInfo);
+          
+          // Aktualizace dalších vlastností kouzla
+          if (spellInfo.upgrades) {
+              spellInfo.upgrades.forEach(upgrade => {
+                  if (upgrade.unlocked) {
+                      if (upgrade.name === 'Inferno Touch') {
+                          spell.burningEffect = true;
+                      } else if (upgrade.name === 'Ice Explosion') {
+                          spell.iceExplosion = true;
+                      } else if (upgrade.name === 'Multi-shot') {
+                          spell.multiShot = true;
+                      } else if (upgrade.name === 'Chain Explosion') {
+                          spell.chainExplosion = true;
+                      }
+                  }
+              });
           }
-          else if (upgrade.name === 'Chain Explosion') {
-            spell.chainExplosion = true;
-          }
-
-        }
-      });
-    }
+      }
   });
 }
-
 
 // Funkce pro vytvoření ohnivé koule
 function createFireball() {
@@ -313,38 +317,37 @@ function createRuneTexture() {
 // Přidáme novou funkci castFireball
 function castFireball() {
   if (playerMana >= 20) {
-    setPlayerMana(playerMana - 20);
-    updatePlayerManaBar();
-    lastSpellCastTime = Date.now();
-    changeStaffColor(0xff4500);
+      setPlayerMana(playerMana - 20);
+      updatePlayerManaBar();
+      lastSpellCastTime = Date.now();
+      changeStaffColor(0xff4500);
 
-    if (fireballSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setBuffer(fireballSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
+      if (fireballSoundBuffer) {
+          const sound = new THREE.Audio(new THREE.AudioListener());
+          sound.setBuffer(fireballSoundBuffer);
+          sound.play();
+          sound.onEnded = () => {
+              sound.disconnect();
+          };
+      }
 
-    const fireball = createFireball();
-    const staffWorldPosition = new THREE.Vector3();
-    staffModel.getWorldPosition(staffWorldPosition);
-    fireball.position.copy(staffWorldPosition);
-    fireball.position.y += 0.3;
+      const fireball = createFireball();
+      const staffWorldPosition = new THREE.Vector3();
+      staffModel.getWorldPosition(staffWorldPosition);
+      fireball.position.copy(staffWorldPosition);
+      fireball.position.y += 0.3;
 
-    createCastEffect(staffWorldPosition, 0xff4500);
+      createCastEffect(staffWorldPosition, 0xff4500);
 
-    const direction = getCameraDirection();
-    fireball.velocity = direction.multiplyScalar(0.25);
+      const direction = getCameraDirection();
+      fireball.velocity = direction.multiplyScalar(0.25);
+      const fireballSpell = spells.find(spell => spell.name === 'Fireball');
+      fireball.damage = fireballSpell ? fireballSpell.damage : 100;
+      fireball.burningEffect = fireballSpell ? fireballSpell.burningEffect : false;
 
-    // Přidáme informaci o hořícím efektu do ohnivé koule
-    const fireballSpell = spells.find(spell => spell.name === 'Fireball');
-    fireball.burningEffect = fireballSpell ? fireballSpell.burningEffect : false;
-
-    scene.add(fireball);
-    fireBalls.push(fireball);
-    return true;
+      scene.add(fireball);
+      fireBalls.push(fireball);
+      return true;
   }
   return false;
 }
@@ -462,6 +465,7 @@ function castArcaneMissile() {
       arcaneMissile.velocity = direction.multiplyScalar(0.25);
 
       // Nastavíme sílu střely
+      arcaneMissile.damage = arcaneMissileSpell ? arcaneMissileSpell.damage : 50;
       arcaneMissile.power = multiShot ? 0.7 : 1;
 
       scene.add(arcaneMissile);
@@ -485,7 +489,7 @@ function updateFireballs(deltaTime) {
     for (let boss of bosses) {
       if (boss.model && fireball.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(fireball.position);
-        boss.takeDamage(100, fireball.burningEffect);
+        boss.takeDamage(fireball.damage, fireball.burningEffect);
         scene.remove(fireball);
         fireBalls.splice(i, 1);
         break;
@@ -590,7 +594,8 @@ function updateArcaneMissiles(deltaTime) {
     for (let boss of bosses) {
       if (boss.model && arcaneMissile.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(arcaneMissile.position, 0xf7c6bfa);
-        boss.takeDamage(50 * arcaneMissile.power);
+        debugger;
+        boss.takeDamage(arcaneMissile.damage * (arcaneMissile.power || 1));
         scene.remove(arcaneMissile);
         arcaneMissiles.splice(i, 1);
         break;

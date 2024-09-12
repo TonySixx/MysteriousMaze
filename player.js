@@ -132,9 +132,9 @@ function updateSkillPointsDisplay() {
     }
 }
 
-export function useSkillPoint() {
-    if (skillPoints > 0) {
-        skillPoints--;
+export function useSkillPoint(cost = 1) {
+    if (skillPoints >= cost) {
+        skillPoints -= cost;
         savePlayerProgress();
         return true;
     }
