@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version } from './main.js';
+import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 
@@ -89,6 +89,7 @@ function levelUp() {
     expToNextLevel = Math.floor(expToNextLevel * 1.5);
     addSkillPoint();
     updatePlayerStats();
+    updateFloorOptions(); // Přidáme toto volání
 }
 
 

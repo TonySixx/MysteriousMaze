@@ -28,7 +28,7 @@ import {
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 
-export const version = "1.0.5";
+export const version = "1.0.6";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -263,7 +263,7 @@ async function init() {
     // Use the seed from URL or input to create the maze
     const _inputText = document.getElementById("mazeInput").value;
     await getBestTime(_inputText);
-    createMaze(_inputText,selectedFloor);
+    createMaze(_inputText, selectedFloor);
     createPlayer();
     createSkillbar()
     initSkillTree();
@@ -400,7 +400,7 @@ function processConsoleCommand(command) {
     case 'exp.cmd':
       addExperience(4000);
       break;
-      case 'exp2.cmd':
+    case 'exp2.cmd':
       addExperience(40000);
       break;
     default:
@@ -787,22 +787,22 @@ function createMaze(inputText = "", selectedFloor = 1) {
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
 
-    // Upravíme výběr textureSets podle podlaží
-    let availableTextureSets;
-    switch(selectedFloor) {
-      case 1:
-        availableTextureSets = textureSets.slice(0, 2);
-        break;
-      case 2:
-        availableTextureSets = textureSets.slice(2, 4);
-        break;
-      case 3:
-        availableTextureSets = textureSets.slice(4, 6);
-        break;
-    }
-    const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
-    const selectedTextureSet = availableTextureSets[textureSetIndex];
-  
+  // Upravíme výběr textureSets podle podlaží
+  let availableTextureSets;
+  switch (selectedFloor) {
+    case 1:
+      availableTextureSets = textureSets.slice(0, 2);
+      break;
+    case 2:
+      availableTextureSets = textureSets.slice(2, 4);
+      break;
+    case 3:
+      availableTextureSets = textureSets.slice(4, 6);
+      break;
+  }
+  const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
+  const selectedTextureSet = availableTextureSets[textureSetIndex];
+
 
   const loader = new THREE.TextureLoader();
   const floorTexture = loader.load("cihly.jpg");
@@ -819,7 +819,7 @@ function createMaze(inputText = "", selectedFloor = 1) {
   specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
   let minSize, maxSize;
-  switch(selectedFloor) {
+  switch (selectedFloor) {
     case 1:
       minSize = 20;
       maxSize = 25;
@@ -850,7 +850,7 @@ function createMaze(inputText = "", selectedFloor = 1) {
   floor.rotation.x = -Math.PI / 2;
   scene.add(floor);
 
-  maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed,selectedFloor);
+  maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed, selectedFloor);
 
 
   const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
@@ -1124,7 +1124,7 @@ function addSpecialWalls(rng, specialTextures) {
   }
 }
 
-function generateMaze(width, height, seed,selectedFloor) {
+function generateMaze(width, height, seed, selectedFloor) {
   let rng = new seedrandom(seed);
   let maze = Array(height)
     .fill()
@@ -1164,17 +1164,17 @@ function generateMaze(width, height, seed,selectedFloor) {
   const baseHallProbability = 0.02;
   const hallProbabilityDecrease = -0.001;
   const hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
-    // Upravíme velikost haly podle podlaží
-    let minHallSize, maxHallSize;
-    minHallSize = 2;
+  // Upravíme velikost haly podle podlaží
+  let minHallSize, maxHallSize;
+  minHallSize = 2;
 
-    if (selectedFloor === 1) {
-      maxHallSize = 3;
-    } else if (selectedFloor === 2) {
-      maxHallSize = 4;
-    } else {
-      maxHallSize = 5;
-    }
+  if (selectedFloor === 1) {
+    maxHallSize = 3;
+  } else if (selectedFloor === 2) {
+    maxHallSize = 4;
+  } else {
+    maxHallSize = 5;
+  }
   const hallSize = minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
   const bossProbability = 0.8; // 80% šance na spawnutí bosse v hale
 
@@ -1207,7 +1207,7 @@ function generateMaze(width, height, seed,selectedFloor) {
 
         // Šance na spawnutí bosse v hale
         if (rng() < bossProbability) {
-          spawnBossInMaze(maze, rng,selectedFloor);
+          spawnBossInMaze(maze, rng, selectedFloor);
         }
       }
     }
@@ -1545,7 +1545,7 @@ function showTeleportPrompt() {
 
 async function startGame() {
   const inputText = document.getElementById("mazeInput").value;
-  
+
   // Kontrola, zda má hráč dostatečnou úroveň pro zvolené podlaží
   if (!canSelectFloor(selectedFloor)) {
     alert("Nemáte dostatečnou úroveň pro toto podlaží!");
@@ -1618,6 +1618,11 @@ function startTimer() {
 async function stopTimer() {
   clearInterval(timerInterval);
   const elapsedTime = Math.floor(cumulativeTime / 1000);
+
+  // Kontrola, zda je to první dokončení tohoto bludiště
+  if (bestTime === Infinity) {
+    addExperienceForCompletion(selectedFloor);
+  }
 
   if (elapsedTime < bestTime) {
     bestTime = elapsedTime;
@@ -2401,6 +2406,12 @@ async function submitScore(levelName, time) {
   }
 }
 
+function addExperienceForCompletion(floor) {
+  const experiencePerFloor = 2000;
+  const totalExperience = floor * experiencePerFloor;
+  addExperience(totalExperience);
+}
+
 
 async function displayScores(floor = null) {
   try {
@@ -2634,7 +2645,7 @@ function generateNewMaze() {
 document.querySelector("#settingsModal .close").addEventListener("click", hideSettingsModal);
 document.getElementById("saveSettings").addEventListener("click", saveSettings);
 
-document.getElementById("floorFilter").addEventListener("change", function() {
+document.getElementById("floorFilter").addEventListener("change", function () {
   const selectedFloor = this.value ? parseInt(this.value) : null;
   displayScores(selectedFloor);
 });
@@ -2691,7 +2702,7 @@ function canSelectFloor(floor) {
 }
 
 // Aktualizujte tuto funkci při změně úrovně hráče
-function updateFloorOptions() {
+export function updateFloorOptions() {
   floorOptions.forEach(option => {
     const floor = parseInt(option.dataset.floor);
     if (canSelectFloor(floor)) {

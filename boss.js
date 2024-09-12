@@ -279,9 +279,7 @@ class Boss {
             this.burningTimer -= deltaTime * 1000;
             const currentTime = Date.now();
             if (currentTime - this.lastBurningDamageTime >= 500) { // každých 0.5 sekundy
-                this.health -= 20;
-                this.showDamageText(20);
-                this.updateHealthBar();
+                this.takeDamage(20);
                 this.lastBurningDamageTime = currentTime;
             }
             if (this.burningTimer <= 0) {
