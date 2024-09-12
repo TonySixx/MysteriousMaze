@@ -375,7 +375,7 @@ function processConsoleCommand(command) {
       addExperience(4000);
       break;
       case 'exp2.cmd':
-      addExperience(10000);
+      addExperience(40000);
       break;
     default:
       console.log('Neznámý příkaz:', command);
