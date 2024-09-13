@@ -883,7 +883,8 @@ class Boss {
             this.model.lookAt(player.position);
         }
     
-        if (canSeePlayer(this.position, player.position) && this.position.distanceTo(player.position) < 20) {
+        // Použijeme aktuální pozice bosse a hráče
+        if (canSeePlayer(this.position, player.position) && this.position.distanceTo(player.position) < 25) {
             this.attack();
         } else {
             this.move(deltaTime);
@@ -922,8 +923,23 @@ function spawnBossInMaze(maze, rng, selectedFloor) {
 }
 
 function canSeePlayer(bossPosition, playerPosition) {
-    const raycaster = new THREE.Raycaster(bossPosition, new THREE.Vector3().subVectors(playerPosition, bossPosition).normalize());
+    // Vytvoříme kopie pozic, abychom neměnili originální objekty
+    const bossPos = bossPosition.clone();
+    const playerPos = playerPosition.clone();
+
+    // Nastavíme y-souřadnici bosse na úroveň jeho "očí"
+    bossPos.y += 4; // Předpokládáme, že oči bosse jsou 1.5 jednotky nad zemí
+
+    // Vytvoříme směrový vektor od bosse k hráči
+    const direction = new THREE.Vector3().subVectors(playerPos, bossPos).normalize();
+
+    // Vytvoříme raycaster
+    const raycaster = new THREE.Raycaster(bossPos, direction);
+
+    // Zkontrolujeme kolize se zdmi
     const intersects = raycaster.intersectObjects(walls);
+
+    // Boss vidí hráče, pokud není žádná zeď mezi nimi
     return intersects.length === 0;
 }
 

@@ -108,8 +108,8 @@ let moveCount = 0,
   keyCount = 0;
 export var MAZE_SIZE = 20;
 export var totalKeys = 3; // Přidání deklarace proměnné totalKeys
-export const WALL_HEIGHT = 2.8;
-export const CELL_SIZE = 2.4;
+export const WALL_HEIGHT = 3.1;
+export const CELL_SIZE = 2.5;
 export const OBJECT_HEIGHT = 1.6;
 export var walls = [];
 export var highWallAreas = [];
@@ -2098,7 +2098,7 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
 
               torch.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.5,
-                (WALL_HEIGHT / 2) - 0.1,
+                (WALL_HEIGHT / 2) - 0.2,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
               );
 

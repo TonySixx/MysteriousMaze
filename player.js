@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions } from './main.js';
+import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 
@@ -25,6 +25,14 @@ var moveForward = false,
     moveRight = false;
 var playerRotation = 0;
 var playerVelocity = new THREE.Vector3();
+
+var isJumping = false;
+var jumpVelocity = 0;
+const JUMP_FORCE = 0.18;
+const GRAVITY = -0.014;
+const FALL_MULTIPLIER = 4.5; // Násobitel pro rychlejší pád
+const MAX_JUMP_HEIGHT = 2;
+
 
 const EXP_SEGMENTS = 20; // Počet segmentů v EXP baru
 
@@ -236,6 +244,34 @@ function updatePlayerPosition(deltaTime) {
             playerVelocity.add(rightDirection.clone().multiplyScalar(flySpeed * deltaTime));
         }
     } else {
+
+          // Aplikujte gravitaci a skok
+          if (isJumping) {
+            jumpVelocity += GRAVITY * deltaTime * 60;
+            const newY = player.position.y + jumpVelocity * deltaTime * 60;
+            
+            // Kontrola kolize se stropem před aplikací nové pozice
+            if (checkCeilingCollision()) {
+                isJumping = false;
+                jumpVelocity = GRAVITY * FALL_MULTIPLIER; // Okamžitě začneme padat rychleji
+            } else {
+                player.position.y = newY;
+            }
+        }
+
+        // Vždy aplikujte gravitaci, i když hráč neskáče
+        if (!isJumping && player.position.y > 0) {
+            player.position.y += GRAVITY * FALL_MULTIPLIER * deltaTime * 60;
+        }
+
+        // Zajistěte, že hráč nespadne pod podlahu
+        if (player.position.y <= 0) {
+            player.position.y = 0;
+            isJumping = false;
+            jumpVelocity = 0;
+        }
+    
+
         if (moveForward) playerVelocity.z -= speed * deltaTime;
         if (moveBackward) playerVelocity.z += speed * deltaTime;
         if (moveLeft) playerVelocity.x -= speed * deltaTime;
@@ -288,6 +324,26 @@ function updatePlayerPosition(deltaTime) {
     checkObjectInteractions();
 }
 
+export function checkCeilingCollision() {
+    const ceilingBuffer = 0.5; // Buffer pro začátek pádu před dosažením stropu
+
+    if (isHighWallArea(player.position.x, player.position.z)) {
+        // V oblasti s vysokými stěnami
+        if (player.position.y >= WALL_HEIGHT - ceilingBuffer) {
+            player.position.y = WALL_HEIGHT - ceilingBuffer;
+            console.log("Kolize s vysokým stropem");
+            return true;
+        }
+    } else {
+        // V normální oblasti
+        if (player.position.y >= MAX_JUMP_HEIGHT - ceilingBuffer) {
+            player.position.y = MAX_JUMP_HEIGHT - ceilingBuffer;
+            console.log("Kolize s normálním stropem");
+            return true;
+        }
+    }
+    return false;
+}
 
 function checkCollisions(newPosition) {
     const playerRadius = 0.4;
@@ -390,6 +446,12 @@ export function onKeyDown(event) {
         case "KeyV":
             toggleMinimap();
             break;
+            case "Space":
+                if (!isJumping && !isFlying) {
+                    isJumping = true;
+                    jumpVelocity = JUMP_FORCE;
+                }
+                break;
 
     }
 
