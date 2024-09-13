@@ -28,7 +28,7 @@ import {
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 
-export const version = "1.0.6";
+export const version = "1.0.9";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -249,10 +249,20 @@ async function init() {
     chainLightningSoundBuffer = buffer;
   });
 
+  loadPlayerProgress();
   const floorParam = getUrlParameter('floor');
   if (floorParam) {
-    selectedFloor = parseInt(floorParam);
+    let selectedFloorInt = parseInt(floorParam);
+    if (canSelectFloor(selectedFloorInt)) {
+      selectedFloor = selectedFloorInt;
+    }
+    else {
+      selectedFloor = 1; 
+      setUrlParameter('floor', selectedFloor);
+    }
   }
+
+
 
 
   try {
@@ -272,10 +282,10 @@ async function init() {
     const crosshair = createCrosshair();
     camera.add(crosshair);
 
-    loadPlayerProgress(); // Přidáno: načtení progress hráče
+
+    initPlayerUI();
     showFloorSelectBtn.textContent = `Podlaží ${selectedFloor}`;
     updateFloorOptions()
-    initPlayerUI();
     updateSpellUpgrades(skillTree);
 
     // Načtení jména hráče z local storage

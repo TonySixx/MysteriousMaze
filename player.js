@@ -47,28 +47,50 @@ export function savePlayerProgress() {
 }
 
 export function loadPlayerProgress() {
-
-    if (localStorage.getItem('version') !== version) {
-        localStorage.clear();
-        localStorage.setItem('version', version);
-    }
-
+    const savedVersion = localStorage.getItem('version');
     const savedLevel = localStorage.getItem('playerLevel');
     const savedExp = localStorage.getItem('playerExp');
     const savedExpToNextLevel = localStorage.getItem('expToNextLevel');
-    const savedSkillPoints = localStorage.getItem('skillPoints');
+    const playerName = localStorage.getItem('playerName');
 
-    if (savedLevel && savedExp && savedExpToNextLevel && savedSkillPoints) {
-        playerLevel = parseInt(savedLevel);
-        playerExp = parseInt(savedExp);
-        expToNextLevel = parseInt(savedExpToNextLevel);
-        skillPoints = parseInt(savedSkillPoints);
+    if (savedVersion !== version) {
+        localStorage.clear();
+        // Verze se změnila, resetujeme skillPoints
+        if (savedLevel && savedExp && savedExpToNextLevel) {
+            playerLevel = parseInt(savedLevel);
+            playerExp = parseInt(savedExp);
+            expToNextLevel = parseInt(savedExpToNextLevel);
+            skillPoints = Math.max(0, playerLevel - 1); // Resetujeme skillPoints na (playerLevel - 1)
+        } else {
+            // Pokud nemáme uložená data, nastavíme výchozí hodnoty
+            playerLevel = 1;
+            playerExp = 0;
+            expToNextLevel = 1000;
+            skillPoints = 0;
+        }
+        localStorage.setItem('version', version);
+        localStorage.setItem('skillPoints', skillPoints);
+        localStorage.setItem('playerLevel', playerLevel);
+        localStorage.setItem('playerExp', playerExp);
+        localStorage.setItem('expToNextLevel', expToNextLevel);
+        if (playerName) {
+            localStorage.setItem('playerName', playerName);
+        }
     } else {
-        // Pokud nemáme uložená data, nastavíme výchozí hodnoty
-        playerLevel = 1;
-        playerExp = 0;
-        expToNextLevel = 1000;
-        skillPoints = 0;
+        // Verze se nezměnila, načteme všechna data včetně skillPoints
+        const savedSkillPoints = localStorage.getItem('skillPoints');
+        if (savedLevel && savedExp && savedExpToNextLevel && savedSkillPoints) {
+            playerLevel = parseInt(savedLevel);
+            playerExp = parseInt(savedExp);
+            expToNextLevel = parseInt(savedExpToNextLevel);
+            skillPoints = parseInt(savedSkillPoints);
+        } else {
+            // Pokud nemáme uložená data, nastavíme výchozí hodnoty
+            playerLevel = 1;
+            playerExp = 0;
+            expToNextLevel = 1000;
+            skillPoints = 0;
+        }
     }
     updatePlayerStats();
     updateExpBar();
@@ -143,7 +165,6 @@ export function useSkillPoint(cost = 1) {
 }
 
 export function initPlayerUI() {
-    loadPlayerProgress();
     updatePlayerHealthBar();
     updatePlayerManaBar();
     createExpSegments();

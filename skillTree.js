@@ -36,7 +36,7 @@ export const skillTree = {
         name: 'Frostbolt',
         level: 1,
         maxLevel: 1,
-        baseDamage: 100,
+        baseDamage: 0,
         description: 'Mrazivý útok, který zmrazí nepřítele na 2 sekundy',
         icon: frostboltIcon,
         upgrades: [
