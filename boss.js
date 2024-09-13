@@ -61,7 +61,7 @@ const BOSS_TYPES = [
         attackCooldown: 0.8,
         attackEmmisiveIntensity: 3,
         minHealth: 3000,
-        maxHealth: 4000
+        maxHealth: 4500
     },
     {
         name: "Stínový drak",
@@ -72,7 +72,7 @@ const BOSS_TYPES = [
         attackColor: new THREE.Color(0x8e4a91),
         attackCooldown: 0.8,
         minHealth: 2500,
-        maxHealth: 4500
+        maxHealth: 5000
     },
     {
         name: "Krystalový drak",
@@ -83,7 +83,7 @@ const BOSS_TYPES = [
         attackColor: new THREE.Color(0x1fffff),
         attackCooldown: 0.8,
         minHealth: 3000,
-        maxHealth: 5000
+        maxHealth: 6000
     },
     // Třetí podlaží
     {
@@ -94,8 +94,8 @@ const BOSS_TYPES = [
         eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 2 }),
         attackColor: new THREE.Color(0xffffff),
         attackCooldown: 0.6,
-        minHealth: 5000,
-        maxHealth: 8000
+        minHealth: 5500,
+        maxHealth: 9000
     },
     {
         name: "Lávový drak",
@@ -107,7 +107,7 @@ const BOSS_TYPES = [
         attackEmmisiveIntensity: 3,
         attackCooldown: 0.6,
         minHealth: 8000,
-        maxHealth: 10000
+        maxHealth: 11000
     },
     {
         name: "Vesmírný drak",
@@ -119,7 +119,7 @@ const BOSS_TYPES = [
         attackEmmisiveIntensity: 5,
         attackCooldown: 0.6,
         minHealth: 6000,
-        maxHealth: 12000
+        maxHealth: 12500
     }
 ];
 
@@ -884,7 +884,7 @@ class Boss {
         }
     
         // Použijeme aktuální pozice bosse a hráče
-        if (canSeePlayer(this.position, player.position) && this.position.distanceTo(player.position) < 25) {
+        if (canSeePlayer(this.position, player.position)) {
             this.attack();
         } else {
             this.move(deltaTime);
@@ -923,12 +923,16 @@ function spawnBossInMaze(maze, rng, selectedFloor) {
 }
 
 function canSeePlayer(bossPosition, playerPosition) {
+
+    if (bossPosition.distanceTo(playerPosition) > 25) {
+        return false;
+    }
+
     // Vytvoříme kopie pozic, abychom neměnili originální objekty
     const bossPos = bossPosition.clone();
     const playerPos = playerPosition.clone();
 
-    // Nastavíme y-souřadnici bosse na úroveň jeho "očí"
-    bossPos.y += 4; // Předpokládáme, že oči bosse jsou 1.5 jednotky nad zemí
+    playerPos.y = 0; 
 
     // Vytvoříme směrový vektor od bosse k hráči
     const direction = new THREE.Vector3().subVectors(playerPos, bossPos).normalize();
