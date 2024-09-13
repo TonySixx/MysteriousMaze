@@ -7,6 +7,8 @@ import fireballIcon from './public/spells/fireball-icon.png';
 import infernoTouchIcon from './public/spells/inferno-touch-icon.png';
 import chainLightningIcon from './public/spells/chain-lightning-icon.png';
 import chainExplosionIcon from './public/spells/chain-explosion-icon.png';
+import frostAuraIcon from './public/spells/frost-aura-icon.png';
+import explosiveCoreIcon from './public/spells/explosive-core-icon.png';
 import { spells, updateSpellUpgrades } from './spells.js';
 import { getSkillPoints } from './player.js';
 import { updateSkillbar } from './main.js';
@@ -17,11 +19,11 @@ export const skillTree = {
     fireball: {
         name: 'Fireball',
         level: 1,
-        maxLevel: 4,
+        maxLevel: 8,
         description: 'Základní ohnivý útok',
         icon: fireballIcon,
         baseDamage: 100,
-        damageIncreasePerLevel: [20, 30, 40, 60],
+        damageIncreasePerLevel: [20, 30, 40, 60, 80, 100, 120],
         upgrades: [
             {
                 name: 'Inferno Touch',
@@ -30,14 +32,23 @@ export const skillTree = {
                 cost: 1,
                 unlocked: false,
                 icon: infernoTouchIcon
+            },
+            {
+                name: 'Explozivní jádro',
+                description: 'Při zásahu cíle Fireball exploduje a způsobí 50% svého poškození všem nepřátelům v okruhu 3 metrů',
+                requiredLevel: 10,
+                cost: 2,
+                unlocked: false,
+                icon: explosiveCoreIcon // Zde by měla být nová ikona pro vylepšení
             }
         ]
     },
     frostbolt: {
         name: 'Frostbolt',
         level: 1,
-        maxLevel: 1,
+        maxLevel: 5,
         baseDamage: 0,
+        damageIncreasePerLevel: [20, 30, 40, 50],
         description: 'Mrazivý útok, který zmrazí nepřítele na 2 sekundy',
         icon: frostboltIcon,
         upgrades: [
@@ -48,17 +59,25 @@ export const skillTree = {
                 cost: 1,
                 unlocked: false,
                 icon: iceExplosionIcon // Zde by měla být nová ikona pro vylepšení
+            },
+            {
+                name: 'Mrazivá aura',
+                description: 'Vytvoří kolem hráče mrazivou auru o poloměru 5 metrů, která zpomaluje všechny nepřátele uvnitř o 30% po dobu 5 sekund',
+                requiredLevel: 12,
+                cost: 2,
+                unlocked: false,
+                icon: frostAuraIcon // Zde by měla být nová ikona pro vylepšení
             }
         ]
     },
     arcaneMissile: {
         name: 'Arcane Missile',
         level: 1,
-        maxLevel: 3,
+        maxLevel: 6,
         description: 'Rychlý magický projektil',
         icon: arcaneMissileIcon,
         baseDamage: 50,
-        damageIncreasePerLevel: [10, 20, 30],
+        damageIncreasePerLevel: [10, 20, 30, 40, 50],
         upgrades: [
             {
                 name: 'Multi-shot',
@@ -73,8 +92,9 @@ export const skillTree = {
     chainLightning: {
         name: 'Chain Lightning',
         level: 0,
-        maxLevel: 1,
+        maxLevel: 3,
         baseDamage: 300,
+        damageIncreasePerLevel: [50, 100],
         description: 'Blesk, který přeskakuje mezi nepřáteli',
         icon: chainLightningIcon,
         requiredLevel: 10,
@@ -473,7 +493,7 @@ function canUnlockUpgrade(spellKey, upgrade) {
 export function calculateSpellDamage(spell) {
     let totalDamage = spell.baseDamage;
     for (let i = 0; i < spell.level - 1; i++) {
-        totalDamage += spell.damageIncreasePerLevel[i];
+        totalDamage += spell.damageIncreasePerLevel[i] || 0;
     }
     return totalDamage;
 }

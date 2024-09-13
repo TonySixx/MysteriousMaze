@@ -151,6 +151,9 @@ class Boss {
         this.clock = new THREE.Clock();
         this.lastAttackTime = 0;
         this.moveDirection = new THREE.Vector3();
+        this.slowEffect = 1; // 1 znamená normální rychlost
+        this.slowEndTime = 0;
+        this.slowParticles = null;
         
         this.rng = rng;
         this.loadModel();
@@ -551,7 +554,8 @@ class Boss {
 
     attack() {
         const currentTime = performance.now();
-        if (currentTime - this.lastAttackTime >= this.type.attackCooldown * 1000) {    
+        const attackCooldown = this.type.attackCooldown / this.slowEffect; // Aplikujeme efekt zpomalení na cooldown útoku
+        if (currentTime - this.lastAttackTime >= attackCooldown * 1000) {
             if (this.health < this.maxHealth / 2 && this.type.specialAttacks.length > 0) {
                 const attackType = this.type.specialAttacks[Math.floor(this.rng() * this.type.specialAttacks.length)];
                 if (this.rng() < this.getSpecialAttackProbability(attackType)) {
@@ -841,7 +845,7 @@ class Boss {
             this.changeDirection();
         }
 
-        const speed = 5.0; // Základní rychlost pohybu bosse
+        const speed = 5.0 * this.slowEffect; // Aplikujeme efekt zpomalení na rychlost pohybu
         const moveStep = this.moveDirection.clone().multiplyScalar(speed * deltaTime);
         const nextPosition = this.position.clone().add(moveStep);
 
@@ -870,25 +874,116 @@ class Boss {
         return false;
     }
 
+    slow(slowFactor, duration) {
+        this.slowEffect = Math.min(this.slowEffect, slowFactor);
+        this.slowEndTime = Math.max(this.slowEndTime, Date.now() + duration);
+        this.createSlowParticles();
+    }
+
     update(deltaTime) {
         if (this.isFrozen) return;
-    
-        this.updateBurning(deltaTime);
-    
-        if (this.mixer) {
-            this.mixer.update(deltaTime);
+
+        if (Date.now() > this.slowEndTime) {
+            this.slowEffect = 1;
+            this.removeSlowParticles();
+        } else if (this.slowParticles) {
+            this.updateSlowParticles(deltaTime);
         }
-    
+
+        this.updateBurning(deltaTime);
+
+        if (this.mixer) {
+            this.mixer.update(deltaTime * this.slowEffect);
+        }
+
         if (this.model) {
             this.model.lookAt(player.position);
         }
-    
-        // Použijeme aktuální pozice bosse a hráče
+
         if (canSeePlayer(this.position, player.position)) {
             this.attack();
         } else {
             this.move(deltaTime);
         }
+    }
+
+    createSlowParticles() {
+        if (this.slowParticles) {
+            this.removeSlowParticles();
+        }
+
+        const particleCount = 50;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+            const r = 1 + Math.random() * 0.5;
+
+            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            positions[i * 3 + 2] = r * Math.cos(phi);
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const material = new THREE.PointsMaterial({
+            color: 0x87CEFA,
+            size: 0.3,
+            transparent: true,
+            opacity: 0.8,
+            map: this.createSnowflakeTexture()
+        });
+
+        this.slowParticles = new THREE.Points(geometry, material);
+        this.model.add(this.slowParticles);
+    }
+
+    createSnowflakeTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            ctx.moveTo(16, 16);
+            ctx.lineTo(16, 0);
+            ctx.lineTo(20, 4);
+            ctx.moveTo(16, 0);
+            ctx.lineTo(12, 4);
+            ctx.rotate(Math.PI / 3);
+        }
+        ctx.fill();
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    removeSlowParticles() {
+        if (this.slowParticles) {
+            this.model.remove(this.slowParticles);
+            this.slowParticles.geometry.dispose();
+            this.slowParticles.material.dispose();
+            this.slowParticles = null;
+        }
+    }
+
+    updateSlowParticles() {
+        const positions = this.slowParticles.geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3) {
+            positions[i] += (Math.random() - 0.5) * 0.01;
+            positions[i + 1] += (Math.random() - 0.5) * 0.01;
+            positions[i + 2] += (Math.random() - 0.5) * 0.01;
+
+            // Udržujeme částice v určitém rozsahu kolem bosse
+            const distance = Math.sqrt(positions[i]**2 + positions[i+1]**2 + positions[i+2]**2);
+            if (distance > 1.5) {
+                positions[i] *= 1.5 / distance;
+                positions[i + 1] *= 1.5 / distance;
+                positions[i + 2] *= 1.5 / distance;
+            }
+        }
+        this.slowParticles.geometry.attributes.position.needsUpdate = true;
     }
 
 }

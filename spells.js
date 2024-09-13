@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel, createCastEffect, getCameraDirection, isHighWallArea, maze, chainLightningSoundBuffer } from './main.js';
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel, createCastEffect, getCameraDirection, isHighWallArea, maze, chainLightningSoundBuffer, camera } from './main.js';
 import { player } from "./player.js"
 import { createExplosion, changeStaffColor, fireballSoundBuffer, frostBoltSoundBuffer, magicMissileSoundBuffer } from "./main.js"
 import frostboltIcon from './public/spells/frostbolt-icon.png';
@@ -53,32 +53,39 @@ export function getActiveSpells() {
 }
 
 
+// V funkci updateSpellUpgrades přidejte nové podmínky pro nové upgrady
 export function updateSpellUpgrades(skillTree) {
   spells.forEach(spell => {
-      const spellInfo = skillTree[spell.id];
-      if (spellInfo) {
-          // Aktualizace poškození kouzla
-          spell.damage = calculateSpellDamage(spellInfo);
-          
-          // Aktualizace dalších vlastností kouzla
-          if (spellInfo.upgrades) {
-              spellInfo.upgrades.forEach(upgrade => {
-                  if (upgrade.unlocked) {
-                      if (upgrade.name === 'Inferno Touch') {
-                          spell.burningEffect = true;
-                      } else if (upgrade.name === 'Ice Explosion') {
-                          spell.iceExplosion = true;
-                      } else if (upgrade.name === 'Multi-shot') {
-                          spell.multiShot = true;
-                      } else if (upgrade.name === 'Chain Explosion') {
-                          spell.chainExplosion = true;
-                      }
-                  }
-              });
+    const spellInfo = skillTree[spell.id];
+    if (spellInfo) {
+      // Aktualizace poškození kouzla
+      spell.damage = calculateSpellDamage(spellInfo);
+
+      // Aktualizace dalších vlastností kouzla
+      if (spellInfo.upgrades) {
+        spellInfo.upgrades.forEach(upgrade => {
+          if (upgrade.unlocked) {
+            if (upgrade.name === 'Inferno Touch') {
+              spell.burningEffect = true;
+            } else if (upgrade.name === 'Ice Explosion') {
+              spell.iceExplosion = true;
+            } else if (upgrade.name === 'Multi-shot') {
+              spell.multiShot = true;
+            } else if (upgrade.name === 'Chain Explosion') {
+              spell.chainExplosion = true;
+            } else if (upgrade.name === 'Explozivní jádro') {
+              spell.explosiveCore = true;
+            } else if (upgrade.name === 'Mrazivá aura') {
+              spell.frostAura = true;
+            }
           }
+        });
       }
+    }
   });
 }
+
+
 
 // Funkce pro vytvoření ohnivé koule
 function createFireball() {
@@ -145,35 +152,12 @@ function createFrostbolt() {
   const core = new THREE.Mesh(geometry, material);
   frostbolt.add(core);
 
-  // Snowflake particles
-  const snowflakeParticles = new THREE.Points(
-    new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({
-      color: 0xFFFFFF,
-      size: 0.1,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      map: createSnowflakeTexture()
-    })
-  );
-
-  const snowflakePositions = new Float32Array(150 * 3);
-  for (let i = 0; i < 50; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = 0.2 + Math.random() * 0.05;
-    snowflakePositions[i * 3] = Math.cos(angle) * radius;
-    snowflakePositions[i * 3 + 1] = Math.sin(angle) * radius;
-    snowflakePositions[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
-  }
-  snowflakeParticles.geometry.setAttribute('position', new THREE.BufferAttribute(snowflakePositions, 3));
-  frostbolt.add(snowflakeParticles);
-
   // Ice trail
   const trailParticles = new THREE.Points(
     new THREE.BufferGeometry(),
     new THREE.PointsMaterial({
       color: 0xADD8E6,
-      size: 0.3,
+      size: 0.1,
       blending: THREE.AdditiveBlending,
       transparent: true,
     })
@@ -183,16 +167,31 @@ function createFrostbolt() {
   trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
   frostbolt.add(trailParticles);
 
-  frostbolt.userData.animate = function (deltaTime) {
-    // Animate snowflakes
-    const snowflakePositions = snowflakeParticles.geometry.attributes.position.array;
-    for (let i = 0; i < snowflakePositions.length; i += 3) {
-      snowflakePositions[i] += (Math.random() - 0.5) * 0.03;
-      snowflakePositions[i + 1] += (Math.random() - 0.5) * 0.03;
-      snowflakePositions[i + 2] += (Math.random() - 0.5) * 0.03;
-    }
-    snowflakeParticles.geometry.attributes.position.needsUpdate = true;
+  // Jemné ledové částice
+  const iceParticles = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      color: 0xFFFFFF,
+      size: 0.03,
+      blending: THREE.AdditiveBlending,
+      opacity: 1,
+    })
+  );
 
+  const icePositions = new Float32Array(100 * 3);
+  for (let i = 0; i < icePositions.length; i += 3) {
+    icePositions[i] = (Math.random() - 0.5) * 0.4;
+    icePositions[i + 1] = (Math.random() - 0.5) * 0.4;
+    icePositions[i + 2] = (Math.random() - 0.5) * 0.4;
+  }
+  iceParticles.geometry.setAttribute('position', new THREE.BufferAttribute(icePositions, 3));
+  frostbolt.add(iceParticles);
+
+  frostbolt.userData.animate = function (deltaTime) {
+    // Získání směru kamery
+    const cameraDirection = new THREE.Vector3();
+    camera.getWorldDirection(cameraDirection);
+    
     // Animate ice trail
     const trailPositions = trailParticles.geometry.attributes.position.array;
     for (let i = trailPositions.length - 1; i >= 3; i -= 3) {
@@ -200,33 +199,38 @@ function createFrostbolt() {
       trailPositions[i - 1] = trailPositions[i - 4];
       trailPositions[i - 2] = trailPositions[i - 5];
     }
-    trailPositions[0] = 0;
-    trailPositions[1] = 0;
-    trailPositions[2] = -0.2;
+    
+    // Nastavení nové pozice částice podle směru kamery
+    trailPositions[0] = -cameraDirection.x * 0.2;
+    trailPositions[1] = -cameraDirection.y * 0.2;
+    trailPositions[2] = -cameraDirection.z * 0.2;
+    
     trailParticles.geometry.attributes.position.needsUpdate = true;
+
+    // Animate ice particles
+    const icePositions = iceParticles.geometry.attributes.position.array;
+    for (let i = 0; i < icePositions.length; i += 3) {
+      icePositions[i] += (Math.random() - 0.5) * 0.01;
+      icePositions[i + 1] += (Math.random() - 0.5) * 0.01;
+      icePositions[i + 2] += (Math.random() - 0.5) * 0.01;
+    }
+    iceParticles.geometry.attributes.position.needsUpdate = true;
   };
 
   return frostbolt;
 }
 
-function createSnowflakeTexture() {
+function createSquareTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 32;
   canvas.height = 32;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = 'white';
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    ctx.moveTo(16, 16);
-    ctx.lineTo(16, 0);
-    ctx.lineTo(20, 4);
-    ctx.moveTo(16, 0);
-    ctx.lineTo(12, 4);
-    ctx.rotate(Math.PI / 3);
-  }
-  ctx.fill();
+  ctx.fillRect(8, 8, 16, 16);
   return new THREE.CanvasTexture(canvas);
 }
+
+
 
 function createArcaneMissile() {
   const arcaneMissile = new THREE.Group();
@@ -316,37 +320,38 @@ function createRuneTexture() {
 // Přidáme novou funkci castFireball
 function castFireball() {
   if (playerMana >= 20) {
-      setPlayerMana(playerMana - 20);
-      updatePlayerManaBar();
-      lastSpellCastTime = Date.now();
-      changeStaffColor(0xff4500);
+    setPlayerMana(playerMana - 20);
+    updatePlayerManaBar();
+    lastSpellCastTime = Date.now();
+    changeStaffColor(0xff4500);
 
-      if (fireballSoundBuffer) {
-          const sound = new THREE.Audio(new THREE.AudioListener());
-          sound.setBuffer(fireballSoundBuffer);
-          sound.play();
-          sound.onEnded = () => {
-              sound.disconnect();
-          };
-      }
+    if (fireballSoundBuffer) {
+      const sound = new THREE.Audio(new THREE.AudioListener());
+      sound.setBuffer(fireballSoundBuffer);
+      sound.play();
+      sound.onEnded = () => {
+        sound.disconnect();
+      };
+    }
 
-      const fireball = createFireball();
-      const staffWorldPosition = new THREE.Vector3();
-      staffModel.getWorldPosition(staffWorldPosition);
-      fireball.position.copy(staffWorldPosition);
-      fireball.position.y += 0.3;
+    const fireball = createFireball();
+    const staffWorldPosition = new THREE.Vector3();
+    staffModel.getWorldPosition(staffWorldPosition);
+    fireball.position.copy(staffWorldPosition);
+    fireball.position.y += 0.3;
 
-      createCastEffect(staffWorldPosition, 0xff4500);
+    createCastEffect(staffWorldPosition, 0xff4500);
 
-      const direction = getCameraDirection();
-      fireball.velocity = direction.multiplyScalar(0.25);
-      const fireballSpell = spells.find(spell => spell.name === 'Fireball');
-      fireball.damage = fireballSpell ? fireballSpell.damage : 100;
-      fireball.burningEffect = fireballSpell ? fireballSpell.burningEffect : false;
+    const direction = getCameraDirection();
+    fireball.velocity = direction.multiplyScalar(0.25);
+    const fireballSpell = spells.find(spell => spell.name === 'Fireball');
+    fireball.damage = fireballSpell ? fireballSpell.damage : 100;
+    fireball.burningEffect = fireballSpell ? fireballSpell.burningEffect : false;
+    fireball.explosiveCore = fireballSpell ? fireballSpell.explosiveCore : false;
 
-      scene.add(fireball);
-      fireBalls.push(fireball);
-      return true;
+    scene.add(fireball);
+    fireBalls.push(fireball);
+    return true;
   }
   return false;
 }
@@ -414,6 +419,14 @@ function castFrostbolt() {
     // Přidáme informaci o vylepšení do frostboltu
     const frostboltSpell = spells.find(spell => spell.name === 'Frostbolt');
     frostbolt.iceExplosion = frostboltSpell ? frostboltSpell.iceExplosion : false;
+
+    frostbolt.damage = frostboltSpell ? frostboltSpell.damage : 0;
+
+    frostbolt.frostAura = frostboltSpell ? frostboltSpell.frostAura : false;
+
+    if (frostbolt.frostAura) {
+      createFrostAura();
+    }
 
     scene.add(frostbolt);
     frostBalls.push(frostbolt);
@@ -487,8 +500,18 @@ function updateFireballs(deltaTime) {
     // Kolize s bossy
     for (let boss of bosses) {
       if (boss.model && fireball.position.distanceTo(boss.model.position) < 1.4) {
-        createExplosion(fireball.position);
+        createFireballExplosion(fireball.position);
         boss.takeDamage(fireball.damage, fireball.burningEffect);
+
+        if (fireball.explosiveCore) {
+          // Způsobí poškození všem bossům v okruhu 3 metrů
+          bosses.forEach(nearbyBoss => {
+            if (nearbyBoss.model.position.distanceTo(fireball.position) <= 3) {
+              nearbyBoss.takeDamage(fireball.damage * 0.5);
+            }
+          });
+        }
+
         scene.remove(fireball);
         fireBalls.splice(i, 1);
         break;
@@ -549,6 +572,7 @@ function updateFrostbolts(deltaTime) {
     for (let boss of bosses) {
       if (boss.model && frostbolt.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(frostbolt.position, 0xa6d9ff);
+        if (frostbolt.damage > 0) boss.takeDamage(frostbolt.damage);
         boss.freeze();
         if (frostbolt.iceExplosion) {
           createIceExplosion(frostbolt.position);
@@ -887,6 +911,106 @@ function createChainLightningVisual(startPosition, endPosition) {
       material.dispose();
     }
   };
+  animate();
+}
+
+// Přidejte novou funkci pro vytvoření mrazivé aury
+function createFrostAura() {
+  const auraGeometry = new THREE.SphereGeometry(5, 32, 32);
+  const auraMaterial = new THREE.MeshBasicMaterial({
+      color: 0x87CEFA,
+      transparent: true,
+      opacity: 0.3,
+      side: THREE.DoubleSide // Toto zajistí, že aura bude viditelná z obou stran
+  });
+  const aura = new THREE.Mesh(auraGeometry, auraMaterial);
+  aura.position.copy(player.position);
+  scene.add(aura);
+
+  // Animace a efekt aury
+  const animate = () => {
+      aura.position.copy(player.position); // Aktualizujeme pozici aury s hráčem
+      aura.scale.multiplyScalar(1.01);
+      aura.material.opacity -= 0.005; // Zpomalíme mizení aury
+      if (aura.material.opacity > 0) {
+          requestAnimationFrame(animate);
+
+          // Zpomalení nepřátel v dosahu aury
+          bosses.forEach(boss => {
+              if (boss.position.distanceTo(player.position) <= 7) {
+                  boss.slow(0.7, 5000); // Zpomalí bosse na 70% rychlosti po dobu 5 sekund
+              }
+          });
+      } else {
+          scene.remove(aura);
+          aura.geometry.dispose();
+          aura.material.dispose();
+      }
+  };
+  animate();
+}
+
+function createFireballExplosion(position) {
+  const particleCount = 100;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount; i++) {
+      const radius = Math.random() * 3;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+
+      positions[i * 3] = position.x + radius * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = position.y + radius * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = position.z + radius * Math.cos(phi);
+
+      colors[i * 3] = 1;  // R
+      colors[i * 3 + 1] = Math.random() * 0.5;  // G
+      colors[i * 3 + 2] = 0;  // B
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const material = new THREE.PointsMaterial({
+      size: 0.1,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      opacity: 1
+  });
+
+  const particles = new THREE.Points(geometry, material);
+  scene.add(particles);
+
+  // Animace částic
+  const animate = () => {
+      const positions = particles.geometry.attributes.position.array;
+      const colors = particles.geometry.attributes.color.array;
+
+      for (let i = 0; i < positions.length; i += 3) {
+          positions[i] += (Math.random() - 0.5) * 0.1;
+          positions[i + 1] += (Math.random() - 0.5) * 0.1;
+          positions[i + 2] += (Math.random() - 0.5) * 0.1;
+
+          colors[i + 1] *= 0.99;  // Postupné ztmavování částic
+      }
+
+      particles.geometry.attributes.position.needsUpdate = true;
+      particles.geometry.attributes.color.needsUpdate = true;
+
+      material.opacity -= 0.02;
+
+      if (material.opacity > 0) {
+          requestAnimationFrame(animate);
+      } else {
+          scene.remove(particles);
+          geometry.dispose();
+          material.dispose();
+      }
+  };
+
   animate();
 }
 
