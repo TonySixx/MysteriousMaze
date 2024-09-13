@@ -568,3 +568,18 @@ button:disabled {
   background-color: #a1a1a1;
   cursor: not-allowed;
 }
+
+.spell-damage{
+  font-size: 12px;
+  color: #ff6f6f;
+  margin: 5px 0;
+  font-style:italic;
+
+}
+
+.spell-level{
+  font-size: 12px;
+  margin: 5px 0;
+  color: #57aae9;
+  font-style:italic;
+}

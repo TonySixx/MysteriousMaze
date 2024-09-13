@@ -1950,7 +1950,7 @@ function createSkillbar() {
   });
 }
 
-function updateSkillbar() {
+export function updateSkillbar() {
   spells.forEach((spell, index) => {
 
     if (spell.name === 'Chain Lightning' && !isSpellUnlocked('chainLightning')) {
