@@ -152,15 +152,6 @@ canvas {
   cursor: not-allowed;
 }
 
-#hintModal .modal-content {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-#hintContent {
-  margin-top: 20px;
-}
-
 #menu {
   position: absolute;
   top: 10px;

@@ -14,40 +14,134 @@ export function setBossCounter(value) {
     bossCounter = value;
 }
 
+const BOSS_TYPES = [
+    // První podlaží
+    {
+        name: "Ohnivý drak",
+        specialAttacks: ['multiShot', 'aoeBlast'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xff7542, roughness: 0.1, metalness: 0.1 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xffa061, emissive: 0xffa061, emissiveIntensity: 1.5 }),
+        attackColor: new THREE.Color(0xffa061),
+        attackCooldown: 1,
+        attackEmmisiveIntensity: 3,
+        minHealth: 1000,
+        maxHealth: 1500
+    },
+    {
+        name: "Ledový drak",
+        specialAttacks: ['frostbolt', 'teleport'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x45c1ff, roughness: 0.1, metalness: 0.1 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0x5cf7ff, emissive: 0x5cf7ff, emissiveIntensity: 1.5 }),
+        attackColor: new THREE.Color(0x8af5ff),
+        attackCooldown: 1,
+        minHealth: 1500,
+        maxHealth: 2000
+    },
+    {
+        name: "Zemní drak",
+        specialAttacks: ['aoeBlast', 'teleport'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x7bd672, roughness: 0.1, metalness: 0.1 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0x5cff74, emissive: 0x5cff74, emissiveIntensity: 1.5 }),
+        attackColor: new THREE.Color(0x5cff74),
+        attackCooldown: 1,
+        minHealth: 1000,
+        maxHealth: 2000
+    },
+    // Druhé podlaží
+    {
+        name: "Bouřkový drak",
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x4169e1, roughness: 0.1, metalness: 0.3 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xecff6e, emissive: 0xecff6e, emissiveIntensity: 1.5 }),
+        attackColor: new THREE.Color(0x636eff),
+        attackCooldown: 0.8,
+        attackEmmisiveIntensity: 3,
+        minHealth: 3000,
+        maxHealth: 4000
+    },
+    {
+        name: "Stínový drak",
+        specialAttacks: ['frostbolt', 'teleport', 'aoeBlast'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x4b0082, roughness: 0.1, metalness: 0.2 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0x8e4a91, emissive: 0x8e4a91, emissiveIntensity: 1.5 }),
+        attackColor: new THREE.Color(0x8e4a91),
+        attackCooldown: 0.8,
+        minHealth: 2500,
+        maxHealth: 4500
+    },
+    {
+        name: "Krystalový drak",
+        specialAttacks: ['multiShot', 'frostbolt', 'teleport'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.7 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0x1fffff, emissive: 0x1fffff, emissiveIntensity: 1.5 }),
+        attackColor: new THREE.Color(0x1fffff),
+        attackCooldown: 0.8,
+        minHealth: 3000,
+        maxHealth: 5000
+    },
+    // Třetí podlaží
+    {
+        name: "Nebeský drak",
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xadd8e6, roughness: 0.1, metalness: 0.5 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 2 }),
+        attackColor: new THREE.Color(0xffffff),
+        attackCooldown: 0.6,
+        minHealth: 5000,
+        maxHealth: 8000
+    },
+    {
+        name: "Lávový drak",
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.1, metalness: 0.3 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xff4500, emissive: 0xff4500, emissiveIntensity: 1.5 }),
+        attackColor: new THREE.Color(0xff643d),
+        attackEmmisiveIntensity: 3,
+        attackCooldown: 0.6,
+        minHealth: 8000,
+        maxHealth: 10000
+    },
+    {
+        name: "Vesmírný drak",
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x3b278f, roughness: 0.1, metalness: 0.7 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 5 }),
+        attackColor: new THREE.Color(0xffe34d),
+        attackEmmisiveIntensity: 5,
+        attackCooldown: 0.6,
+        minHealth: 6000,
+        maxHealth: 12000
+    }
+];
+
 
 class Boss {
-    constructor(position, id, rng,floor) {
+    constructor(position, id, rng, floor) {
         this.id = id;
         this.floor = floor;
+        this.type = this.selectBossType(floor, rng);
         this.maxHealth = this.generateHealth(rng);
         this.health = this.maxHealth;
         this.position = position;
-        this.attackCooldown = rng() * 0.5 + 0.5; // Náhodný cooldown útoku v rozmezí 0.5 - 1 vteřina
-        this.type = this.getBossType(rng);
-        this.specialAttacks = this.getSpecialAttacks(rng);
+        this.attackCooldown = this.type.attackCooldown;
         this.teleportCooldown = 2000; // 2 sekundy cooldown
         this.lastTeleportTime = 0;
         this.originalMaterial = null;
         this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
         this.isFrozen = false;
-
         this.isBurning = false;
         this.burningTimer = 0;
         this.lastBurningDamageTime = 0;
         this.fireParticles = null;
-
-
-        // Definování dostupných barev střel
-        const colors = [
-            new THREE.Color(0x33adff), // Modrá
-            new THREE.Color(0x66ff99), // Zelená
-            new THREE.Color(0xffff66), // Žlutá
-            new THREE.Color(0xff66ff)  // Růžová
-        ];
-
-        // Náhodně vybereme jednu barvu
-        this.attackColor = colors[Math.floor(rng() * colors.length)];
-
         this.model = null;
         this.healthBar = null;
         this.healthBarContainer = null;
@@ -57,48 +151,26 @@ class Boss {
         this.clock = new THREE.Clock();
         this.lastAttackTime = 0;
         this.moveDirection = new THREE.Vector3();
-        this.rng = rng; // Uložení rng pro pozdější použití
+        
+        this.rng = rng;
         this.loadModel();
         this.changeDirection();
         this.createHealthUI();
     }
 
+    selectBossType(floor, rng) {
+        const floorTypes = BOSS_TYPES.slice((floor - 1) * 3, floor * 3);
+        return floorTypes[Math.floor(rng() * floorTypes.length)];
+    }
+
     generateHealth(rng) {
-        const minHealth = 1000 * (1 + (this.floor - 1) * 0.5);
-        const maxHealth = 5000 * (1 + (this.floor - 1) * 0.5);
+        const minHealth = this.type.minHealth 
+        const maxHealth = this.type.maxHealth
         const interval = 200;
-
-        // Vypočítáme počet možných hodnot HP
         const possibleValues = Math.floor((maxHealth - minHealth) / interval) + 1;
-
-        // Vygenerujeme náhodné číslo v rozsahu možných hodnot
         const randomIndex = Math.floor(rng() * possibleValues);
-
-        // Vypočítáme výsledné HP
         let health = minHealth + (randomIndex * interval);
-
-        // Zajistíme, že HP je v rozmezí 1000 - 5000 * (1 + (floor - 1) * 0.5)
-        return Math.max(minHealth, Math.min(maxHealth * (1 + (this.floor - 1) * 0.5), health));
-    }
-
-    getBossType(rng) {
-        const types = ['Dragon', 'Golem', 'Wizard', 'Shadow'];
-        return types[Math.floor(rng() * types.length)];
-    }
-
-    getSpecialAttacks(rng) {
-        const allAttacks = ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'];
-        const maxAttacks = Math.min(3, Math.floor((this.maxHealth - 1000) / 1333) + 1);
-        const attacks = [];
-
-        while (attacks.length < maxAttacks) {
-            const attack = allAttacks[Math.floor(rng() * allAttacks.length)];
-            if (!attacks.includes(attack)) {
-                attacks.push(attack);
-            }
-        }
-
-        return attacks;
+        return Math.max(minHealth, Math.min(maxHealth, health));
     }
 
     getSpecialAttackProbability(attackType) {
@@ -152,7 +224,13 @@ class Boss {
             this.model.scale.set(0.5, 0.5, 0.5);
             this.model.traverse((child) => {
                 if (child.isMesh) {
-                    this.originalMaterial = child.material;
+                    if (child.name === "Dragon_1") {
+                        child.material = this.type.dragonMainMaterial;
+                    } else if (child.name === "Dragon_4") {
+                        child.material = this.type.eyeBlackMaterial;
+                    } else if (child.name === "Dragon_5") {
+                        child.material = this.type.eyeWhiteMaterial;
+                    }
                 }
             });
             scene.add(this.model);
@@ -175,7 +253,7 @@ class Boss {
         this.model.add(this.healthBarContainer);
 
         const healthBarGeometry = new THREE.PlaneGeometry(2, 0.2);
-        const healthBarMaterial = new THREE.MeshBasicMaterial({ color: this.attackColor });
+        const healthBarMaterial = new THREE.MeshBasicMaterial({ color: this.type.attackColor });
         this.healthBar = new THREE.Mesh(healthBarGeometry, healthBarMaterial);
         this.healthBar.position.set(-1, 0, 0.01); // Posuneme healthbar do levého kraje kontejneru
         const healthRatio = this.health / this.maxHealth;
@@ -190,9 +268,9 @@ class Boss {
         bossHealthElement.id = `boss-${this.id}`;
         bossHealthElement.className = "boss-health";
         bossHealthElement.innerHTML = `
-        <div class="boss-name">Boss ${this.id}</div>
+        <div class="boss-name">${this.type.name}</div>
         <div class="boss-health-bar">
-          <div class="boss-health-fill" style="background-color: ${this.attackColor.getStyle()}"></div>
+          <div class="boss-health-fill" style="background-color: ${this.type.attackColor.getStyle()}"></div>
           <div class="boss-health-text"></div>
         </div>
       `;
@@ -473,9 +551,9 @@ class Boss {
 
     attack() {
         const currentTime = performance.now();
-        if (currentTime - this.lastAttackTime >= this.attackCooldown * 1000) {    
-            if (this.health < this.maxHealth / 2 && this.specialAttacks.length > 0) {
-                const attackType = this.specialAttacks[Math.floor(this.rng() * this.specialAttacks.length)];
+        if (currentTime - this.lastAttackTime >= this.type.attackCooldown * 1000) {    
+            if (this.health < this.maxHealth / 2 && this.type.specialAttacks.length > 0) {
+                const attackType = this.type.specialAttacks[Math.floor(this.rng() * this.type.specialAttacks.length)];
                 if (this.rng() < this.getSpecialAttackProbability(attackType)) {
                     this.specialAttack(attackType);
                 } else {
@@ -575,7 +653,7 @@ class Boss {
         const blastRadius = 5;
         const blastGeometry = new THREE.SphereGeometry(blastRadius, 32, 32);
         const blastMaterial = new THREE.MeshBasicMaterial({
-            color: this.attackColor,
+            color: this.type.attackColor,
             transparent: true,
             opacity: 0.3,
             side: THREE.DoubleSide
@@ -695,7 +773,7 @@ class Boss {
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
         const material = new THREE.PointsMaterial({
-            color: this.attackColor,
+            color: this.type.attackColor,
             size: 0.1,
             transparent: true,
             blending: THREE.AdditiveBlending
@@ -733,8 +811,8 @@ class Boss {
     createMagicBall(startPosition, targetPosition) {
         const geometry = new THREE.SphereGeometry(0.2, 32, 32);
         const material = new THREE.MeshBasicMaterial({
-            color: this.attackColor, emissive: this.attackColor,
-            emissiveIntensity: 2
+            color: this.type.attackColor, emissive: this.type.attackColor,
+            emissiveIntensity: this.type.emissiveIntensity || 2
         });
         const magicBall = new THREE.Mesh(geometry, material);
         magicBall.position.copy(startPosition);
@@ -781,15 +859,6 @@ class Boss {
         }
     }
 
-    // checkCollisionOnMove(position) {
-    //   for (let wall of walls) {
-    //     const distance = position.distanceTo(wall.position);
-    //     if (distance < CELL_SIZE / 2 + 0.8) {
-    //       return true;
-    //     }
-    //   }
-    //   return false;
-    // }  
 
     checkCollisionOnMove(position) {
         for (let wall of walls) {
@@ -823,10 +892,9 @@ class Boss {
 
 }
 
-function spawnBossInMaze(maze, rng,selectedFloor) {
+function spawnBossInMaze(maze, rng, selectedFloor) {
     let freeCells = [];
 
-    // Projdeme celé bludiště a najdeme volné buňky
     for (let i = 0; i < MAZE_SIZE; i++) {
         for (let j = 0; j < MAZE_SIZE; j++) {
             if (maze[i][j] === 0) {
@@ -836,7 +904,6 @@ function spawnBossInMaze(maze, rng,selectedFloor) {
     }
 
     if (freeCells.length > 0) {
-        // Vybereme náhodnou volnou buňku
         let cell = freeCells[Math.floor(rng() * freeCells.length)];
         const bossPosition = new THREE.Vector3(
             (cell.x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
@@ -844,9 +911,8 @@ function spawnBossInMaze(maze, rng,selectedFloor) {
             (cell.z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
         );
 
-        // Vytvoříme bosse a přidáme ho do scény
         setBossCounter(bossCounter + 1)
-        const boss = new Boss(bossPosition, bossCounter, rng,selectedFloor);
+        const boss = new Boss(bossPosition, bossCounter, rng, selectedFloor);
         boss.health = boss.maxHealth;
         bosses.push(boss);
         setTotalKeys(totalKeys + 1);

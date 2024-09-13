@@ -1,0 +1,77 @@
+#hintModal .modal-content {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
+    border-radius: 10px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  #hintModal h3 {
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-top: 20px;
+  }
+  
+  #hintModal h4 {
+    color: #e74c3c;
+    margin-top: 15px;
+  }
+  
+  #hintModal p {
+    margin: 10px 0;
+    line-height: 1.5;
+  }
+  
+  #hintModal ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  
+  #hintModal li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+  }
+  
+  #hintModal li::before {
+    content: '•';
+    color: #3498db;
+    font-size: 1.2em;
+    position: absolute;
+    left: 0;
+    top: -2px;
+  }
+  
+  .boss-info {
+    background-color: rgba(52, 73, 94, 0.7);
+    border-left: 4px solid #3498db;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+  }
+  
+  .boss-info p {
+    margin: 5px 0;
+  }
+  
+  .attack-name {
+    font-weight: bold;
+    color: #e67e22;
+  }
+  
+  .tactic {
+    font-style: italic;
+    color: #2ecc71;
+  }
+  
+  #hintModal::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+
+  
+
+  

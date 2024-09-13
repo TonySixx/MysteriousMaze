@@ -28,7 +28,7 @@ import {
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 
-export const version = "1.0.9";
+export const version = "1.1.0";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -2544,45 +2544,68 @@ function hideHintModal() {
 
 function generateHintContent() {
   let content = `
-    <h3>Jak dokončit bludiště:</h3>
+    <h3>Jak dokončit bludiště</h3>
     <p>Posbírejte ${totalKeys} klíčů a dostaňte se k cíli.</p>
     <p>Počet teleportů v bludišti: ${teleportPairsCount * 2}</p>
-    <h3>Bossové (${bosses.length}):</h3>
+    <h3>Bossové (${bosses.length})</h3>
   `;
 
-  bosses.forEach((boss, index) => {
+  bosses.forEach((boss) => {
     content += `
-      <h4>Boss ${index + 1}</h4>
-      <p>Zdraví: ${boss.maxHealth}</p>
-      <p>Speciální útok: ${boss.specialAttackType}</p>
-      <p>Taktika: ${getBossTactic(boss.specialAttackType)}</p>
+      <div class="boss-info">
+        <h4>${boss.type.name}</h4>
+        <p>Zdraví: ${boss.maxHealth}</p>
+        <p>Speciální útoky: ${getReadableAttackNames(boss.type.specialAttacks).map(name => `<span class="attack-name">${name}</span>`).join(', ')}</p>
+        <p class="tactic">Taktika: ${getBossTactics(boss.type.specialAttacks)}</p>
+      </div>
     `;
   });
 
   content += `
-    <h3>Tipy:</h3>
+    <h3>Tipy</h3>
     <ul>
       <li>Používejte minimapu pro lepší orientaci v bludišti.</li>
       <li>Sbírejte klíče průběžně, abyste mohli rychle dokončit level po poražení bossů.</li>
       <li>Využívejte teleporty pro rychlý přesun v bludišti.</li>
       <li>Sledujte své zdraví a manu, vyhýbejte se útokům bossů.</li>
+      <li>Různé typy bossů mají různé speciální útoky a taktiky.</li>
     </ul>
   `;
 
   return content;
 }
 
-function getBossTactic(specialAttackType) {
-  switch (specialAttackType) {
-    case 'multiShot':
-      return "Pohybujte se do stran, abyste se vyhnuli střelám. Útočte mezi salvami.";
-    case 'aoeBlast':
-      return "Udržujte si odstup a vyhněte se oblasti účinku. Útočte ihned po výbuchu.";
-    case 'teleport':
-      return "Buďte připraveni na náhlou změnu pozice bosse. Sledujte jeho pohyb a rychle reagujte.";
-    default:
-      return "Pozorujte vzorec útoků a reagujte podle situace.";
-  }
+function getReadableAttackNames(attacks) {
+  const attackNames = {
+    'multiShot': 'Vícenásobná střela',
+    'aoeBlast': 'Plošný výbuch',
+    'teleport': 'Teleportace',
+    'frostbolt': 'Ledová střela'
+  };
+  return attacks.map(attack => attackNames[attack] || attack);
+}
+
+function getBossTactics(specialAttacks) {
+  let tactics = [];
+  specialAttacks.forEach(attack => {
+    switch (attack) {
+      case 'multiShot':
+        tactics.push("Vyhněte se vícenásobným střelám pohybem do stran. Útočte mezi salvami.");
+        break;
+      case 'aoeBlast':
+        tactics.push("Udržujte si odstup od plošného výbuchu. Útočte ihned po explozi.");
+        break;
+      case 'teleport':
+        tactics.push("Buďte připraveni na náhlou změnu pozice bosse. Rychle reagujte na jeho teleportaci.");
+        break;
+      case 'frostbolt':
+        tactics.push("Vyhýbejte se ledovým střelám. Při zásahu vás zmrazí.");
+        break;
+      default:
+        tactics.push("Pozorujte vzorec útoků a reagujte podle situace.");
+    }
+  });
+  return tactics.join(' ');
 }
 
 let showFPS = false;
