@@ -123,6 +123,7 @@ const torches = [];
 // Globální proměnné
 let composer, lightManager;
 let MAX_VISIBLE_LIGHTS = 10; // Default value
+let qualityFactor = 1;
 
 export var keyModel;
 let treasureModel;
@@ -174,17 +175,20 @@ let selectedFloor = 1;
 
 const audioLoader = new AudioLoader();
 
-// Přidejte globální proměnné
-const frustum = new Frustum();
-const projScreenMatrix = new Matrix4();
 
 export function setTotalKeys(value) {
   totalKeys = value;
 }
 
-async function init() {
-  // Načtení nastavení z local storage
+// Přidejte tuto funkci do init() nebo tam, kde načítáte ostatní nastavení
+function loadSettings() {
   MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem('maxVisibleLights')) || 10;
+  qualityFactor = parseFloat(localStorage.getItem('qualityFactor')) || 1;
+  setQuality(qualityFactor);
+}
+
+async function init() {
+
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
@@ -195,6 +199,9 @@ async function init() {
   );
   renderer = new THREE.WebGLRenderer({ alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
+    // Načtení nastavení z local storage
+    loadSettings();
   document.body.appendChild(renderer.domElement);
 
   // Check for seed in URL
@@ -2283,8 +2290,24 @@ export function isHighWallArea(x, z) {
 }
 
 
+// Přidejte tuto funkci
+function updateVisibleObjects() {
+  const frustum = new THREE.Frustum();
+  const matrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  frustum.setFromProjectionMatrix(matrix);
 
+  const visibilityDistance = 40; // Maximální vzdálenost viditelnosti
 
+  // Aktualizace viditelnosti zdí
+  walls.forEach(wall => {
+    if (frustum.intersectsObject(wall) && wall.position.distanceTo(player.position) < visibilityDistance) {
+      wall.visible = true;
+    } else {
+      wall.visible = false;
+    }
+  });
+
+}
 
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
@@ -2348,18 +2371,7 @@ function animate() {
 
   lightManager.update(player.position, camera); // Aktualizace světel s hráčovou pozicí a kamerou
 
-  // Aktualizujte frustum
-  camera.updateMatrixWorld();
-  projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-  frustum.setFromProjectionMatrix(projScreenMatrix);
-
-  // Proveďte occlusion culling
-  walls.forEach(wall => {
-    if (wall.isLOD) {
-      wall.update(camera);
-    }
-    wall.visible = frustum.intersectsObject(wall);
-  });
+  updateVisibleObjects();
 
   if (showFPS) {
     updateFPS();
@@ -2635,8 +2647,10 @@ function updateFPS() {
   }
 }
 
+// Upravte funkci showSettingsModal
 function showSettingsModal() {
   document.getElementById("lightSettings").value = MAX_VISIBLE_LIGHTS.toString();
+  document.getElementById("qualitySettings").value = qualityFactor.toString();
   document.getElementById("settingsModal").style.display = "block";
 }
 
@@ -2644,11 +2658,38 @@ function hideSettingsModal() {
   document.getElementById("settingsModal").style.display = "none";
 }
 
+// Upravte funkci saveSettings
 function saveSettings() {
   MAX_VISIBLE_LIGHTS = parseInt(document.getElementById("lightSettings").value);
   localStorage.setItem('maxVisibleLights', MAX_VISIBLE_LIGHTS.toString());
   lightManager.maxVisibleLights = MAX_VISIBLE_LIGHTS;
+
+  qualityFactor = parseFloat(document.getElementById("qualitySettings").value);
+  localStorage.setItem('qualityFactor', qualityFactor.toString());
+  setQuality(qualityFactor);
+
   hideSettingsModal();
+}
+
+// Upravte funkci setQuality
+function setQuality(factor) {
+  qualityFactor = factor;
+  
+  // Nastavení velikosti rendereru
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  
+  // Nastavení rozlišení rendereru
+  renderer.setPixelRatio(window.devicePixelRatio * qualityFactor);
+  
+  // Aktualizace poměru stran kamery
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  
+  // Aktualizace efektů post-processingu, pokud jsou použity
+  if (composer) {
+      composer.setSize(window.innerWidth, window.innerHeight);
+      composer.setPixelRatio(window.devicePixelRatio * qualityFactor);
+  }
 }
 
 
