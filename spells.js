@@ -572,13 +572,13 @@ function updateFrostbolts(deltaTime) {
     for (let boss of bosses) {
       if (boss.model && frostbolt.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(frostbolt.position, 0xa6d9ff);
-        if (frostbolt.damage > 0) boss.takeDamage(frostbolt.damage);
         boss.freeze();
         if (frostbolt.iceExplosion) {
           createIceExplosion(frostbolt.position);
         }
         scene.remove(frostbolt);
         frostBalls.splice(i, 1);
+        if (frostbolt.damage > 0) boss.takeDamage(frostbolt.damage);
         break;
       }
     }
@@ -617,9 +617,9 @@ function updateArcaneMissiles(deltaTime) {
     for (let boss of bosses) {
       if (boss.model && arcaneMissile.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(arcaneMissile.position, 0xf7c6bfa);
-        boss.takeDamage(arcaneMissile.damage * (arcaneMissile.power || 1));
         scene.remove(arcaneMissile);
         arcaneMissiles.splice(i, 1);
+        boss.takeDamage(arcaneMissile.damage * (arcaneMissile.power || 1));
         break;
       }
     }

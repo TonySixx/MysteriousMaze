@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer} from './main.js';
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer } from './main.js';
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -120,7 +120,44 @@ const BOSS_TYPES = [
         attackCooldown: 0.6,
         minHealth: 6000,
         maxHealth: 12500
-    }
+    },
+    // Čtvrté podlaží
+    {
+        name: "Astrální drak",
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xE6E6FA, roughness: 0.1, metalness: 0.8 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xFFFFFF, emissive: 0xFFFFFF, emissiveIntensity: 3 }),
+        attackColor: new THREE.Color(0xd0a1ff),
+        attackCooldown: 0.5,
+        attackEmmisiveIntensity: 4,
+        minHealth: 8000,
+        maxHealth: 12000
+    },
+    {
+        name: "Kvantový drak",
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x2e7eff, roughness: 0.1, metalness: 0.7, transparent: true, opacity: 0.8 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0x2e7eff, emissive: 0x2e7eff, emissiveIntensity: 3 }),
+        attackColor: new THREE.Color(0x2e7eff),
+        attackCooldown: 0.4,
+        attackEmmisiveIntensity: 4,
+        minHealth: 10000,
+        maxHealth: 15000
+      },
+    {
+        name: "Éterický drak",
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.8 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xffb5d8, emissive: 0xffb5d8, emissiveIntensity: 3 }),
+        attackColor: new THREE.Color(0xffb5d8),
+        attackCooldown: 0.3,
+        attackEmmisiveIntensity: 4,
+        minHealth: 12000,
+        maxHealth: 18000
+    },
 ];
 
 
@@ -154,7 +191,7 @@ class Boss {
         this.slowEffect = 1; // 1 znamená normální rychlost
         this.slowEndTime = 0;
         this.slowParticles = null;
-        
+
         this.rng = rng;
         this.loadModel();
         this.changeDirection();
@@ -167,7 +204,7 @@ class Boss {
     }
 
     generateHealth(rng) {
-        const minHealth = this.type.minHealth 
+        const minHealth = this.type.minHealth
         const maxHealth = this.type.maxHealth
         const interval = 200;
         const possibleValues = Math.floor((maxHealth - minHealth) / interval) + 1;
@@ -494,12 +531,12 @@ class Boss {
             expText.style.fontWeight = 'bold';
             expText.style.textShadow = '2px 2px 2px black';
             expText.style.pointerEvents = 'none';
-    
+
             document.body.appendChild(expText);
-    
+
             const startTime = performance.now();
             const duration = 3000; // 3 sekundy
-    
+
             const animate = (currentTime) => {
                 const elapsed = currentTime - startTime;
                 if (elapsed < duration) {
@@ -512,7 +549,7 @@ class Boss {
                     document.body.removeChild(expText);
                 }
             };
-    
+
             requestAnimationFrame(animate);
         }
     }
@@ -607,7 +644,7 @@ class Boss {
         }
     }
 
-    frostboltAttack() {  
+    frostboltAttack() {
         if (frostBoltSoundBuffer) {
             const sound = new THREE.Audio(new THREE.AudioListener());
             sound.setBuffer(frostBoltSoundBuffer);
@@ -688,23 +725,23 @@ class Boss {
         if (currentTime - this.lastTeleportTime < this.teleportCooldown) {
             return; // Pokud je teleport na cooldownu, neprovedeme ho
         }
-    
+
         const teleportDistance = 5;
         let teleportDirection = new THREE.Vector3()
             .subVectors(player.position, this.position)
             .normalize()
             .multiplyScalar(teleportDistance);
         teleportDirection.y = 0; // Zachováme původní výšku
-    
+
         // Vytvoříme particle efekt na původní pozici
         this.createTeleportParticles(this.position);
-    
+
         const originalPosition = this.position.clone();
         let newPosition = this.position.clone().add(teleportDirection);
-    
+
         // Hledání bezpečné pozice pro teleportaci
         newPosition = this.findSafeTeleportPosition(newPosition, originalPosition);
-    
+
         if (newPosition) {
 
             if (teleportSoundBuffer) {
@@ -718,37 +755,37 @@ class Boss {
 
             this.position.copy(newPosition);
             this.model.position.copy(this.position);
-    
+
             // Omezení pozice bosse na hranice bludiště
             const halfMazeSize = (MAZE_SIZE * CELL_SIZE) / 2;
             this.position.x = Math.max(Math.min(this.position.x, halfMazeSize), -halfMazeSize);
             this.position.z = Math.max(Math.min(this.position.z, halfMazeSize), -halfMazeSize);
-    
+
             // Vytvoříme particle efekt na nové pozici
             this.createTeleportParticles(this.position);
-    
+
             // Nastavíme čas posledního teleportu
             this.lastTeleportTime = currentTime;
-    
+
             // Perform a quick attack after teleporting
             this.performStandardAttack();
         } else {
             console.log("Boss nemohl najít bezpečnou pozici pro teleportaci");
         }
     }
-    
+
     findSafeTeleportPosition(targetPosition, originalPosition) {
         if (!this.checkCollisionOnMove(targetPosition)) {
             return targetPosition;
         }
-    
+
         const directions = [
             new THREE.Vector3(1, 0, 0),
             new THREE.Vector3(-1, 0, 0),
             new THREE.Vector3(0, 0, 1),
             new THREE.Vector3(0, 0, -1),
         ];
-    
+
         for (let i = 1; i <= 10; i++) { // Zkusíme až 10 pozic
             for (const direction of directions) {
                 const testPosition = targetPosition.clone().add(direction.clone().multiplyScalar(i * 0.5));
@@ -757,7 +794,7 @@ class Boss {
                 }
             }
         }
-    
+
         return null; // Pokud nebyla nalezena žádná bezpečná pozice
     }
     createTeleportParticles(position) {
@@ -976,7 +1013,7 @@ class Boss {
             positions[i + 2] += (Math.random() - 0.5) * 0.01;
 
             // Udržujeme částice v určitém rozsahu kolem bosse
-            const distance = Math.sqrt(positions[i]**2 + positions[i+1]**2 + positions[i+2]**2);
+            const distance = Math.sqrt(positions[i] ** 2 + positions[i + 1] ** 2 + positions[i + 2] ** 2);
             if (distance > 1.5) {
                 positions[i] *= 1.5 / distance;
                 positions[i + 1] *= 1.5 / distance;
@@ -1027,7 +1064,7 @@ function canSeePlayer(bossPosition, playerPosition) {
     const bossPos = bossPosition.clone();
     const playerPos = playerPosition.clone();
 
-    playerPos.y = 0; 
+    playerPos.y = 0;
 
     // Vytvoříme směrový vektor od bosse k hráči
     const direction = new THREE.Vector3().subVectors(playerPos, bossPos).normalize();

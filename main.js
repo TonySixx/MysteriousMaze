@@ -100,6 +100,26 @@ const textureSets = [
     ],
     torchColor: { light: 0xfdff6b, particles: 0xfdff6b }
   },
+  {
+    wallTexture: "wall-abyss.jpg",
+    ceilingTexture: "wall-abyss.jpg",
+    specialTextures: [
+      "wall-abyss.jpg",
+      "wall-abyss.jpg",
+      "wall-abyss.jpg",
+    ],
+    torchColor: { light: 0x69ffb9, particles: 0x69ffb9 }
+  },
+  {
+    wallTexture: "wall-abyss.jpg",
+    ceilingTexture: "wall-abyss.jpg",
+    specialTextures: [
+      "wall-abyss.jpg",
+      "wall-abyss.jpg",
+      "wall-abyss.jpg",
+    ],
+    torchColor: { light: 0xd6fffc, particles: 0xd6fffc }
+  },
 ];
 
 export let scene, camera, renderer, maze
@@ -816,6 +836,9 @@ function createMaze(inputText = "", selectedFloor = 1) {
     case 3:
       availableTextureSets = textureSets.slice(4, 6);
       break;
+    case 4:
+      availableTextureSets = textureSets.slice(6, 8);
+      break;
   }
   const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
   const selectedTextureSet = availableTextureSets[textureSetIndex];
@@ -848,6 +871,10 @@ function createMaze(inputText = "", selectedFloor = 1) {
     case 3:
       minSize = 30;
       maxSize = 50;
+      break;
+    case 4:
+      minSize = 20;
+      maxSize = 30;
       break;
   }
   MAZE_SIZE = Math.floor(rng() * (maxSize - minSize + 1)) + minSize;
@@ -1177,10 +1204,15 @@ function generateMaze(width, height, seed, selectedFloor) {
 
   carvePassage(1, 1);
 
-  // Přidáme generování hal a bossů
-  const baseHallProbability = 0.02;
-  const hallProbabilityDecrease = -0.001;
-  const hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
+   // Přidáme generování hal a bossů
+   const baseHallProbability = 0.02;
+   const hallProbabilityDecrease = -0.001;
+   let hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
+   
+   // Zvýšíme pravděpodobnost hal pro 4. podlaží
+   if (selectedFloor === 4) {
+     hallProbability *= 3;
+   }
   // Upravíme velikost haly podle podlaží
   let minHallSize, maxHallSize;
   minHallSize = 2;
@@ -1193,7 +1225,10 @@ function generateMaze(width, height, seed, selectedFloor) {
     maxHallSize = 5;
   }
   const hallSize = minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
-  const bossProbability = 0.8; // 80% šance na spawnutí bosse v hale
+  var bossProbability = 0.8; // 80% šance na spawnutí bosse v hale
+  if (selectedFloor === 4) {
+    bossProbability = 1.0;
+  }
 
   for (let y = 1; y < MAZE_SIZE - hallSize; y += hallSize) {
     for (let x = 1; x < MAZE_SIZE - hallSize; x += hallSize) {
@@ -2772,6 +2807,7 @@ function canSelectFloor(floor) {
   if (floor === 1) return true;
   if (floor === 2 && playerLevel >= 7) return true;
   if (floor === 3 && playerLevel >= 12) return true;
+  if (floor === 4 && playerLevel >= 15) return true;
   return false;
 }
 
