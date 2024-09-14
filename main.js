@@ -2813,7 +2813,7 @@ function canSelectFloor(floor) {
   if (floor === 1) return true;
   if (floor === 2 && playerLevel >= 7) return true;
   if (floor === 3 && playerLevel >= 12) return true;
-  if (floor === 4 && playerLevel >= 15) return true;
+  if (floor === 4 && playerLevel >= 16) return true;
   return false;
 }
 
