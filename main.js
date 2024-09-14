@@ -5,7 +5,6 @@ import { createClient } from "@supabase/supabase-js";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { Frustum, Matrix4 } from 'three';
 import { AudioLoader } from 'three';
 import { setBossCounter, setBosses, spawnBossInMaze, bosses } from './boss.js';
 import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings, updateSpellUpgrades } from './spells.js';
@@ -28,7 +27,7 @@ import {
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 
-export const version = "1.1.3";
+export const version = "1.1.6";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -181,6 +180,7 @@ export var frostBoltHitSoundBuffer;
 export var teleportSoundBuffer;
 export var killConfirmationSoundBuffer;
 export var chainLightningSoundBuffer;
+export var magicArrowSoundBuffer;
 
 export var bossSoundBuffer;
 export var backgroundMusic;
@@ -271,6 +271,11 @@ async function init() {
   audioLoader.load('snd_boss_attack.wav', function (buffer) {
     bossSoundBuffer = buffer;
   });
+
+  audioLoader.load('snd_magic_arrow.wav', function (buffer) {
+    magicArrowSoundBuffer = buffer;
+  });
+
 
   audioLoader.load('snd_chain_lightning.mp3', function (buffer) {
     chainLightningSoundBuffer = buffer;
@@ -2464,8 +2469,9 @@ async function submitScore(levelName, time) {
 }
 
 function addExperienceForCompletion(floor) {
-  const experiencePerFloor = 2000;
-  const totalExperience = floor * experiencePerFloor;
+  const baseExperience = 2000;
+  const exponent = 1.5;
+  const totalExperience = Math.round(baseExperience * Math.pow(floor, exponent));
   addExperience(totalExperience);
 }
 

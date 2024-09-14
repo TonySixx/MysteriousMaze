@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer } from './main.js';
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer } from './main.js';
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -111,7 +111,7 @@ const BOSS_TYPES = [
     },
     {
         name: "Vesmírný drak",
-        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt','magicArrow'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x3b278f, roughness: 0.1, metalness: 0.7 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
         eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 5 }),
@@ -148,7 +148,7 @@ const BOSS_TYPES = [
       },
     {
         name: "Éterický drak",
-        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
+        specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt','magicArrow'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.8 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
         eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xffb5d8, emissive: 0xffb5d8, emissiveIntensity: 3 }),
@@ -236,10 +236,6 @@ class Boss {
         return colors[Math.floor(rng() * colors.length)];
     }
 
-    getSpecialAttackType(rng) {
-        const attacks = ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'];
-        return attacks[Math.floor(rng() * attacks.length)];
-    }
 
     getSpecialAttackProbability() {
         switch (this.specialAttackType) {
@@ -584,16 +580,21 @@ class Boss {
         }
 
         // Přidání exp za zabití bosse
-        const expGained = this.maxHealth;
-        addExperience(expGained);
-        this.showExpText(expGained);
+        const expGained = this.maxHealth + ((this.floor-1)* 1000);
+        const exponent = 1.1;
+        const totalExperience = Math.round(expGained * Math.pow(this.floor, exponent));
+        addExperience(totalExperience);
+        this.showExpText(totalExperience);
     }
 
     attack() {
         const currentTime = performance.now();
-        const attackCooldown = this.type.attackCooldown / this.slowEffect; // Aplikujeme efekt zpomalení na cooldown útoku
+        const attackCooldown = this.type.attackCooldown / this.slowEffect;
         if (currentTime - this.lastAttackTime >= attackCooldown * 1000) {
-            if (this.health < this.maxHealth / 2 && this.type.specialAttacks.length > 0) {
+            const distanceToPlayer = this.position.distanceTo(player.position);
+            if (distanceToPlayer > 15 && this.type.specialAttacks.includes('magicArrow') && this.rng() < 0.3) {
+                this.magicArrowAttack();
+            } else if (this.health < this.maxHealth / 2 && this.type.specialAttacks.length > 0) {
                 const attackType = this.type.specialAttacks[Math.floor(this.rng() * this.type.specialAttacks.length)];
                 if (this.rng() < this.getSpecialAttackProbability(attackType)) {
                     this.specialAttack(attackType);
@@ -643,6 +644,7 @@ class Boss {
                 break;
         }
     }
+    
 
     frostboltAttack() {
         if (frostBoltSoundBuffer) {
@@ -846,7 +848,48 @@ class Boss {
     }
 
 
+    magicArrowAttack() {
+        if (this.attackAction) {
+            this.attackAction.reset().play();
+            this.attackAction.clampWhenFinished = true;
+            this.attackAction.setLoop(THREE.LoopOnce);
+        }
 
+        if (magicArrowSoundBuffer) {
+            const sound = new THREE.Audio(new THREE.AudioListener());
+            sound.setBuffer(magicArrowSoundBuffer);
+            sound.play();
+            sound.onEnded = () => {
+                sound.disconnect();
+            };
+        }
+        
+        const magicArrow = this.createMagicArrow(this.position, player.position);
+        scene.add(magicArrow);
+        magicBalls.push(magicArrow);
+    }
+    
+    createMagicArrow(startPosition, targetPosition) {
+        const geometry = new THREE.ConeGeometry(0.1, 0.5, 8);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xc9a6ff,
+            emissive: 0xc9a6ff,
+            emissiveIntensity: 5
+        });
+        const magicArrow = new THREE.Mesh(geometry, material);
+        magicArrow.position.copy(startPosition);
+        magicArrow.position.y += 1;
+    
+        const direction = new THREE.Vector3().subVectors(targetPosition, startPosition).normalize();
+        magicArrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+    
+        const speed = 0.5; // Rychlejší než běžné útoky
+        magicArrow.velocity = direction.multiplyScalar(speed);
+        magicArrow.isMagicArrow = true;
+        magicArrow.damage = 30; // Větší poškození
+    
+        return magicArrow;
+    }
 
 
     createMagicBall(startPosition, targetPosition) {
