@@ -669,12 +669,13 @@ function castChainLightning() {
         sound.disconnect();
       };
     }
-
+    const chainLightningSpell = spells.find(spell => spell.name === 'Chain Lightning');
     const lightning = createChainLightning();
     const staffWorldPosition = new THREE.Vector3();
     staffModel.getWorldPosition(staffWorldPosition);
     lightning.position.copy(staffWorldPosition);
     lightning.position.y += 0.3;
+    lightning.damage = chainLightningSpell ? chainLightningSpell.damage : 300;
 
     createCastEffect(staffWorldPosition, 0xbac5ff);
 
@@ -752,7 +753,7 @@ export function updateChainLightnings(deltaTime) {
     for (let boss of bosses) {
       if (boss.model && lightning.position.distanceTo(boss.model.position) < 1.4) {
         createExplosion(lightning.position, 0xbac5ff);
-        boss.takeDamage(300);
+        boss.takeDamage(lightning.damage);
         scene.remove(lightning);
         chainLightnings.splice(i, 1);
         chainLightningEffect(lightning.position);

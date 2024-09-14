@@ -92,9 +92,9 @@ export const skillTree = {
     chainLightning: {
         name: 'Chain Lightning',
         level: 0,
-        maxLevel: 3,
+        maxLevel: 5,
         baseDamage: 300,
-        damageIncreasePerLevel: [50, 100],
+        damageIncreasePerLevel: [50, 100, 150, 200, 250],
         description: 'Blesk, který přeskakuje mezi nepřáteli',
         icon: chainLightningIcon,
         requiredLevel: 10,
