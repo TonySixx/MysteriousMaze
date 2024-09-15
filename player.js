@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer } from './main.js';
+import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 
@@ -270,15 +270,9 @@ function updatePlayerPosition(deltaTime) {
             player.position.y = 0;
             isJumping = false;
             jumpVelocity = 0;
-            if (landSoundBuffer && playSoundOnLand) {
+            if (playSoundOnLand) {
                 playSoundOnLand = false;
-                const sound = new THREE.Audio(new THREE.AudioListener());
-                sound.setVolume(0.35);
-                sound.setBuffer(landSoundBuffer);
-                sound.play();
-                sound.onEnded = () => {
-                  sound.disconnect();
-                };
+                playSound(landSoundBuffer, 0.35);
               }
         }
     

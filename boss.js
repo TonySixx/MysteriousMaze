@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer } from './main.js';
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer } from './main.js';
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -502,15 +502,7 @@ class Boss {
     freeze(time = 2000) {
         this.isFrozen = true;
         this.setFrozenAppearance(true);
-        if (frostBoltHitSoundBuffer) {
-            const sound = new THREE.Audio(new THREE.AudioListener());
-            sound.setVolume(0.7);
-            sound.setBuffer(frostBoltHitSoundBuffer);
-            sound.play();
-            sound.onEnded = () => {
-                sound.disconnect();
-            };
-        }
+        playSound(frostBoltHitSoundBuffer,0.7);
         setTimeout(() => {
             this.isFrozen = false;
             this.setFrozenAppearance(false);
@@ -558,14 +550,7 @@ class Boss {
         }
         this.stopBurning();
 
-        if (killConfirmationSoundBuffer) {
-            const sound = new THREE.Audio(new THREE.AudioListener());
-            sound.setBuffer(killConfirmationSoundBuffer);
-            sound.play();
-            sound.onEnded = () => {
-                sound.disconnect();
-            };
-        }
+       playSound(killConfirmationSoundBuffer);
 
         const key = keyModel.clone();
         key.userData.isKey = true;
@@ -614,14 +599,7 @@ class Boss {
             this.attackAction.clampWhenFinished = true;
             this.attackAction.setLoop(THREE.LoopOnce);
         }
-        if (bossSoundBuffer) {
-            const sound = new THREE.Audio(new THREE.AudioListener());
-            sound.setBuffer(bossSoundBuffer);
-            sound.play();
-            sound.onEnded = () => {
-                sound.disconnect();
-            };
-        }
+        playSound(bossSoundBuffer);
         const magicBall = this.createMagicBall(this.position, player.position);
         scene.add(magicBall);
         magicBalls.push(magicBall);
@@ -647,14 +625,12 @@ class Boss {
     
 
     frostboltAttack() {
-        if (frostBoltSoundBuffer) {
-            const sound = new THREE.Audio(new THREE.AudioListener());
-            sound.setBuffer(frostBoltSoundBuffer);
-            sound.play();
-            sound.onEnded = () => {
-                sound.disconnect();
-            };
+        if (this.attackAction) {
+            this.attackAction.reset().play();
+            this.attackAction.clampWhenFinished = true;
+            this.attackAction.setLoop(THREE.LoopOnce);
         }
+        playSound(frostBoltSoundBuffer);
         const frostbolt = this.createFrostbolt(this.position, player.position);
         scene.add(frostbolt);
         magicBalls.push(frostbolt);
@@ -680,6 +656,12 @@ class Boss {
     }
 
     multiShotAttack() {
+        if (this.attackAction) {
+            this.attackAction.reset().play();
+            this.attackAction.clampWhenFinished = true;
+            this.attackAction.setLoop(THREE.LoopOnce);
+        }
+        playSound(bossSoundBuffer);
         for (let i = 0; i < 5; i++) {
             const angle = (i - 2) * Math.PI / 10;
             const direction = new THREE.Vector3()
@@ -693,6 +675,13 @@ class Boss {
     }
 
     aoeBlastAttack() {
+        if (this.attackAction) {
+            this.attackAction.reset().play();
+            this.attackAction.clampWhenFinished = true;
+            this.attackAction.setLoop(THREE.LoopOnce);
+        }
+
+        playSound(aoeBlastSoundBuffer);
         const blastRadius = 5;
         const blastGeometry = new THREE.SphereGeometry(blastRadius, 32, 32);
         const blastMaterial = new THREE.MeshBasicMaterial({
@@ -746,14 +735,7 @@ class Boss {
 
         if (newPosition) {
 
-            if (teleportSoundBuffer) {
-                const sound = new THREE.Audio(new THREE.AudioListener());
-                sound.setBuffer(teleportSoundBuffer);
-                sound.play();
-                sound.onEnded = () => {
-                    sound.disconnect();
-                };
-            }
+            playSound(teleportSoundBuffer);
 
             this.position.copy(newPosition);
             this.model.position.copy(this.position);
@@ -855,14 +837,7 @@ class Boss {
             this.attackAction.setLoop(THREE.LoopOnce);
         }
 
-        if (magicArrowSoundBuffer) {
-            const sound = new THREE.Audio(new THREE.AudioListener());
-            sound.setBuffer(magicArrowSoundBuffer);
-            sound.play();
-            sound.onEnded = () => {
-                sound.disconnect();
-            };
-        }
+        playSound(magicArrowSoundBuffer);
         
         const magicArrow = this.createMagicArrow(this.position, player.position);
         scene.add(magicArrow);
@@ -955,12 +930,15 @@ class Boss {
     }
 
     slow(slowFactor, duration) {
-        this.slowEffect = Math.min(this.slowEffect, slowFactor);
-        this.slowEndTime = Math.max(this.slowEndTime, Date.now() + duration);
+        if (this.slowEffect === 1) {
+            this.slowEffect = Math.min(this.slowEffect, slowFactor);
+            this.slowEndTime = Math.max(this.slowEndTime, Date.now() + duration);
         this.createSlowParticles();
+        }
     }
 
     update(deltaTime) {
+        this.updateSlowParticles(deltaTime);
         if (this.isFrozen) return;
 
         if (Date.now() > this.slowEndTime) {
@@ -991,80 +969,97 @@ class Boss {
         if (this.slowParticles) {
             this.removeSlowParticles();
         }
-
-        const particleCount = 50;
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-
-        for (let i = 0; i < particleCount; i++) {
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.random() * Math.PI;
-            const r = 1 + Math.random() * 0.5;
-
-            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-            positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-            positions[i * 3 + 2] = r * Math.cos(phi);
+    
+        this.slowParticles = new THREE.Group();
+    
+        // Ice trail
+        const trailParticles = new THREE.Points(
+            new THREE.BufferGeometry(),
+            new THREE.PointsMaterial({
+                color: 0xADD8E6,
+                size: 0.1,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+            })
+        );
+    
+        const trailPositions = new Float32Array(60 * 3);
+        trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+        this.slowParticles.add(trailParticles);
+    
+        // Jemné ledové částice
+        const iceParticles = new THREE.Points(
+            new THREE.BufferGeometry(),
+            new THREE.PointsMaterial({
+                color: 0xFFFFFF,
+                size: 0.03,
+                blending: THREE.AdditiveBlending,
+                opacity: 1,
+            })
+        );
+    
+        const icePositions = new Float32Array(100 * 3); // Zvýšili jsme počet částic
+        for (let i = 0; i < icePositions.length; i += 3) {
+            icePositions[i] = (Math.random() - 0.5) * 2; // Zvětšili jsme rozptyl na 2
+            icePositions[i + 1] = (Math.random() - 0.5) * 2;
+            icePositions[i + 2] = (Math.random() - 0.5) * 2;
         }
-
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-        const material = new THREE.PointsMaterial({
-            color: 0x87CEFA,
-            size: 0.3,
-            transparent: true,
-            opacity: 0.8,
-            map: this.createSnowflakeTexture()
-        });
-
-        this.slowParticles = new THREE.Points(geometry, material);
+        iceParticles.geometry.setAttribute('position', new THREE.BufferAttribute(icePositions, 3));
+        this.slowParticles.add(iceParticles);
+    
         this.model.add(this.slowParticles);
     }
-
-    createSnowflakeTexture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 32;
-        canvas.height = 32;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-            ctx.moveTo(16, 16);
-            ctx.lineTo(16, 0);
-            ctx.lineTo(20, 4);
-            ctx.moveTo(16, 0);
-            ctx.lineTo(12, 4);
-            ctx.rotate(Math.PI / 3);
+    
+    updateSlowParticles(deltaTime) {
+        if (!this.slowParticles) return;
+    
+        const trailParticles = this.slowParticles.children[0];
+        const iceParticles = this.slowParticles.children[1];
+    
+        // Animate ice trail
+        const trailPositions = trailParticles.geometry.attributes.position.array;
+        for (let i = trailPositions.length - 1; i >= 3; i -= 3) {
+            trailPositions[i] = trailPositions[i - 3];
+            trailPositions[i - 1] = trailPositions[i - 4];
+            trailPositions[i - 2] = trailPositions[i - 5];
         }
-        ctx.fill();
-        return new THREE.CanvasTexture(canvas);
+        
+        // Nastavení nové pozice částice s větším rozptylem
+        trailPositions[0] = (Math.random() - 0.5) * 2;
+        trailPositions[1] = (Math.random() - 0.5) * 2;
+        trailPositions[2] = (Math.random() - 0.5) * 2;
+        
+        trailParticles.geometry.attributes.position.needsUpdate = true;
+    
+        // Animate ice particles
+        const icePositions = iceParticles.geometry.attributes.position.array;
+        for (let i = 0; i < icePositions.length; i += 3) {
+            icePositions[i] += (Math.random() - 0.5) * 0.02; // Zvětšili jsme pohyb částic
+            icePositions[i + 1] += (Math.random() - 0.5) * 0.02;
+            icePositions[i + 2] += (Math.random() - 0.5) * 0.02;
+    
+            // Omezení maximální vzdálenosti částic od středu
+            const distance = Math.sqrt(
+                icePositions[i] * icePositions[i] + 
+                icePositions[i + 1] * icePositions[i + 1] + 
+                icePositions[i + 2] * icePositions[i + 2]
+            );
+            if (distance > 1) {
+                icePositions[i] *= 1 / distance;
+                icePositions[i + 1] *= 1 / distance;
+                icePositions[i + 2] *= 1 / distance;
+            }
+        }
+        iceParticles.geometry.attributes.position.needsUpdate = true;
     }
-
+    
     removeSlowParticles() {
         if (this.slowParticles) {
             this.model.remove(this.slowParticles);
-            this.slowParticles.geometry.dispose();
-            this.slowParticles.material.dispose();
             this.slowParticles = null;
         }
     }
 
-    updateSlowParticles() {
-        const positions = this.slowParticles.geometry.attributes.position.array;
-        for (let i = 0; i < positions.length; i += 3) {
-            positions[i] += (Math.random() - 0.5) * 0.01;
-            positions[i + 1] += (Math.random() - 0.5) * 0.01;
-            positions[i + 2] += (Math.random() - 0.5) * 0.01;
-
-            // Udržujeme částice v určitém rozsahu kolem bosse
-            const distance = Math.sqrt(positions[i] ** 2 + positions[i + 1] ** 2 + positions[i + 2] ** 2);
-            if (distance > 1.5) {
-                positions[i] *= 1.5 / distance;
-                positions[i + 1] *= 1.5 / distance;
-                positions[i + 2] *= 1.5 / distance;
-            }
-        }
-        this.slowParticles.geometry.attributes.position.needsUpdate = true;
-    }
 
 }
 

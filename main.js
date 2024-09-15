@@ -27,7 +27,7 @@ import {
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 
-export const version = "1.1.8";
+export const version = "1.1.9";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -191,6 +191,8 @@ export var landSoundBuffer;
 
 
 export var bossSoundBuffer;
+export var aoeBlastSoundBuffer;
+
 export var backgroundMusic;
 let isMusicPlaying = true;
 let footstepsSound;
@@ -285,6 +287,10 @@ async function init() {
 
   audioLoader.load('snd_magic_arrow.wav', function (buffer) {
     magicArrowSoundBuffer = buffer;
+  });
+
+  audioLoader.load('snd_aoe_blast.mp3', function (buffer) {
+    aoeBlastSoundBuffer = buffer;
   });
 
 
@@ -573,15 +579,7 @@ function freezePlayer() {
   }
 
   // Přidání zvukového efektu zmrazení
-  if (frostBoltHitSoundBuffer) {
-    const sound = new THREE.Audio(new THREE.AudioListener());
-    sound.setVolume(0.7);
-    sound.setBuffer(frostBoltHitSoundBuffer);
-    sound.play();
-    sound.onEnded = () => {
-      sound.disconnect();
-    };
-  }
+  playSound(frostBoltHitSoundBuffer, 0.7);
 }
 
 function removeFreezeEffect() {
@@ -1018,7 +1016,7 @@ function createMaze(inputText = "", selectedFloor = 1) {
   }
 
   const teleportColors = [
-    0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0xffff00, 0x00ffff,
+    0xff8080, 0x99ff99, 0x8080ff, 0xff66ff, 0xffff80, 0xb3ffff,
   ];
   for (let i = 0; i < teleportPairsCount; i++) {
     const teleport1 = createTeleportModel(teleportColors[i]);
@@ -1389,14 +1387,14 @@ function createTeleportModel(color) {
   const teleportGeometry = new THREE.TorusGeometry(0.8, 0.1, 32, 64);
   const teleportMaterial = new THREE.MeshStandardMaterial({
     color: color,
-    transparent: true,
-    opacity: 0.7,
+    emissive:color,
+    emissiveIntensity: 1.5,
   });
   const teleport = new THREE.Mesh(teleportGeometry, teleportMaterial);
 
   // Přidání particle efektů
   const particleGeometry = new THREE.BufferGeometry();
-  const particleCount = 100;
+  const particleCount = 50;
   const particlePositions = new Float32Array(particleCount * 3);
 
   for (let i = 0; i < particleCount; i++) {
@@ -1412,7 +1410,7 @@ function createTeleportModel(color) {
 
   const particleMaterial = new THREE.PointsMaterial({
     color: color,
-    size: 0.1,
+    size: 0.05,
     transparent: true,
     opacity: 0.7,
   });
@@ -1570,6 +1568,7 @@ export function teleportPlayer(teleport) {
   const currentTime = performance.now();
   if (currentTime - lastTeleportTime > teleportCooldown) {
     console.log("Teleportuji se");
+    playSound(teleportSoundBuffer);
     const otherTeleport = scene.children.find(
       (otherChild) =>
         otherChild instanceof THREE.Mesh &&
@@ -2350,14 +2349,32 @@ function updateVisibleObjects() {
   const matrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   frustum.setFromProjectionMatrix(matrix);
 
-  const visibilityDistance = 40; // Maximální vzdálenost viditelnosti
+  const visibilityDistance = 50; // Maximální vzdálenost viditelnosti
 
   // Aktualizace viditelnosti zdí
   walls.forEach(wall => {
     if (frustum.intersectsObject(wall) && wall.position.distanceTo(player.position) < visibilityDistance) {
+      if (wall.visible === false) {
       wall.visible = true;
+      }
     } else {
+      if (wall.visible === true) {
       wall.visible = false;
+      }
+    }
+  });
+
+  torches.forEach(torches => {
+    if (frustum.intersectsObject(torches.torch) && torches.torch.position.distanceTo(player.position) < visibilityDistance) {
+      if (torches.torch.visible === false && torches.fire.visible === false) {
+      torches.torch.visible = true;
+      torches.fire.visible = true;
+      }
+    } else {
+      if (torches.torch.visible === true && torches.fire.visible === true) {
+      torches.torch.visible = false;
+      torches.fire.visible = false;
+      }
     }
   });
 
@@ -2791,12 +2808,17 @@ document.addEventListener('keydown', (event) => {
     } else {
       consoleInput += event.key;
     }
-
-
+  }
+  else if (document.activeElement === document.getElementById("mazeInput")) {
+    if (event.key === 'Enter') {
+      document.activeElement.blur();
+      generateNewMaze();
+    }
   }
 });
 
 document.getElementById("generateMaze").addEventListener("click", () => {
+  document.activeElement.blur();
   generateNewMaze();
 });
 
@@ -2841,6 +2863,16 @@ export function updateFloorOptions() {
       option.classList.add('locked');
     }
   });
+}
+
+export function playSound(soundBuffer,volume = 1) {
+  const sound = new THREE.Audio(new THREE.AudioListener());
+  sound.setVolume(volume);
+  sound.setBuffer(soundBuffer);
+  sound.play();
+  sound.onEnded = () => {
+      sound.disconnect();
+  };
 }
 
 

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel, createCastEffect, getCameraDirection, isHighWallArea, maze, chainLightningSoundBuffer, camera } from './main.js';
+import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel, createCastEffect, getCameraDirection, isHighWallArea, maze, chainLightningSoundBuffer, camera, playSound } from './main.js';
 import { player } from "./player.js"
 import { createExplosion, changeStaffColor, fireballSoundBuffer, frostBoltSoundBuffer, magicMissileSoundBuffer } from "./main.js"
 import frostboltIcon from './public/spells/frostbolt-icon.png';
@@ -325,14 +325,7 @@ function castFireball() {
     lastSpellCastTime = Date.now();
     changeStaffColor(0xff4500);
 
-    if (fireballSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setBuffer(fireballSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
+    playSound(fireballSoundBuffer);
 
     const fireball = createFireball();
     const staffWorldPosition = new THREE.Vector3();
@@ -396,15 +389,7 @@ function castFrostbolt() {
     lastSpellCastTime = Date.now();
     changeStaffColor(0x8feaff);
 
-    if (frostBoltSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setVolume(0.7);
-      sound.setBuffer(frostBoltSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
+   playSound(frostBoltSoundBuffer,0.7);
 
     const frostbolt = createFrostbolt();
     const staffWorldPosition = new THREE.Vector3();
@@ -442,15 +427,7 @@ function castArcaneMissile() {
     lastSpellCastTime = Date.now();
     changeStaffColor(0x9661ff);
 
-    if (magicMissileSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setBuffer(magicMissileSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
-
+    playSound(magicMissileSoundBuffer);
     const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
     const multiShot = arcaneMissileSpell ? arcaneMissileSpell.multiShot : false;
     const missileCount = multiShot ? 3 : 1;
@@ -500,11 +477,12 @@ function updateFireballs(deltaTime) {
     // Kolize s bossy
     for (let boss of bosses) {
       if (boss.model && fireball.position.distanceTo(boss.model.position) < 1.4) {
-        createFireballExplosion(fireball.position);
+        createExplosion(fireball.position);
         boss.takeDamage(fireball.damage, fireball.burningEffect);
-
         if (fireball.explosiveCore) {
           // Způsobí poškození všem bossům v okruhu 3 metrů
+        createFireballExplosion(fireball.position);
+
           bosses.forEach(nearbyBoss => {
             if (nearbyBoss.model.position.distanceTo(fireball.position) <= 3) {
               nearbyBoss.takeDamage(fireball.damage * 0.5);
@@ -659,14 +637,7 @@ function castChainLightning() {
     lastSpellCastTime = Date.now();
     changeStaffColor(0xbac5ff);
 
-    if (chainLightningSoundBuffer) {
-      const sound = new THREE.Audio(new THREE.AudioListener());
-      sound.setBuffer(chainLightningSoundBuffer);
-      sound.play();
-      sound.onEnded = () => {
-        sound.disconnect();
-      };
-    }
+    playSound(chainLightningSoundBuffer);
     const chainLightningSpell = spells.find(spell => spell.name === 'Chain Lightning');
     const lightning = createChainLightning();
     const staffWorldPosition = new THREE.Vector3();
