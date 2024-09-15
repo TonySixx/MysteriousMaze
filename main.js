@@ -27,7 +27,7 @@ import {
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 
-export const version = "1.1.7";
+export const version = "1.1.8";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -39,83 +39,89 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 let playerName = "";
 let bestTime = Infinity;
 
-const loader = new THREE.TextureLoader();
-const floorTexture = loader.load("cihly.jpg");
-floorTexture.colorSpace = THREE.SRGBColorSpace;
+
 const textureSets = [
   {
-    wallTexture: "wall.jpg",
-    ceilingTexture: "wall.jpg",
-    specialTextures: ["wall-sign-1.jpg", "wall-sign-2.jpg", "wall-sign-3.jpg"],
-    torchColor: { light: 0xffa500, particles: 0xff4500 } // Original orange color
-  },
-  {
-    wallTexture: "wall-egypt.jpg",
-    ceilingTexture: "wall-egypt.jpg",
-    specialTextures: [
-      "wall-egypt-sign-1.jpg",
-      "wall-egypt-sign-2.jpg",
-      "wall-egypt-sign-3.jpg",
-    ],
+    wallTexture: "textures/wall.jpg",
+    ceilingTexture: "textures/wall.jpg",
+    floorTexture: "textures/floor.jpg",
+    specialTextures: ["textures/wall.jpg", "textures/wall.jpg", "textures/wall.jpg"],
     torchColor: { light: 0x00bfff, particles: 0x1e90ff } // Magical blue
   },
   {
-    wallTexture: "wall-jungle.jpg",
-    ceilingTexture: "wall-jungle.jpg",
+    wallTexture: "textures/wall-egypt.jpg",
+    ceilingTexture: "textures/wall-egypt.jpg",
+    floorTexture: "textures/floor-egypt.jpg",
     specialTextures: [
-      "wall-jungle-sign-1.jpg",
-      "wall-jungle-sign-2.jpg",
-      "wall-jungle-sign-3.jpg",
+      "textures/wall-egypt-sign-1.jpg",
+      "textures/wall-egypt-sign-2.jpg",
+      "textures/wall-egypt-sign-3.jpg",
+    ],
+    torchColor: { light: 0xffa500, particles: 0xff4500 } // Original orange color
+  },
+  {
+    wallTexture: "textures/wall-jungle.jpg",
+    ceilingTexture: "textures/wall-jungle.jpg",
+    floorTexture: "textures/floor-jungle.jpg",
+    specialTextures: [
+      "textures/wall-jungle-sign-1.jpg",
+      "textures/wall-jungle-sign-2.jpg",
+      "textures/wall-jungle-sign-3.jpg",
     ],
     torchColor: { light: 0x00ff7f, particles: 0x2ecc71 } // Emerald green
   },
   {
-    wallTexture: "wall-mythical.jpg",
-    ceilingTexture: "wall-mythical.jpg",
+    wallTexture: "textures/wall-mythical.jpg",
+    ceilingTexture: "textures/wall-mythical.jpg",
+    floorTexture: "textures/floor.jpg",
     specialTextures: [
-      "wall-mythical-sign-1.jpg",
-      "wall-mythical-sign-2.jpg",
-      "wall-mythical-sign-3.jpg",
+      "textures/wall-mythical-sign-1.jpg",
+      "textures/wall-mythical-sign-2.jpg",
+      "textures/wall-mythical-sign-3.jpg",
     ],
     torchColor: { light: 0xa35ee8, particles: 0xa35ee8 } // Amethyst purple
   },
   {
-    wallTexture: "wall-obsidian.jpg",
-    ceilingTexture: "wall-obsidian.jpg",
+    wallTexture: "textures/wall-obsidian.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-obsidian.jpg",
     specialTextures: [
-      "wall-obsidian-sign-1.jpg",
-      "wall-obsidian-sign-2.jpg",
-      "wall-obsidian-sign-3.jpg",
+      "textures/wall-obsidian-sign-1.jpg",
+      "textures/wall-obsidian-sign-2.jpg",
+      "textures/wall-obsidian-sign-3.jpg",
     ],
     torchColor: { light: 0x9896ff, particles: 0x9896ff }
   },
   {
-    wallTexture: "wall-obsidian.jpg",
-    ceilingTexture: "wall-obsidian.jpg",
+    wallTexture: "textures/wall-obsidian.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-obsidian.jpg",
     specialTextures: [
-      "wall-obsidian-sign-1.jpg",
-      "wall-obsidian-sign-2.jpg",
-      "wall-obsidian-sign-3.jpg",
+      "textures/wall-obsidian-sign-1.jpg",
+      "textures/wall-obsidian-sign-2.jpg",
+      "textures/wall-obsidian-sign-3.jpg",
     ],
     torchColor: { light: 0xfdff6b, particles: 0xfdff6b }
   },
   {
-    wallTexture: "wall-abyss.jpg",
-    ceilingTexture: "wall-abyss.jpg",
+    wallTexture: "textures/wall-abyss.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-abyss.jpg",
     specialTextures: [
-      "wall-abyss.jpg",
-      "wall-abyss.jpg",
-      "wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
     ],
     torchColor: { light: 0x69ffb9, particles: 0x69ffb9 }
   },
   {
-    wallTexture: "wall-abyss.jpg",
-    ceilingTexture: "wall-abyss.jpg",
+    wallTexture: "textures/wall-abyss.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-abyss.jpg",
     specialTextures: [
-      "wall-abyss.jpg",
-      "wall-abyss.jpg",
-      "wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
     ],
     torchColor: { light: 0xd6fffc, particles: 0xd6fffc }
   },
@@ -181,11 +187,14 @@ export var teleportSoundBuffer;
 export var killConfirmationSoundBuffer;
 export var chainLightningSoundBuffer;
 export var magicArrowSoundBuffer;
+export var landSoundBuffer;
+
 
 export var bossSoundBuffer;
 export var backgroundMusic;
 let isMusicPlaying = true;
 let footstepsSound;
+
 
 const showFloorSelectBtn = document.getElementById('showFloorSelect');
 const floorSelectModal = document.getElementById('floorSelectModal');
@@ -237,6 +246,8 @@ async function init() {
     footstepsSound.setVolume(0.5); // Upravte hlasitost podle potřeby
   });
 
+
+
   audioLoader.load('audio_bg.mp3', function (buffer) {
     backgroundMusic = new THREE.Audio(new THREE.AudioListener());
     backgroundMusic.setBuffer(buffer);
@@ -279,6 +290,10 @@ async function init() {
 
   audioLoader.load('snd_chain_lightning.mp3', function (buffer) {
     chainLightningSoundBuffer = buffer;
+  });
+
+  audioLoader.load('snd_land.mp3', function (buffer) {
+    landSoundBuffer = buffer;
   });
 
   loadPlayerProgress();
@@ -850,7 +865,7 @@ function createMaze(inputText = "", selectedFloor = 1) {
 
 
   const loader = new THREE.TextureLoader();
-  const floorTexture = loader.load("cihly.jpg");
+  const floorTexture = loader.load(selectedTextureSet.floorTexture);
   floorTexture.colorSpace = THREE.SRGBColorSpace;
 
   const brickTexture = loader.load(selectedTextureSet.wallTexture);
@@ -889,7 +904,6 @@ function createMaze(inputText = "", selectedFloor = 1) {
 
   const floorGeometry = new THREE.PlaneGeometry(MAZE_SIZE * CELL_SIZE, MAZE_SIZE * CELL_SIZE);
   const floorMaterial = new THREE.MeshStandardMaterial({
-    color: 0x8c8480,
     map: floorTexture,
   });
   floorTexture.wrapS = THREE.RepeatWrapping;

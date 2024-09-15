@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea } from './main.js';
+import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 
@@ -27,6 +27,7 @@ var playerRotation = 0;
 var playerVelocity = new THREE.Vector3();
 
 var isJumping = false;
+var playSoundOnLand = false;
 var jumpVelocity = 0;
 const JUMP_FORCE = 0.18;
 const GRAVITY = -0.014;
@@ -269,6 +270,16 @@ function updatePlayerPosition(deltaTime) {
             player.position.y = 0;
             isJumping = false;
             jumpVelocity = 0;
+            if (landSoundBuffer && playSoundOnLand) {
+                playSoundOnLand = false;
+                const sound = new THREE.Audio(new THREE.AudioListener());
+                sound.setVolume(0.35);
+                sound.setBuffer(landSoundBuffer);
+                sound.play();
+                sound.onEnded = () => {
+                  sound.disconnect();
+                };
+              }
         }
     
 
@@ -449,6 +460,7 @@ export function onKeyDown(event) {
             case "Space":
                 if (!isJumping && !isFlying) {
                     isJumping = true;
+                    playSoundOnLand = true;
                     jumpVelocity = JUMP_FORCE;
                 }
                 break;

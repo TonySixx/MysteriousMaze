@@ -533,7 +533,6 @@ function updateFireballs(deltaTime) {
     for (let j = walls.length - 1; j >= 0; j--) {
       const wall = walls[j];
       if (fireball.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
-        console.log("Collision detected with wall at", wall.position);
 
         // Vytvoření výbuchu při kolizi
         createExplosion(fireball.position);
@@ -542,7 +541,6 @@ function updateFireballs(deltaTime) {
         fireBalls.splice(i, 1);
 
         if (wall.userData.isBlockingWall) {
-          console.log("Destroying blocking wall at", wall.position);
           scene.remove(wall);
           walls.splice(j, 1);
           // Aktualizujte matici bludiště
