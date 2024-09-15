@@ -246,11 +246,11 @@ function updatePlayerPosition(deltaTime) {
         }
     } else {
 
-          // Aplikujte gravitaci a skok
-          if (isJumping) {
+        // Aplikujte gravitaci a skok
+        if (isJumping) {
             jumpVelocity += GRAVITY * deltaTime * 60;
             const newY = player.position.y + jumpVelocity * deltaTime * 60;
-            
+
             // Kontrola kolize se stropem před aplikací nové pozice
             if (checkCeilingCollision()) {
                 isJumping = false;
@@ -273,9 +273,9 @@ function updatePlayerPosition(deltaTime) {
             if (playSoundOnLand) {
                 playSoundOnLand = false;
                 playSound(landSoundBuffer, 0.35);
-              }
+            }
         }
-    
+
 
         if (moveForward) playerVelocity.z -= speed * deltaTime;
         if (moveBackward) playerVelocity.z += speed * deltaTime;
@@ -422,7 +422,12 @@ export function onMouseMove(event) {
     }
 }
 
-export function onMouseClick() {
+export function onMouseClick(event) {
+    //TODO: 
+    if (event.target.tagName !== "CANVAS") {
+        return;
+    }
+
     if (document.pointerLockElement !== document.body) {
         document.body.requestPointerLock();
     }
@@ -451,13 +456,13 @@ export function onKeyDown(event) {
         case "KeyV":
             toggleMinimap();
             break;
-            case "Space":
-                if (!isJumping && !isFlying) {
-                    isJumping = true;
-                    playSoundOnLand = true;
-                    jumpVelocity = JUMP_FORCE;
-                }
-                break;
+        case "Space":
+            if (!isJumping && !isFlying) {
+                isJumping = true;
+                playSoundOnLand = true;
+                jumpVelocity = JUMP_FORCE;
+            }
+            break;
 
     }
 
