@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
 import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer } from './main.js';
+import { getTranslation } from "./langUtils.js";
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -18,6 +19,7 @@ const BOSS_TYPES = [
     // První podlaží
     {
         name: "Ohnivý drak",
+        translationKey: "fireDragon",
         specialAttacks: ['multiShot', 'aoeBlast'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xff7542, roughness: 0.1, metalness: 0.1 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -30,6 +32,7 @@ const BOSS_TYPES = [
     },
     {
         name: "Ledový drak",
+        translationKey: "iceDragon",
         specialAttacks: ['frostbolt', 'teleport'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x45c1ff, roughness: 0.1, metalness: 0.1 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -41,6 +44,7 @@ const BOSS_TYPES = [
     },
     {
         name: "Zemní drak",
+        translationKey: "earthDragon",
         specialAttacks: ['aoeBlast', 'teleport'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x7bd672, roughness: 0.1, metalness: 0.1 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -53,6 +57,7 @@ const BOSS_TYPES = [
     // Druhé podlaží
     {
         name: "Bouřkový drak",
+        translationKey: "stormDragon",
         specialAttacks: ['multiShot', 'aoeBlast', 'teleport'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x4169e1, roughness: 0.1, metalness: 0.3 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -65,6 +70,7 @@ const BOSS_TYPES = [
     },
     {
         name: "Stínový drak",
+        translationKey: "shadowDragon",
         specialAttacks: ['frostbolt', 'teleport', 'aoeBlast'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x4b0082, roughness: 0.1, metalness: 0.2 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -76,6 +82,7 @@ const BOSS_TYPES = [
     },
     {
         name: "Krystalový drak",
+        translationKey: "crystalDragon",
         specialAttacks: ['multiShot', 'frostbolt', 'teleport'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.7 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -88,6 +95,7 @@ const BOSS_TYPES = [
     // Třetí podlaží
     {
         name: "Nebeský drak",
+        translationKey: "celestialDragon",
         specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xadd8e6, roughness: 0.1, metalness: 0.5 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -99,6 +107,7 @@ const BOSS_TYPES = [
     },
     {
         name: "Lávový drak",
+        translationKey: "lavaDragon",
         specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.1, metalness: 0.3 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -111,6 +120,7 @@ const BOSS_TYPES = [
     },
     {
         name: "Vesmírný drak",
+        translationKey: "spaceDragon",
         specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt','magicArrow'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x3b278f, roughness: 0.1, metalness: 0.7 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -124,6 +134,7 @@ const BOSS_TYPES = [
     // Čtvrté podlaží
     {
         name: "Astrální drak",
+        translationKey: "astralDragon",
         specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xE6E6FA, roughness: 0.1, metalness: 0.8 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -136,6 +147,7 @@ const BOSS_TYPES = [
     },
     {
         name: "Kvantový drak",
+        translationKey: "quantumDragon",
         specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x2e7eff, roughness: 0.1, metalness: 0.7, transparent: true, opacity: 0.8 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -148,6 +160,7 @@ const BOSS_TYPES = [
       },
     {
         name: "Éterický drak",
+        translationKey: "etherealDragon",
         specialAttacks: ['multiShot', 'aoeBlast', 'teleport', 'frostbolt','magicArrow'],
         dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.8 }),
         eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -200,7 +213,9 @@ class Boss {
 
     selectBossType(floor, rng) {
         const floorTypes = BOSS_TYPES.slice((floor - 1) * 3, floor * 3);
-        return floorTypes[Math.floor(rng() * floorTypes.length)];
+        const selectedType = floorTypes[Math.floor(rng() * floorTypes.length)];
+        selectedType.name = getTranslation(selectedType.translationKey);
+        return selectedType;
     }
 
     generateHealth(rng) {

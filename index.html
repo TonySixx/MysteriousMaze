@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tajemné bludiště</title>
+  <title data-translate="gameTitle">Tajemné bludiště</title>
   <link rel="stylesheet" href="/style.css" />
   <link rel="stylesheet" href="/floor.css" />
   <link rel="stylesheet" href="/floor-filter.css" />
@@ -29,17 +29,17 @@
         <div id="playerManaFill"></div>
         <span id="playerManaText"></span>
       </div>
-      <p>Čas: <span id="timeCount">0:00</span></p>
-      <p>Kouzelné klíče: <span id="keyCount">0/3</span></p>
+      <p><span data-translate="time">Čas</span>: <span id="timeCount">0:00</span></p>
+      <p><span data-translate="magicKeys">Kouzelné klíče</span>: <span id="keyCount">0/3</span></p>
     </div> 
   </div>
   <div id="game-ui-bot">
-    <span id="showScoreText">Skóre [C]</span>
-    <span id="showMinimapText"> Minimapa [V]</span>
-    <span id="showSkillTreeText">Kouzla [K]</span>
-    <span id="showHintText">Nápověda [I]</span>
-    <span id="showOptions">Nastavení [O]</span>
-    <span id="toggleMusicText">Hudba [B]</span>
+    <span id="showScoreText" data-translate="score">Skóre [C]</span>
+    <span id="showMinimapText" data-translate="minimap">Minimapa [V]</span>
+    <span id="showSkillTreeText" data-translate="spells">Kouzla [K]</span>
+    <span id="showHintText" data-translate="hint">Nápověda [I]</span>
+    <span id="showOptions" data-translate="settings">Nastavení [O]</span>
+    <span id="toggleMusicText" data-translate="music">Hudba [B]</span>
   </div>
   <div id="skillbar"></div>
   <div id="expBar">
@@ -49,40 +49,40 @@
   </div>
 
   <div id="menu">
-    <input type="text" id="mazeInput" maxlength="25" placeholder="Zadejte text pro vytvoření bludiště" />
-    <button id="showFloorSelect">Vybrat podlaží</button>
-    <button id="generateMaze">Vstoupit do bludiště</button>
+    <input type="text" id="mazeInput" maxlength="25" data-translate="mazeInputPlaceholder" placeholder="Zadejte text pro vytvoření bludiště" />
+    <button id="showFloorSelect" data-translate="selectFloor">Vybrat podlaží</button>
+    <button id="generateMaze" data-translate="enterMaze">Vstoupit do bludiště</button>
   </div>
 
-  <div id="keyMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:yellow; font-size:20px;">Sebral jsi klíč.</div>
-  <div id="finishMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:rgb(202, 240, 255); font-size:20px;">Gratulujeme! Dosáhli jste cíle!</div>
+  <div id="keyMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:yellow; font-size:20px;" data-translate="youCollectedKey">Sebral jsi klíč.</div>
+  <div id="finishMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:rgb(202, 240, 255); font-size:20px;" data-translate="congratulations">Gratulujeme! Dosáhli jste cíle!</div>
   <div id="goalMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:white;font-size:20px;"></div>
   <canvas id="minimap" width="350" height="350" style="position: absolute; bottom: 25px; right: 10px; display: none; background-color: rgba(211, 211, 211, 0.7);"></canvas>
   
   <div id="floorSelectModal" class="modal">
     <div class="modal-content floor-select-content">
       <span class="close">&times;</span>
-      <h2>Vyberte podlaží</h2>
+      <h2 data-translate="selectFloorTitle">Vyberte podlaží</h2>
       <div class="floor-options">
         <div class="floor-option" data-floor="1">
           <div class="floor-image floor-1"></div>
-          <h3>Podlaží 1</h3>
-          <p>Dostupné pro všechny úrovně</p>
+          <h3 data-translate="floor1">Podlaží 1</h3>
+          <p data-translate="availableAllLevels">Dostupné pro všechny úrovně</p>
         </div>
         <div class="floor-option" data-floor="2">
           <div class="floor-image floor-2"></div>
-          <h3>Podlaží 2</h3>
-          <p>Vyžaduje úroveň 7</p>
+          <h3 data-translate="floor2">Podlaží 2</h3>
+          <p data-translate="requiresLevel7">Vyžaduje úroveň 7</p>
         </div>
         <div class="floor-option" data-floor="3">
           <div class="floor-image floor-3"></div>
-          <h3>Podlaží 3</h3>
-          <p>Vyžaduje úroveň 12</p>
+          <h3 data-translate="floor3">Podlaží 3</h3>
+          <p data-translate="requiresLevel12">Vyžaduje úroveň 12</p>
         </div>
         <div class="floor-option" data-floor="4">
           <div class="floor-image floor-4"></div>
-          <h3>Podlaží 4</h3>
-          <p>Vyžaduje úroveň 16</p>
+          <h3 data-translate="floor4">Podlaží 4</h3>
+          <p data-translate="requiresLevel16">Vyžaduje úroveň 16</p>
         </div>
       </div>
     </div>
@@ -91,7 +91,7 @@
   <div id="hintModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <h2>Nápověda</h2>
+      <h2 data-translate="hint">Nápověda</h2>
       <div id="hintContent"></div>
     </div>
   </div>
@@ -99,55 +99,55 @@
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <h2>Nastavení</h2>
+      <h2 data-translate="settings">Nastavení</h2>
       <div>
-        <label for="lightSettings">Množství světel:</label>
+        <label for="lightSettings" data-translate="lightSettings">Množství světel:</label>
         <select id="lightSettings">
-          <option value="10">Vysoké</option>
-          <option value="6">Nízké</option>
+          <option value="10" data-translate="high">Vysoké</option>
+          <option value="6" data-translate="low">Nízké</option>
         </select>
       </div>
       <div>
-        <label for="qualitySettings">Kvalita renderování:</label>
+        <label for="qualitySettings" data-translate="qualitySettings">Kvalita renderování:</label>
         <select id="qualitySettings">
-          <option value="1">Vysoká</option>
-          <option value="0.75">Střední</option>
-          <option value="0.5">Nízká</option>
+          <option value="1" data-translate="high">Vysoká</option>
+          <option value="0.75" data-translate="medium">Střední</option>
+          <option value="0.5" data-translate="low">Nízká</option>
         </select>
       </div>
-      <button id="saveSettings">Uložit</button>
+      <button id="saveSettings" data-translate="save">Uložit</button>
     </div>
   </div>
 
   <div id="nameModal" class="modal">
     <div class="modal-content">
-      <h2>Zadejte své jméno</h2>
-      <input type="text" id="playerNameInput" placeholder="Vaše jméno">
-      <button id="submitName">Potvrdit</button>
+      <h2 data-translate="enterName">Zadejte své jméno</h2>
+      <input type="text" id="playerNameInput" data-translate="yourName" placeholder="Vaše jméno">
+      <button id="submitName" data-translate="confirm">Potvrdit</button>
     </div>
   </div>
   
   <div id="scoreModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <h2>Nejlepší skóre</h2>
+      <h2 data-translate="bestScores">Nejlepší skóre</h2>
       <div class="filter-container">
-        <input type="text" id="mazeSearchInput" placeholder="Vyhledat bludiště">
+        <input type="text" id="mazeSearchInput" data-translate="searchMaze" placeholder="Vyhledat bludiště">
         <select id="floorFilter">
-          <option value="">Všechna podlaží</option>
-          <option value="1">Podlaží 1</option>
-          <option value="2">Podlaží 2</option>
-          <option value="3">Podlaží 3</option>
+          <option value="" data-translate="allFloors">Všechna podlaží</option>
+          <option value="1" data-translate="floor1">Podlaží 1</option>
+          <option value="2" data-translate="floor2">Podlaží 2</option>
+          <option value="3" data-translate="floor3">Podlaží 3</option>
         </select>
       </div>
       <div id="scoreTableContainer">
         <table id="scoreTable">
           <thead>
             <tr>
-              <th>Bludiště</th>
-              <th>Hráč</th>
-              <th>Čas</th>
-              <th>Podlaží</th>
+              <th data-translate="maze">Bludiště</th>
+              <th data-translate="player">Hráč</th>
+              <th data-translate="time">Čas</th>
+              <th data-translate="floor">Podlaží</th>
             </tr>
           </thead>
           <tbody></tbody>

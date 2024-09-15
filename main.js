@@ -6,6 +6,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { AudioLoader } from 'three';
+
 import { setBossCounter, setBosses, spawnBossInMaze, bosses } from './boss.js';
 import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings, updateSpellUpgrades } from './spells.js';
 import {
@@ -26,14 +27,22 @@ import {
   playerLevel,
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
+import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";
 
-export const version = "1.1.9";
+export const version = "1.2.0";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
 const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9saGd1dGRvemhkdm5pZWZtbHR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI4NzYwNTgsImV4cCI6MjAzODQ1MjA1OH0.RmahBsbb4QnO0xpTH-Bpe8f9vJFypcq6z5--e4s0MJI";
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+
+
+export const savedLanguage = localStorage.getItem('language');
+if (savedLanguage) {
+  setLanguage(savedLanguage);
+}
 
 // Add these variables
 let playerName = "";
@@ -337,7 +346,7 @@ async function init() {
 
 
     initPlayerUI();
-    showFloorSelectBtn.textContent = `Podlaží ${selectedFloor}`;
+    showFloorSelectBtn.textContent = `${getTranslation('selectFloor')} ${selectedFloor}`;
     updateFloorOptions()
     updateSpellUpgrades(skillTree);
 
@@ -357,13 +366,6 @@ async function init() {
     document.addEventListener('mousedown', onMouseDown);
     window.addEventListener("resize", onWindowResize);
 
-    // Přidání event listenerů pro nové funkce
-    document.getElementById("submitName").addEventListener("click", () => {
-      playerName = document.getElementById("playerNameInput").value;
-      localStorage.setItem("playerName", playerName);
-      document.getElementById("playerName").textContent = playerName;
-      hideNameModal();
-    });
 
     document
       .getElementById("mazeSearchInput")
@@ -440,6 +442,8 @@ async function init() {
     const inputText = document.getElementById("mazeInput").value;
     getBestTime(inputText);
     initFPSCounter();
+    updateTranslations();
+    updateUITexts();
 
     animate();
 
@@ -1556,7 +1560,7 @@ function showFinishMessage() {
 
 function showGoalMessage(keyCount, totalKeys) {
   const goalMessageElement = document.getElementById("goalMessage");
-  goalMessageElement.textContent = `Musíte nasbírat všechny kouzelné klíče, než dosáhnete cíle! (${keyCount}/${totalKeys})`;
+  goalMessageElement.textContent = `${getTranslation('collectKeys', `${keyCount}/${totalKeys}`)}`;
   goalMessageElement.style.display = "block";
 
   setTimeout(() => {
@@ -1609,7 +1613,7 @@ function showTeleportPrompt() {
     promptElement.style.fontSize = "20px";
     document.body.appendChild(promptElement);
   }
-  promptElement.textContent = 'Stiskněte "F" pro použití teleportu.';
+  promptElement.textContent = getTranslation('pressToUse', 'F');
   promptElement.style.display = "block";
 }
 
@@ -2461,9 +2465,39 @@ export function getCameraDirection() {
 }
 
 
-function showNameModal() {
-  document.getElementById("nameModal").style.display = "block";
+function showNameModal(playerName) {
+  const nameModal = document.getElementById("nameModal");
+  nameModal.innerHTML = `
+    <div class="modal-content">
+      <h2>${getTranslation('enterName')}</h2>
+      <input type="text" id="playerNameInput" value="${playerName || ""}" placeholder="${getTranslation('playerName')}">
+      <select id="languageSelect">
+        <option value="en">English</option>
+        <option value="cs">Čeština</option>
+      </select>
+      <button id="submitName">${getTranslation('confirm')}</button>
+    </div>
+  `;
+  nameModal.style.display = "block";
+
+  document.getElementById("languageSelect").value = currentLanguage;
+  document.getElementById("languageSelect").addEventListener("change", (e) => {
+    setLanguage(e.target.value);
+    const playerName = document.getElementById("playerNameInput").value;
+    showNameModal(playerName); // Refresh modal with new language
+  });
+
+  document.getElementById("submitName").addEventListener("click", () => {
+    playerName = document.getElementById("playerNameInput").value;
+    localStorage.setItem("playerName", playerName);
+    document.getElementById("playerName").textContent = playerName;
+    hideNameModal();
+    updateTranslations();
+    updateUITexts();
+
+  });
 }
+
 
 function hideNameModal() {
   document.getElementById("nameModal").style.display = "none";
@@ -2628,31 +2662,31 @@ function hideHintModal() {
 
 function generateHintContent() {
   let content = `
-    <h3>Jak dokončit bludiště</h3>
-    <p>Posbírejte ${totalKeys} klíčů a dostaňte se k cíli.</p>
-    <p>Počet teleportů v bludišti: ${teleportPairsCount * 2}</p>
-    <h3>Bossové (${bosses.length})</h3>
+    <h3>${getTranslation('hintTitle')}</h3>
+    <p>${getTranslation('hintKeys', [totalKeys])}</p>
+    <p>${getTranslation('hintTeleports', [teleportPairsCount * 2])}</p>
+    <h3>${getTranslation('bosses', [bosses.length])}</h3>
   `;
 
   bosses.forEach((boss) => {
     content += `
       <div class="boss-info">
         <h4>${boss.type.name}</h4>
-        <p>Zdraví: ${boss.maxHealth}</p>
-        <p>Speciální útoky: ${getReadableAttackNames(boss.type.specialAttacks).map(name => `<span class="attack-name">${name}</span>`).join(', ')}</p>
-        <p class="tactic">Taktika: ${getBossTactics(boss.type.specialAttacks)}</p>
+        <p>${getTranslation('bossHealth', [boss.maxHealth])}</p>
+        <p>${getTranslation('specialAttacks')} ${getReadableAttackNames(boss.type.specialAttacks).map(name => `<span class="attack-name">${name}</span>`).join(', ')}</p>
+        <p class="tactic">${getTranslation('tactics')} ${getBossTactics(boss.type.specialAttacks)}</p>
       </div>
     `;
   });
 
   content += `
-    <h3>Tipy</h3>
+    <h3>${getTranslation('hintTips')}</h3>
     <ul>
-      <li>Používejte minimapu pro lepší orientaci v bludišti.</li>
-      <li>Sbírejte klíče průběžně, abyste mohli rychle dokončit level po poražení bossů.</li>
-      <li>Využívejte teleporty pro rychlý přesun v bludišti.</li>
-      <li>Sledujte své zdraví a manu, vyhýbejte se útokům bossů.</li>
-      <li>Různé typy bossů mají různé speciální útoky a taktiky.</li>
+      <li>${getTranslation('hintTip1')}</li>
+      <li>${getTranslation('hintTip2')}</li>
+      <li>${getTranslation('hintTip3')}</li>
+      <li>${getTranslation('hintTip4')}</li>
+      <li>${getTranslation('hintTip5')}</li>
     </ul>
   `;
 
@@ -2661,36 +2695,40 @@ function generateHintContent() {
 
 function getReadableAttackNames(attacks) {
   const attackNames = {
-    'multiShot': 'Vícenásobná střela',
-    'aoeBlast': 'Plošný výbuch',
-    'teleport': 'Teleportace',
-    'frostbolt': 'Ledová střela'
+    'multiShot': getTranslation('multiShot'),
+    'aoeBlast': getTranslation('aoeBlast'),
+    'teleport': getTranslation('teleport'),
+    'frostbolt': getTranslation('frostbolt'),
+    'magicArrow': getTranslation('magicArrow')
   };
   return attacks.map(attack => attackNames[attack] || attack);
 }
-
 function getBossTactics(specialAttacks) {
   let tactics = [];
   specialAttacks.forEach(attack => {
     switch (attack) {
       case 'multiShot':
-        tactics.push("Vyhněte se vícenásobným střelám pohybem do stran. Útočte mezi salvami.");
+        tactics.push(getTranslation('multiShotTactic'));
         break;
       case 'aoeBlast':
-        tactics.push("Udržujte si odstup od plošného výbuchu. Útočte ihned po explozi.");
+        tactics.push(getTranslation('aoeBlastTactic'));
         break;
       case 'teleport':
-        tactics.push("Buďte připraveni na náhlou změnu pozice bosse. Rychle reagujte na jeho teleportaci.");
+        tactics.push(getTranslation('teleportTactic'));
         break;
       case 'frostbolt':
-        tactics.push("Vyhýbejte se ledovým střelám. Při zásahu vás zmrazí.");
+        tactics.push(getTranslation('frostboltTactic'));
+        break;
+      case 'magicArrow':
+        tactics.push(getTranslation('magicArrowTactic'));
         break;
       default:
-        tactics.push("Pozorujte vzorec útoků a reagujte podle situace.");
+        tactics.push(getTranslation('defaultTactic'));
     }
   });
   return tactics.join(' ');
 }
+
 
 let showFPS = false;
 let fpsCounter;
@@ -2840,7 +2878,7 @@ floorOptions.forEach(option => {
     if (canSelectFloor(floor)) {
       selectedFloor = floor;
       closeFloorSelectModal();
-      showFloorSelectBtn.textContent = `Podlaží ${selectedFloor}`;
+      showFloorSelectBtn.textContent = `${getTranslation('floor')} ${selectedFloor}`;
       generateNewMaze(); // Přidáme volání funkce pro generování nového bludiště
     }
   });
