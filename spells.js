@@ -17,6 +17,13 @@ export let chainLightnings = [];
 
 export let lastSpellCastTime = 0;
 
+export function resetSpells() {
+  fireBalls = [];
+  frostBalls = [];
+  arcaneMissiles = [];
+  chainLightnings = [];
+}
+
 
 class Spell {
   constructor(name, icon, key, cooldown, id, castFunction) {

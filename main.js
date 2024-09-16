@@ -8,7 +8,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { AudioLoader } from 'three';
 
 import { setBossCounter, setBosses, spawnBossInMaze, bosses } from './boss.js';
-import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings, updateSpellUpgrades } from './spells.js';
+import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings, updateSpellUpgrades, resetSpells } from './spells.js';
 import {
   createPlayer,
   updatePlayerPosition,
@@ -153,7 +153,7 @@ let lastTeleportTime = 0;
 const teleportCooldown = 1000;
 export var nearTeleport = null;
 
-const torches = [];
+var torches = [];
 // Globální proměnné
 let composer, lightManager;
 let MAX_VISIBLE_LIGHTS = 10; // Default value
@@ -210,7 +210,7 @@ let footstepsSound;
 const showFloorSelectBtn = document.getElementById('showFloorSelect');
 const floorSelectModal = document.getElementById('floorSelectModal');
 const floorOptions = document.querySelectorAll('.floor-option');
-let selectedFloor = 1;
+export let selectedFloor = 1;
 
 
 const audioLoader = new AudioLoader();
@@ -240,8 +240,8 @@ async function init() {
   renderer = new THREE.WebGLRenderer({ alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
-    // Načtení nastavení z local storage
-    loadSettings();
+  // Načtení nastavení z local storage
+  loadSettings();
   document.body.appendChild(renderer.domElement);
 
   // Check for seed in URL
@@ -319,7 +319,7 @@ async function init() {
       selectedFloor = selectedFloorInt;
     }
     else {
-      selectedFloor = 1; 
+      selectedFloor = 1;
       setUrlParameter('floor', selectedFloor);
     }
   }
@@ -346,7 +346,7 @@ async function init() {
 
 
     initPlayerUI();
-    showFloorSelectBtn.textContent = `${getTranslation('selectFloor')} ${selectedFloor}`;
+    showFloorSelectBtn.textContent = selectedFloor === 999 ? getTranslation('floorCamp') : `${getTranslation('selectFloor')} ${selectedFloor}`;
     updateFloorOptions()
     updateSpellUpgrades(skillTree);
 
@@ -821,27 +821,342 @@ export function createExplosion(position, color = 0xff8f45) {
 }
 
 
+function createCamp() {
+  clearScene();
 
-function createMaze(inputText = "", selectedFloor = 1) {
+  // Načteme texturu podlahy
+  const loader = new THREE.TextureLoader();
+  const floorTexture = loader.load(textureSets[2].floorTexture);
+  floorTexture.colorSpace = THREE.SRGBColorSpace;
+  floorTexture.wrapS = THREE.RepeatWrapping;
+  floorTexture.wrapT = THREE.RepeatWrapping;
+  floorTexture.repeat.set(15, 15); // Nastavíme opakování textury
+
+  // Vytvoříme základní plochu tábora s texturou
+  const groundGeometry = new THREE.PlaneGeometry(30, 30);
+  const groundMaterial = new THREE.MeshStandardMaterial({
+    map: floorTexture,
+  });
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+
+  // Přidáme noční oblohu
+  const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
+  const skyMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      topColor: { value: new THREE.Color(0x151a5c) },
+      bottomColor: { value: new THREE.Color(0x000000) },
+      offset: { value: 20 },
+      exponent: { value: 0.6 }
+    },
+    vertexShader: `
+      varying vec3 vWorldPosition;
+      void main() {
+        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+        vWorldPosition = worldPosition.xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 topColor;
+      uniform vec3 bottomColor;
+      uniform float offset;
+      uniform float exponent;
+      varying vec3 vWorldPosition;
+      void main() {
+        float h = normalize(vWorldPosition + offset).y;
+        gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+      }
+    `,
+    side: THREE.BackSide
+  });
+  const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+  scene.add(sky);
+
+  // Přidáme statické stany
+ const tentPositions = [
+    { x: -7.5, z: -7.5 },
+    { x: 7.5, z: -7.5 },
+    { x: -7.5, z: 7.5 },
+    { x: 7.5, z: 7.5 }
+  ];
+  const tentTexture = loader.load("textures/tent.jpg");
+  tentTexture.colorSpace = THREE.SRGBColorSpace;
+  tentTexture.wrapS = THREE.RepeatWrapping;
+  tentTexture.wrapT = THREE.RepeatWrapping;
+  tentTexture.repeat.set(3, 2);
+  const tentGeometry = new THREE.ConeGeometry(2, 4, 8);
+  const tentMaterial = new THREE.MeshStandardMaterial({ roughness: 0.5,map: tentTexture });
+  tentPositions.forEach(pos => {
+    const tent = new THREE.Mesh(tentGeometry, tentMaterial);
+    tent.position.set(pos.x, 2, pos.z);
+    scene.add(tent);
+  });
+
+  // Přidáme obchodníka před jeden ze stanů
+  const merchantPosition = { x: 0, y: 0, z: 2 }; // Pozice před stanem
+  const gltfLoader = new GLTFLoader();
+  gltfLoader.load('merchant.glb', (gltf) => {
+    const merchant = gltf.scene;
+    merchant.position.set(merchantPosition.x, merchantPosition.y, merchantPosition.z);
+    merchant.scale.set(1, 1, 1); // Upravte měřítko podle potřeby
+    merchant.rotation.y = 0; // Natočení obchodníka směrem do tábora
+    scene.add(merchant);
+
+    // Přehrajeme animaci obchodníka
+    const mixer = new THREE.AnimationMixer(merchant);
+    const action = mixer.clipAction(gltf.animations[0]); // Předpokládáme, že první animace je ta, kterou chceme přehrát
+    action.setLoop(THREE.LoopRepeat);
+    action.play();
+
+    const clock = new THREE.Clock();
+    // Aktualizace animace v hlavní smyčce
+    function updateMerchantAnimation() {
+      const delta = clock.getDelta();
+      mixer.update(delta);
+      requestAnimationFrame(updateMerchantAnimation);
+    }
+    updateMerchantAnimation();
+  });
+
+ // Inicializujeme LightManager
+ lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
+
+ const wallTexture = loader.load(textureSets[0].wallTexture);
+ wallTexture.colorSpace = THREE.SRGBColorSpace;
+
+ // Přidáme zdi kolem tábora
+ const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+ const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
+ for (let i = -15; i <= 15; i += CELL_SIZE) {
+   const wallNorth = new THREE.Mesh(wallGeometry, wallMaterial);
+   wallNorth.position.set(i, WALL_HEIGHT / 2, -15);
+   scene.add(wallNorth);
+   walls.push(wallNorth);
+
+   const wallSouth = new THREE.Mesh(wallGeometry, wallMaterial);
+   wallSouth.position.set(i, WALL_HEIGHT / 2, 15);
+   scene.add(wallSouth);
+   walls.push(wallSouth);
+
+   const wallEast = new THREE.Mesh(wallGeometry, wallMaterial);
+   wallEast.position.set(15, WALL_HEIGHT / 2, i);
+   scene.add(wallEast);
+   walls.push(wallEast);
+
+   const wallWest = new THREE.Mesh(wallGeometry, wallMaterial);
+   wallWest.position.set(-15, WALL_HEIGHT / 2, i);
+   scene.add(wallWest);
+   walls.push(wallWest);
+ }
+
+ const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
+ const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+
+  // Přidáme věže do každého rohu
+  const towerHeight = 4; // Počet bloků ve výšce
+
+  const towerPositions = [
+    { x: -15, z: -15 },
+    { x: -15, z: 15 },
+    { x: 15, z: -15 },
+    { x: 15, z: 15 }
+  ];
+
+  towerPositions.forEach(pos => {
+    for (let i = 0; i < towerHeight; i++) {
+      const towerBlock = new THREE.Mesh(wallGeometry, wallMaterial);
+      towerBlock.position.set(pos.x, (WALL_HEIGHT / 2) + i * WALL_HEIGHT, pos.z);
+      scene.add(towerBlock);
+      walls.push(towerBlock);
+    }
+
+    // Osvětlíme věž pochodněmi
+    const torch = new THREE.Mesh(torchGeometry, torchMaterial);
+    torch.position.set(pos.x, WALL_HEIGHT * towerHeight + 0.5, pos.z);
+    scene.add(torch);
+
+    const fire = createFireParticles(textureSets[1].torchColor.particles);
+    fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
+    scene.add(fire);
+
+    const light = new THREE.PointLight(textureSets[1].torchColor.light, 1.5, CELL_SIZE * 4);
+    light.position.copy(torch.position);
+    lightManager.addLight(light);
+    torches.push({ torch, fire, light });
+  });
+
+  // Přidáme pochodně
+  const torchPositions = [
+    { x: -15, z: -15, dir: { dx: 1, dz: 1 } },
+    { x: 15, z: -15, dir: { dx: -1, dz: 1 } },
+    { x: -15, z: 15, dir: { dx: 1, dz: -1 } },
+    { x: 15, z: 15, dir: { dx: -1, dz: -1 } },
+    { x: 0, z: -15, dir: { dx: 0, dz: 1 } },
+    { x: 0, z: 15, dir: { dx: 0, dz: -1 } },
+    { x: -15, z: 0, dir: { dx: 1, dz: 0 } },
+    { x: 15, z: 0, dir: { dx: -1, dz: 0 } }
+  ];
+
+  torchPositions.forEach(pos => {
+    const torch = new THREE.Mesh(torchGeometry, torchMaterial);
+
+    torch.position.set(
+      pos.x + pos.dir.dx * CELL_SIZE * 0.5,
+      WALL_HEIGHT - 1.2,
+      pos.z + pos.dir.dz * CELL_SIZE * 0.5
+    );
+
+    // Správně natočíme pochodeň směrem ke zdi
+    const angle = Math.atan2(pos.dir.dz, pos.dir.dx);
+    torch.rotation.y = angle;
+    torch.rotation.z = Math.PI; // Otočení o 180° kolem osy Z
+
+    scene.add(torch);
+
+    const fire = createFireParticles(textureSets[1].torchColor.particles);
+    fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
+    scene.add(fire);
+
+    const light = new THREE.PointLight(textureSets[1].torchColor.light, 1.5, CELL_SIZE * 4);
+
+    // Nastavíme faktor offsetu pro světlo
+    const lightOffsetFactor = (CELL_SIZE * 0.6) + 0.3; // Upravit hodnotu podle potřeby
+
+    light.position.set(
+      pos.x + pos.dir.dx * lightOffsetFactor,
+      WALL_HEIGHT - 0.7,
+      pos.z + pos.dir.dz * lightOffsetFactor
+    );
+
+    lightManager.addLight(light);
+
+    torches.push({ torch, fire, light });
+  });
+
+    // Přidáme menší věž uprostřed tábora
+    const centerTowerHeight = 2; // Menší výška věže
+    const centerTowerPosition = { x: 0, z: 0 };
+  
+    for (let i = 0; i < centerTowerHeight; i++) {
+      const towerBlock = new THREE.Mesh(wallGeometry, wallMaterial);
+      towerBlock.position.set(
+        centerTowerPosition.x,
+        (WALL_HEIGHT / 2) + i * WALL_HEIGHT,
+        centerTowerPosition.z
+      );
+      scene.add(towerBlock);
+      walls.push(towerBlock);
+    }
+  
+    // Přidáme pochodně na všechny čtyři strany středové věže
+    const centerTorchPositions = [
+      { dx: 1, dz: 0 },
+      { dx: -1, dz: 0 },
+      { dx: 0, dz: 1 },
+      { dx: 0, dz: -1 }
+    ];
+  
+    centerTorchPositions.forEach(dir => {
+      const torch = new THREE.Mesh(torchGeometry, torchMaterial);
+      torch.position.set(
+        centerTowerPosition.x + dir.dx * (CELL_SIZE / 2),
+        WALL_HEIGHT * centerTowerHeight - 1.2,
+        centerTowerPosition.z + dir.dz * (CELL_SIZE / 2)
+      );
+  
+      // Správně natočíme pochodeň směrem od věže
+      const angle = Math.atan2(dir.dz, dir.dx);
+      torch.rotation.y = angle;
+      torch.rotation.z = Math.PI; // Otočení o 180° kolem osy Z
+  
+      scene.add(torch);
+  
+      const fire = createFireParticles(textureSets[1].torchColor.particles);
+      fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
+      scene.add(fire);
+  
+      const light = new THREE.PointLight(textureSets[1].torchColor.light, 1.5, CELL_SIZE * 4);
+  
+      // Nastavíme offset pro světlo
+      const lightOffsetFactor = + 0.5; // Upravit hodnotu podle potřeby
+  
+      light.position.set(
+        torch.position.x + dir.dx * lightOffsetFactor,
+        torch.position.y + 0.5,
+        torch.position.z + dir.dz * lightOffsetFactor
+      );
+  
+      lightManager.addLight(light);
+  
+      torches.push({ torch, fire, light });
+    });
+
+  // Přidáme osvětlení
+  const ambientLight = new THREE.AmbientLight(0x443c57, 1);
+  scene.add(ambientLight);
+
+  const moonLight = new THREE.DirectionalLight(0xffffff, 0.2);
+  moonLight.position.set(20, 5, 20);
+  scene.add(moonLight);
+
+}
+
+
+function clearScene() {
+  // Odstraníme všechny objekty ze scény
+  while (scene.children.length > 0) {
+    scene.remove(scene.children[0]);
+  }
+
+  // Resetujeme globální proměnné
+  walls = [];
+  highWallAreas = [];
+  torches = [];
+  floatingObjects.forEach(obj => scene.remove(obj));
+  floatingObjects = [];
+
+  // Odstraníme mlhovinu a mlhu
+  if (nebula) {
+    scene.remove(nebula);
+    nebula = null;
+  }
+  scene.fog = null;
+
+  // Resetujeme lightManager
+  //lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
+  lightManager = null;
+
+  // Resetujeme bossy
+  setBosses([]);
+  setBossCounter(0);
+
+  // Resetujeme kouzla
+  magicBalls = [];
+  resetSpells();
+
+
+  // Vyčistíme kontejner pro zdraví bosse
   const bossHealthContainer = document.getElementById("bossHealthContainer");
   while (bossHealthContainer.firstChild) {
     bossHealthContainer.removeChild(bossHealthContainer.firstChild);
   }
+}
 
-  setBosses([]);
-  setBossCounter(0);
 
-  // Odstraňte existující mlhovinu a mlhu, pokud existují
-  if (nebula) {
-    scene.remove(nebula);
+function createMaze(inputText = "", selectedFloor = 1) {
+
+  if (selectedFloor === 999) {
+    createCamp();
+    return;
   }
-  scene.fog = null;
+
+  clearScene();
 
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
-  walls = [];
-  while (scene.children.length > 0) {
-    scene.remove(scene.children[0]);
-  }
+
+
   // Nastavení seed pro generátor náhodných čísel
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
@@ -1225,15 +1540,15 @@ function generateMaze(width, height, seed, selectedFloor) {
 
   carvePassage(1, 1);
 
-   // Přidáme generování hal a bossů
-   const baseHallProbability = 0.02;
-   const hallProbabilityDecrease = -0.001;
-   let hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
-   
-   // Zvýšíme pravděpodobnost hal pro 4. podlaží
-   if (selectedFloor === 4) {
-     hallProbability *= 3;
-   }
+  // Přidáme generování hal a bossů
+  const baseHallProbability = 0.02;
+  const hallProbabilityDecrease = -0.001;
+  let hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
+
+  // Zvýšíme pravděpodobnost hal pro 4. podlaží
+  if (selectedFloor === 4) {
+    hallProbability *= 3;
+  }
   // Upravíme velikost haly podle podlaží
   let minHallSize, maxHallSize;
   minHallSize = 2;
@@ -1391,7 +1706,7 @@ function createTeleportModel(color) {
   const teleportGeometry = new THREE.TorusGeometry(0.8, 0.1, 32, 64);
   const teleportMaterial = new THREE.MeshStandardMaterial({
     color: color,
-    emissive:color,
+    emissive: color,
     emissiveIntensity: 1.5,
   });
   const teleport = new THREE.Mesh(teleportGeometry, teleportMaterial);
@@ -1629,6 +1944,7 @@ async function startGame() {
   getBestTime(inputText, selectedFloor);
   removeFreezeEffect();
   createMaze(inputText, selectedFloor);
+  console.log("torches", torches.length);
   createPlayer();
   moveCount = 0;
   keyCount = 0;
@@ -1744,6 +2060,7 @@ function drawArrow(ctx, x, y, angle, size) {
 
 // Přidejte novou funkci pro přepínání minimapy
 export function toggleMinimap() {
+  if (selectedFloor === 999) return; // Nelze použít minimapu v táboře
   if (!canOpenMinimap && !isMinimapVisible) return;
 
   isMinimapVisible = !isMinimapVisible;
@@ -2126,6 +2443,7 @@ class LightManager {
 }
 
 
+
 function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
   const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
   const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
@@ -2359,11 +2677,11 @@ function updateVisibleObjects() {
   walls.forEach(wall => {
     if (frustum.intersectsObject(wall) && wall.position.distanceTo(player.position) < visibilityDistance) {
       if (wall.visible === false) {
-      wall.visible = true;
+        wall.visible = true;
       }
     } else {
       if (wall.visible === true) {
-      wall.visible = false;
+        wall.visible = false;
       }
     }
   });
@@ -2371,13 +2689,13 @@ function updateVisibleObjects() {
   torches.forEach(torches => {
     if (frustum.intersectsObject(torches.torch) && torches.torch.position.distanceTo(player.position) < visibilityDistance) {
       if (torches.torch.visible === false && torches.fire.visible === false) {
-      torches.torch.visible = true;
-      torches.fire.visible = true;
+        torches.torch.visible = true;
+        torches.fire.visible = true;
       }
     } else {
       if (torches.torch.visible === true && torches.fire.visible === true) {
-      torches.torch.visible = false;
-      torches.fire.visible = false;
+        torches.torch.visible = false;
+        torches.fire.visible = false;
       }
     }
   });
@@ -2484,7 +2802,7 @@ function showNameModal(playerName) {
   const input = document.getElementById("playerNameInput");
   const submitButton = document.getElementById("submitName");
 
-  input.addEventListener("input", function() {
+  input.addEventListener("input", function () {
     submitButton.disabled = this.value.trim() === "";
   });
 
@@ -2776,9 +3094,9 @@ function updateFPS() {
 export function requestPointerLock() {
   if (document.pointerLockElement !== document.body) {
     document.body.requestPointerLock();
+  }
 }
-}
- export function exitPointerLock() {
+export function exitPointerLock() {
   document.exitPointerLock();
 }
 
@@ -2811,21 +3129,21 @@ function saveSettings() {
 // Upravte funkci setQuality
 function setQuality(factor) {
   qualityFactor = factor;
-  
+
   // Nastavení velikosti rendereru
   renderer.setSize(window.innerWidth, window.innerHeight);
-  
+
   // Nastavení rozlišení rendereru
   renderer.setPixelRatio(window.devicePixelRatio * qualityFactor);
-  
+
   // Aktualizace poměru stran kamery
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  
+
   // Aktualizace efektů post-processingu, pokud jsou použity
   if (composer) {
-      composer.setSize(window.innerWidth, window.innerHeight);
-      composer.setPixelRatio(window.devicePixelRatio * qualityFactor);
+    composer.setSize(window.innerWidth, window.innerHeight);
+    composer.setPixelRatio(window.devicePixelRatio * qualityFactor);
   }
 }
 
@@ -2908,12 +3226,16 @@ floorOptions.forEach(option => {
     if (canSelectFloor(floor)) {
       selectedFloor = floor;
       closeFloorSelectModal();
-      showFloorSelectBtn.textContent = `${getTranslation('floor')} ${selectedFloor}`;
-      generateNewMaze(); // Přidáme volání funkce pro generování nového bludiště
+      showFloorSelectBtn.textContent = floor === 999
+        ? getTranslation('floorCamp')
+        : `${getTranslation('floor')} ${selectedFloor}`;
+      generateNewMaze(); // Volání funkce pro generování nového bludiště nebo tábora
     }
   });
 });
+
 function canSelectFloor(floor) {
+  if (floor === 999) return true;
   if (floor === 1) return true;
   if (floor === 2 && playerLevel >= 7) return true;
   if (floor === 3 && playerLevel >= 12) return true;
@@ -2933,13 +3255,13 @@ export function updateFloorOptions() {
   });
 }
 
-export function playSound(soundBuffer,volume = 1) {
+export function playSound(soundBuffer, volume = 1) {
   const sound = new THREE.Audio(new THREE.AudioListener());
   sound.setVolume(volume);
   sound.setBuffer(soundBuffer);
   sound.play();
   sound.onEnded = () => {
-      sound.disconnect();
+    sound.disconnect();
   };
 }
 

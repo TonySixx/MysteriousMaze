@@ -119,7 +119,8 @@
       "chainExplosion": "Chain Explosion",
       "chainExplosionDescription": "The last hit enemy explodes and deals 100 damage to all enemies within 5 meters",
       "unlocked": "Unlocked",
-      "damage": "Damage"
+      "damage": "Damage",
+      "floorCamp": "Camp"
     },
     "cs": {
       "enterName": "Zadejte své jméno",
@@ -241,6 +242,7 @@
       "chainExplosion": "Řetězová exploze",
       "chainExplosionDescription": "Poslední zasažený nepřítel exploduje a způsobí 100 poškození všem nepřátelům v okruhu 5 metrů",
       "unlocked": "Odemčeno",
-      "damage": "Poškození"
+      "damage": "Poškození",
+      "floorCamp": "Tábor"
     }
   }

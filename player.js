@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound } from './main.js';
+import { scene, camera, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 
@@ -191,6 +191,11 @@ function createPlayer() {
     camera.position.set(0, 1.6, 0);
     player.add(camera);
     scene.add(player);
+
+    if (selectedFloor === 999) { //Tábor
+        player.position.set(0,0, 15 - (CELL_SIZE / 2));
+        return;
+    }
 
     const seed = getHash(document.getElementById("mazeInput").value);
     let rng = new seedrandom(seed);
@@ -423,7 +428,7 @@ export function onMouseMove(event) {
 }
 
 export function onMouseClick(event) {
- 
+    //TODO: 
     if (event.target.tagName !== "CANVAS") {
         return;
     }
