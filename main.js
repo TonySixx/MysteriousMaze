@@ -885,9 +885,9 @@ function createCamp() {
   tentTexture.colorSpace = THREE.SRGBColorSpace;
   tentTexture.wrapS = THREE.RepeatWrapping;
   tentTexture.wrapT = THREE.RepeatWrapping;
-  tentTexture.repeat.set(3, 2);
-  const tentGeometry = new THREE.ConeGeometry(2, 4, 8);
-  const tentMaterial = new THREE.MeshStandardMaterial({ roughness: 0.5,map: tentTexture });
+  tentTexture.repeat.set(5.14, 2.5);
+  const tentGeometry = new THREE.ConeGeometry(3, 5, 8);
+  const tentMaterial = new THREE.MeshStandardMaterial({ roughness: 0.5,map: tentTexture,side: THREE.DoubleSide });
   tentPositions.forEach(pos => {
     const tent = new THREE.Mesh(tentGeometry, tentMaterial);
     tent.position.set(pos.x, 2, pos.z);
