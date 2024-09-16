@@ -2476,10 +2476,17 @@ function showNameModal(playerName) {
         <option value="en">English</option>
         <option value="cs">Čeština</option>
       </select>
-      <button id="submitName">${getTranslation('confirm')}</button>
+      <button id="submitName" disabled>${getTranslation('confirm')}</button>
     </div>
   `;
   nameModal.style.display = "block";
+
+  const input = document.getElementById("playerNameInput");
+  const submitButton = document.getElementById("submitName");
+
+  input.addEventListener("input", function() {
+    submitButton.disabled = this.value.trim() === "";
+  });
 
   document.getElementById("languageSelect").value = currentLanguage;
   document.getElementById("languageSelect").addEventListener("change", (e) => {
@@ -2488,15 +2495,20 @@ function showNameModal(playerName) {
     showNameModal(playerName); // Refresh modal with new language
   });
 
-  document.getElementById("submitName").addEventListener("click", () => {
-    playerName = document.getElementById("playerNameInput").value;
-    localStorage.setItem("playerName", playerName);
-    document.getElementById("playerName").textContent = playerName;
-    hideNameModal();
-    updateTranslations();
-    updateUITexts();
-
+  submitButton.addEventListener("click", () => {
+    const name = input.value.trim();
+    if (name !== "") {
+      playerName = name;
+      localStorage.setItem("playerName", playerName);
+      document.getElementById("playerName").textContent = playerName;
+      hideNameModal();
+      updateTranslations();
+      updateUITexts();
+    }
   });
+
+  // Inicializace stavu tlačítka
+  submitButton.disabled = input.value.trim() === "";
 }
 
 
