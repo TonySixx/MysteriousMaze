@@ -1,7 +1,7 @@
 
 
 body {
-  cursor: url('./cursor-normal.png'), auto;
+  cursor: url('/cursor-normal.png'), auto;
 }
 
 body {
@@ -14,11 +14,11 @@ body {
 }
 
 a,button{
-  cursor: url('./finger.png'), pointer;
+  cursor: url('/finger.png'), pointer;
 }
 
 a:hover, button:hover, input[type="submit"]:hover, input[type="button"]:hover, .clickable:hover, .close, .close:hover {
-  cursor: url('./finger.png'), pointer;
+  cursor: url('/finger.png'), pointer;
 }
 
 
