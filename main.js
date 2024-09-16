@@ -2466,6 +2466,7 @@ export function getCameraDirection() {
 
 
 function showNameModal(playerName) {
+  exitPointerLock();
   const nameModal = document.getElementById("nameModal");
   nameModal.innerHTML = `
     <div class="modal-content">
@@ -2500,14 +2501,17 @@ function showNameModal(playerName) {
 
 
 function hideNameModal() {
+  exitPointerLock();
   document.getElementById("nameModal").style.display = "none";
 }
 
 function showScoreModal() {
+  exitPointerLock();
   document.getElementById("scoreModal").style.display = "block";
 }
 
 function hideScoreModal() {
+  requestPointerLock();
   document.getElementById("scoreModal").style.display = "none";
 }
 
@@ -2757,14 +2761,25 @@ function updateFPS() {
   }
 }
 
+export function requestPointerLock() {
+  if (document.pointerLockElement !== document.body) {
+    document.body.requestPointerLock();
+}
+}
+ export function exitPointerLock() {
+  document.exitPointerLock();
+}
+
 // Upravte funkci showSettingsModal
 function showSettingsModal() {
+  exitPointerLock();
   document.getElementById("lightSettings").value = MAX_VISIBLE_LIGHTS.toString();
   document.getElementById("qualitySettings").value = qualityFactor.toString();
   document.getElementById("settingsModal").style.display = "block";
 }
 
 function hideSettingsModal() {
+  requestPointerLock();
   document.getElementById("settingsModal").style.display = "none";
 }
 
@@ -2820,6 +2835,7 @@ function toggleConsole() {
 }
 
 function generateNewMaze() {
+  requestPointerLock();
   const inputText = document.getElementById("mazeInput").value;
   setUrlParameter('seed', inputText);
   setUrlParameter('floor', selectedFloor);
@@ -2861,11 +2877,13 @@ document.getElementById("generateMaze").addEventListener("click", () => {
 });
 
 showFloorSelectBtn.addEventListener('click', () => {
+  exitPointerLock();
   floorSelectModal.style.display = 'block';
 });
 
 // Přidáme funkci pro zavření modálu
 function closeFloorSelectModal() {
+  exitPointerLock();
   floorSelectModal.style.display = 'none';
 }
 

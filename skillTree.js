@@ -11,7 +11,7 @@ import frostAuraIcon from './public/spells/frost-aura-icon.png';
 import explosiveCoreIcon from './public/spells/explosive-core-icon.png';
 import { spells, updateSpellUpgrades } from './spells.js';
 import { getSkillPoints } from './player.js';
-import { updateSkillbar } from './main.js';
+import { exitPointerLock, requestPointerLock, updateSkillbar } from './main.js';
 import { getTranslation } from './langUtils.js';
 
 let skillTreeModal = null;
@@ -140,6 +140,7 @@ function updateSkillPointsDisplay() {
 }
 
 function showSkillTree() {
+    exitPointerLock();
     if (skillTreeModal) {
         skillTreeModal.remove();
     }
@@ -183,6 +184,7 @@ function showSkillTree() {
 }
 
 function closeSkillTree() {
+    requestPointerLock();
     if (skillTreeModal) {
         skillTreeModal.style.display = 'none';
         skillTreeModal.remove();

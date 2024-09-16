@@ -423,7 +423,7 @@ export function onMouseMove(event) {
 }
 
 export function onMouseClick(event) {
-    //TODO: 
+ 
     if (event.target.tagName !== "CANVAS") {
         return;
     }

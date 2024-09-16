@@ -1,10 +1,24 @@
 body {
+  cursor: url('cursor-normal.png'), auto;
+}
+
+body {
   margin: 0;
   padding: 0;
   font-family: 'Arial', sans-serif;
   color: #ffffff;
   overflow: hidden;
+
 }
+
+a,button{
+  cursor: url('finger.png'), pointer;
+}
+
+a:hover, button:hover, input[type="submit"]:hover, input[type="button"]:hover, .clickable:hover, .close, .close:hover {
+  cursor: url('finger.png'), pointer;
+}
+
 
 
 
@@ -184,7 +198,6 @@ canvas {
   color: white;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
 }
 
 .modal {
@@ -215,14 +228,12 @@ canvas {
   float: right;
   font-size: 28px;
   font-weight: bold;
-  cursor: pointer;
 }
 
 .close:hover,
 .close:focus {
   color: #fff;
   text-decoration: none;
-  cursor: pointer;
 }
 
 #mazeSearchInput {
@@ -282,7 +293,6 @@ canvas {
   color: white;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
 }
 
 #skillbar {
@@ -549,7 +559,6 @@ button {
   display: inline-block;
   font-size: 12px;
   margin: 2px;
-  cursor: pointer;
   border-radius: 3px;
   position: relative;
   margin-top: 5px;
