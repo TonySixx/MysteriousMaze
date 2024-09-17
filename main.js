@@ -30,7 +30,7 @@ import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";
 import { createCamp } from "./camp.js";
 
-export const version = "1.2.0";
+export const version = "1.2.1";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
