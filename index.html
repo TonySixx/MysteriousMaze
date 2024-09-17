@@ -5,12 +5,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-translate="gameTitle">Tajemné bludiště</title>
-  <script type="module" crossorigin src="/MysteriousMaze/assets/index-yO4CPXPm.js"></script>
-  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-CHmQ7iK4.css">
+  <script type="module" crossorigin src="/MysteriousMaze/assets/index-ClBOfURe.js"></script>
+  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-Pr7lcXRa.css">
 </head>
 
 <body>
-  <textarea id="gameConsole" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:30px; background-color:black; color:white; border:none; outline:none; padding:5px; font-family:monospace; font-size:14px;"></textarea>
+  <textarea id="gameConsole"
+    style="display:none; position:fixed; bottom:0; left:0; width:100%; height:30px; background-color:black; color:white; border:none; outline:none; padding:5px; font-family:monospace; font-size:14px;"></textarea>
 
   <div id="bossHealthContainer"></div>
   <div id="game-ui">
@@ -28,8 +29,14 @@
         <span id="playerManaText"></span>
       </div>
       <p><span data-translate="time">Čas</span>: <span id="timeCount">0:00</span></p>
-      <p><span data-translate="magicKeys">Kouzelné klíče</span>: <span id="keyCount">0/3</span></p>
-    </div> 
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <p style="margin:0;"><span data-translate="magicKeys">Kouzelné klíče</span>: <span id="keyCount">0/3</span></p>
+        <p class="gold-container">
+          <span id="goldCount">0</span>
+          <img src="/MysteriousMaze/gold-coin.png" alt="Zlaťák" class="gold-icon">
+        </p>
+      </div>
+    </div>
   </div>
   <div id="game-ui-bot">
     <span id="showScoreText" data-translate="score">Skóre [C]</span>
@@ -47,16 +54,24 @@
   </div>
 
   <div id="menu">
-    <input type="text" id="mazeInput" maxlength="25" data-translate="mazeInputPlaceholder" placeholder="Zadejte text pro vytvoření bludiště" />
+    <input type="text" id="mazeInput" maxlength="25" data-translate="mazeInputPlaceholder"
+      placeholder="Zadejte text pro vytvoření bludiště" />
     <button id="showFloorSelect" data-translate="selectFloor">Vybrat podlaží</button>
     <button id="generateMaze" data-translate="enterMaze">Vstoupit do bludiště</button>
   </div>
 
-  <div id="keyMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:yellow; font-size:20px;" data-translate="youCollectedKey">Sebral jsi klíč.</div>
-  <div id="finishMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:rgb(202, 240, 255); font-size:20px;" data-translate="congratulations">Gratulujeme! Dosáhli jste cíle!</div>
-  <div id="goalMessage" style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:white;font-size:20px;"></div>
-  <canvas id="minimap" width="350" height="350" style="position: absolute; bottom: 25px; right: 10px; display: none; background-color: rgba(211, 211, 211, 0.7);"></canvas>
-  
+  <div id="keyMessage"
+    style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:yellow; font-size:20px;"
+    data-translate="youCollectedKey">Sebral jsi klíč.</div>
+  <div id="finishMessage"
+    style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:rgb(202, 240, 255); font-size:20px;"
+    data-translate="congratulations">Gratulujeme! Dosáhli jste cíle!</div>
+  <div id="goalMessage"
+    style="display:none; position:absolute; top:60%; left:50%; transform:translate(-50%, -60%); color:white;font-size:20px;">
+  </div>
+  <canvas id="minimap" width="350" height="350"
+    style="position: absolute; bottom: 25px; right: 10px; display: none; background-color: rgba(211, 211, 211, 0.7);"></canvas>
+
   <div id="floorSelectModal" class="modal">
     <div class="modal-content floor-select-content">
       <span class="close">&times;</span>
@@ -90,7 +105,7 @@
       </div>
     </div>
   </div>
- 
+
   <div id="hintModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
@@ -129,7 +144,7 @@
       <button id="submitName" data-translate="confirm">Potvrdit</button>
     </div>
   </div>
-  
+
   <div id="scoreModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
@@ -158,7 +173,7 @@
       </div>
     </div>
   </div>
-  
+
 </body>
 
 </html>
