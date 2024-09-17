@@ -111,7 +111,20 @@ function createTents() {
   tentTexture.wrapT = THREE.RepeatWrapping;
   tentTexture.repeat.set(5.14, 2.5);
 
-  const tentGeometry = new THREE.ConeGeometry(3, 5, 8);
+  const thetaLength = (5 * Math.PI) / 2.85; 
+  const thetaStart = -thetaLength / 2; // Centrum otvoru
+
+  const tentGeometry = new THREE.CylinderGeometry(
+    0,
+    3,
+    5,
+    8,
+    1,
+    true,
+    thetaStart,
+    thetaLength
+  );
+
   const tentMaterial = new THREE.MeshStandardMaterial({
     roughness: 0.5,
     map: tentTexture,
@@ -128,6 +141,11 @@ function createTents() {
   tentPositions.forEach((pos) => {
     const tent = new THREE.Mesh(tentGeometry, tentMaterial);
     tent.position.set(pos.x, 2, pos.z);
+
+    // Otočíme stan tak, aby otvor směřoval ke středu tábora
+    const angle = Math.atan2(pos.x, pos.z);
+    tent.rotation.y = angle;
+
     scene.add(tent);
   });
 }
