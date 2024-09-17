@@ -28,6 +28,7 @@ export function initInventory() {
   } else {
     inventory = new Array(INVENTORY_SIZE).fill(null);
     const mageStaff = {
+      id: crypto.randomUUID(),
       name: "Mage's Staff",
       type: "weapon",
       rarity: "common",
@@ -38,9 +39,10 @@ export function initInventory() {
       icon: 'inventory/mage-staff.jpg'
     };
     addItemToInventory(mageStaff);
-    equipItem("Mage's Staff", "weapon");
+    equipItem(mageStaff.id, "weapon");
 
     const healthPotion = {
+      id: crypto.randomUUID(),
       name: "Health Potion",
       type: "hpPotion",
       rarity: "common",
@@ -48,10 +50,23 @@ export function initInventory() {
       sellable: true,
       sellPrice: 5,
       stackable: true,
-      count: 1,
+      count: 2,
+      icon: 'inventory/hp-slot.jpg'
+    };
+    const healthPotion2 = {
+      id: crypto.randomUUID(),
+      name: "Health Potion",
+      type: "hpPotion",
+      rarity: "common",
+      requiredLevel: 1,
+      sellable: true,
+      sellPrice: 5,
+      stackable: true,
+      count: 2,
       icon: 'inventory/hp-slot.jpg'
     };
     const manaPotion = {
+      id: crypto.randomUUID(),
       name: "Mana Potion",
       type: "mpPotion",
       rarity: "common",
@@ -63,6 +78,7 @@ export function initInventory() {
       icon: 'inventory/mp-slot.jpg'
     };
     addItemToInventory(healthPotion);
+    addItemToInventory(healthPotion2);
     addItemToInventory(manaPotion);
   }
 
@@ -209,7 +225,7 @@ function createItemElement(item, isEquipped = false) {
   itemElement.className = `item item-${item.rarity}`;
   itemElement.style.backgroundImage = `url(${item.icon})`;
   itemElement.draggable = true;
-  itemElement.dataset.name = item.name;
+  itemElement.dataset.id = item.id;
 
   if (item.stackable && item.count > 1) {
     const itemCount = document.createElement('div');
@@ -234,8 +250,8 @@ function createItemElement(item, isEquipped = false) {
 
 
 function showTooltip(event) {
-  const itemName = event.target.dataset.name;
-  const item = findItemByName(itemName) || findEquippedItem(itemName);
+  const itemId = event.target.dataset.id;
+  const item = findItemById(itemId) || findEquippedItemById(itemId);
   if (!item) return;
 
   const tooltip = document.createElement('div');
@@ -246,7 +262,7 @@ function showTooltip(event) {
     <p>${getTranslation('requiredLevel', item.requiredLevel)}</p>
     ${item.stackable ? `<p>${getTranslation('count')}: ${item.count}</p>` : ''}
     ${item.sellable ? `<p>${getTranslation('sellPrice')}: ${item.sellPrice} ${getTranslation('gold')}</p>` : ''}
-    ${findEquippedItem(itemName) ? `<p>${getTranslation('equipped')}</p>` : ''}
+    ${findEquippedItemById(itemId) ? `<p>${getTranslation('equipped')}</p>` : ''}
   `;
 
   document.body.appendChild(tooltip);
@@ -320,49 +336,69 @@ function allowDrop(event) {
 }
 
 function drag(event) {
-  event.dataTransfer.setData('text/plain', event.target.dataset.name);
+  event.dataTransfer.setData('text/plain', event.target.dataset.id);
   hideTooltip(); // Skryjeme tooltip při zahájení přetahování
   hideContextMenu();
 }
 
 function drop(event) {
   event.preventDefault();
-  const itemName = event.dataTransfer.getData('text');
+  const itemId = event.dataTransfer.getData('text');
   const targetSlot = event.target.closest('.inventory-slot, .equipment-slot');
 
   if (targetSlot) {
     if (targetSlot.classList.contains('inventory-slot')) {
-      const equippedSlot = Object.entries(equipment).find(([_, item]) => item && item.name === itemName);
+      const equippedSlot = Object.entries(equipment).find(([_, item]) => item && item.id === itemId);
       if (equippedSlot) {
         removeItemFromEquipment(equippedSlot[0]);
       }
     }
-    moveItem(itemName, targetSlot);
+    moveItem(itemId, targetSlot);
   }
   
   hideTooltip();
 }
 
-function moveItem(itemName, targetSlot) {
-  const item = findItemByName(itemName) || findEquippedItem(itemName);
-  if (!item) return;
+function moveItem(itemId, targetSlot) {
+  const sourceItem = findItemById(itemId) || findEquippedItemById(itemId);
+  if (!sourceItem) return;
 
   if (targetSlot.classList.contains('equipment-slot')) {
-    if (canEquipItem(item, targetSlot.id)) {
-      equipItem(itemName, targetSlot.id.replace('Slot', ''));
+    if (canEquipItem(sourceItem, targetSlot.id)) {
+      equipItem(itemId, targetSlot.id.replace('Slot', ''));
     }
   } else {
     const targetIndex = parseInt(targetSlot.dataset.index);
     if (isNaN(targetIndex)) return;
 
-    const sourceIndex = inventory.findIndex(i => i && i.name === itemName);
-    if (sourceIndex !== -1) {
-      [inventory[sourceIndex], inventory[targetIndex]] = [inventory[targetIndex], inventory[sourceIndex]];
+    const targetItem = inventory[targetIndex];
+
+    // Pokud je cílový slot stejný jako zdrojový, nic neděláme
+    if (sourceItem === targetItem) {
+      return;
+    }
+
+    if (targetItem && sourceItem.name === targetItem.name && sourceItem.stackable && targetItem.stackable) {
+      // Sloučení stacků
+      const totalCount = sourceItem.count + targetItem.count;
+      if (totalCount <= 255) {
+        targetItem.count = totalCount;
+        removeItemFromInventory(sourceItem.id, sourceItem.count);
+      } else {
+        targetItem.count = 255;
+        sourceItem.count = totalCount - 255;
+      }
     } else {
-      const equippedSlot = Object.entries(equipment).find(([_, equippedItem]) => equippedItem && equippedItem.name === itemName);
-      if (equippedSlot) {
-        equipment[equippedSlot[0]] = null;
-        inventory[targetIndex] = item;
+      // Standardní přesun
+      const sourceIndex = inventory.findIndex(i => i && i.id === itemId);
+      if (sourceIndex !== -1) {
+        [inventory[sourceIndex], inventory[targetIndex]] = [inventory[targetIndex], inventory[sourceIndex]];
+      } else {
+        const equippedSlot = Object.entries(equipment).find(([_, equippedItem]) => equippedItem && equippedItem.id === itemId);
+        if (equippedSlot) {
+          equipment[equippedSlot[0]] = null;
+          inventory[targetIndex] = sourceItem;
+        }
       }
     }
   }
@@ -372,8 +408,8 @@ function moveItem(itemName, targetSlot) {
   renderEquipment();
 }
 
-function findEquippedItem(name) {
-  return Object.values(equipment).find(item => item && item.name === name);
+function findEquippedItemById(id) {
+  return Object.values(equipment).find(item => item && item.id === id);
 }
 
 function canEquipItem(item, slotId) {
@@ -381,10 +417,10 @@ function canEquipItem(item, slotId) {
   return item.type === slotType && playerLevel >= item.requiredLevel;
 }
 
-function equipItem(itemName, slot) {
-  const item = findItemByName(itemName);
+function equipItem(itemId, slot) {
+  const item = findItemById(itemId);
   if (!item) {
-    console.error(`Item ${itemName} not found`);
+    console.error(`Item ${itemId} not found`);
     return;
   }
 
@@ -393,29 +429,29 @@ function equipItem(itemName, slot) {
   }
 
   equipment[slot] = item;
-  removeItemFromInventory(itemName, item.count);
-  console.log(`Equipped ${itemName} in ${slot} slot`);
+  removeItemFromInventory(itemId, item.count);
+  console.log(`Equipped ${item.name} in ${slot} slot`);
   console.log("Updated equipment:", equipment);
 
   updateStaffVisibility();
   saveInventoryToLocalStorage();
 }
 
-function findItemByName(name) {
-  return inventory.find(item => item && item.name === name);
+function findItemById(id) {
+  return inventory.find(item => item && item.id === id);
 }
 
 function addItemToInventory(item) {
   if (item.stackable) {
-    const existingItem = inventory.find(i => i && i.name === item.name);
+    const existingItem = inventory.find(i => i && i.name === item.name && i.count < 255);
     if (existingItem) {
-      existingItem.count += item.count || 1;
-      if (existingItem.count > 255) {
-        const overflow = existingItem.count - 255;
-        existingItem.count = 255;
-        const newItem = { ...item, count: overflow };
-        saveInventoryToLocalStorage();
-        return addItemToInventory(newItem);
+      const spaceInStack = 255 - existingItem.count;
+      const amountToAdd = Math.min(item.count, spaceInStack);
+      existingItem.count += amountToAdd;
+      item.count -= amountToAdd;
+
+      if (item.count > 0) {
+        return addItemToInventory(item); // Rekurzivně přidáme zbytek
       }
       saveInventoryToLocalStorage();
       return true;
@@ -424,15 +460,15 @@ function addItemToInventory(item) {
 
   const emptySlot = inventory.findIndex(slot => slot === null);
   if (emptySlot !== -1) {
-    inventory[emptySlot] = item.stackable ? { ...item, count: item.count || 1 } : item;
+    inventory[emptySlot] = item.stackable ? { ...item, count: Math.min(item.count, 255) } : item;
     saveInventoryToLocalStorage();
     return true;
   }
   return false;
 }
 
-function removeItemFromInventory(itemName, count = 1) {
-  const index = inventory.findIndex(item => item && item.name === itemName);
+function removeItemFromInventory(itemId, count = 1) {
+  const index = inventory.findIndex(item => item && item.id === itemId);
   if (index !== -1) {
     if (inventory[index].stackable) {
       if (count >= inventory[index].count) {
@@ -478,14 +514,14 @@ function showContextMenu(event) {
   const itemElement = event.target.closest('.item');
   if (!itemElement) return;
 
-  const itemName = itemElement.dataset.name;
-  const item = findItemByName(itemName);
+  const itemId = itemElement.dataset.id;
+  const item = findItemById(itemId);
 
   if (!item || !item.sellable || isItemEquipped(item)) return;
 
   contextMenu.innerHTML = `
     <ul>
-      <li data-action="sell" data-item="${item.name}">${getTranslation('sellItem')} (${item.sellPrice} ${getTranslation('gold')})</li>
+      <li data-action="sell" data-item-id="${item.id}">${getTranslation('sellItem')} (${item.sellPrice} ${getTranslation('gold')})</li>
     </ul>
   `;
 
@@ -494,13 +530,13 @@ function showContextMenu(event) {
   contextMenu.style.top = `${event.clientY}px`;
 
   const sellOption = contextMenu.querySelector('[data-action="sell"]');
-  sellOption.addEventListener('click', () => sellItem(item.name));
+  sellOption.addEventListener('click', () => sellItem(item.id));
 
   document.addEventListener('click', hideContextMenu);
 }
 
 function isItemEquipped(item) {
-  return Object.values(equipment).some(equippedItem => equippedItem && equippedItem.name === item.name);
+  return Object.values(equipment).some(equippedItem => equippedItem && equippedItem.id === item.id);
 }
 
 
@@ -510,16 +546,16 @@ function hideContextMenu() {
   document.removeEventListener('click', hideContextMenu);
 }
 
-function sellItem(itemName) {
-  const item = findItemByName(itemName);
+function sellItem(itemId) {
+  const item = findItemById(itemId);
   if (!item || !item.sellable || isItemEquipped(item)) return;
 
-  const equippedSlot = Object.entries(equipment).find(([_, equippedItem]) => equippedItem && equippedItem.name === itemName);
+  const equippedSlot = Object.entries(equipment).find(([_, equippedItem]) => equippedItem && equippedItem.id === itemId);
   
   if (equippedSlot) {
     removeItemFromEquipment(equippedSlot[0]);
   } else {
-    removeItemFromInventory(itemName, item.count);
+    removeItemFromInventory(itemId, item.count);
   }
 
   const sellCount = item.stackable ? item.count : 1;
