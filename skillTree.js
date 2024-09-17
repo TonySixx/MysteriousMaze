@@ -394,7 +394,7 @@ function unlockSpell(spellKey, button) {
     if (playerLevel >= spell.requiredLevel && useSkillPoint(spell.cost)) {
         spell.level = 1;
         if (spell.level < spell.maxLevel) {
-            button.textContent = getTranslation('upgrade');
+            button.innerHTML = getTranslation('upgrade')+"<span class='cost-badge'>1</span>";
             button.disabled = getSkillPoints() < 1;
             button.onclick = () => upgradeSpell(spellKey, button);
         }
