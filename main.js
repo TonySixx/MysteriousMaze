@@ -8,7 +8,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { AudioLoader } from 'three';
 
 import { setBossCounter, setBosses, spawnBossInMaze, bosses } from './boss.js';
-import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings, updateSpellUpgrades, resetSpells } from './spells.js';
+import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings, updateSpellUpgrades, resetSpells, createSkillbar, updateSkillbar } from './spells.js';
 import {
   createPlayer,
   updatePlayerPosition,
@@ -24,11 +24,11 @@ import {
   initPlayerUI,
   loadPlayerProgress,
   addExperience,
-  playerLevel,
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";
 import { createCamp } from "./camp.js";
+import { closeInventory, initInventory, openInventory, updatePotionCooldowns } from "./inventory.js";
 
 export const version = "1.2.1";
 
@@ -137,13 +137,6 @@ export const textureSets = [
   },
 ];
 
-//--GLOBALS
-window.scene = undefined;
-window.walls = [];
-window.highWallAreas = [];
-window.torches = [];
-window.lightManager = undefined;
-//--END GLOBALS
 
 export let camera, renderer, maze;
 let startTime, timerInterval;
@@ -347,6 +340,7 @@ async function init() {
     createPlayer();
     createSkillbar()
     initSkillTree();
+    initInventory();
     attachStaffToCamera();
     startTimer();
     const crosshair = createCrosshair();
@@ -401,7 +395,7 @@ async function init() {
           }
         }
       }
-      else if (event.key === "i" || event.key === "I") {
+      else if (event.key === "h" || event.key === "H") {
         if (!isInput) {
           if (document.getElementById("hintModal").style.display === "block") {
             hideHintModal();
@@ -426,7 +420,15 @@ async function init() {
           toggleBackgroundMusic();
         }
       }
-
+      else if (event.key === "i" || event.key === "I") {
+        if (!isInput) {
+          if (document.getElementById("inventoryModal").style.display === "block") {
+            closeInventory();
+          } else {
+            openInventory();
+          }
+        }
+      }
     });
 
     document.querySelector("#hintModal .close").addEventListener("click", hideHintModal)
@@ -2041,83 +2043,12 @@ function rotateTeleports(deltaTime) {
 
 
 
-
-
-function createSkillbar() {
-  const skillbar = document.getElementById('skillbar');
-  spells.forEach(spell => {
-    const spellElement = document.createElement('div');
-    spellElement.className = 'spell-icon';
-    spellElement.style.backgroundImage = `url(${spell.icon})`;
-    spellElement.style.backgroundSize = 'cover';
-    spellElement.innerHTML = `
-      <div class="spell-key">${spell.key}</div>
-      <div class="spell-cooldown" style="display: none;"></div>
-    `;
-    skillbar.appendChild(spellElement);
-  });
-}
-
-export function updateSkillbar() {
-  spells.forEach((spell, index) => {
-
-    if (spell.name === 'Chain Lightning' && !isSpellUnlocked('chainLightning')) {
-      const spellElement = document.querySelectorAll('.spell-icon')[index];
-      spellElement.style.display = 'none';
-    }
-    else if (isSpellUnlocked('chainLightning')) {
-      const spellElement = document.querySelectorAll('.spell-icon')[index];
-      spellElement.style.display = 'block';
-    }
-
-    const spellElement = document.querySelectorAll('.spell-icon')[index];
-    const cooldownElement = spellElement.querySelector('.spell-cooldown');
-    if (!spell.isReady()) {
-      const remainingCooldown = Math.ceil((spell.cooldown - (Date.now() - spell.lastCastTime)) / 1000);
-      cooldownElement.textContent = remainingCooldown;
-      cooldownElement.style.display = 'flex';
-    } else {
-      cooldownElement.style.display = 'none';
-    }
-  });
-}
-
 function resetStaffColor() {
   if (Date.now() - lastSpellCastTime > 500) {
     changeStaffColor(0xff4500); // Obnovení výchozí oranžové barvy
   }
 }
 
-
-
-
-
-
-
-
-
-function checkWallCollision(projectile) {
-  for (let wall of walls) {
-    if (projectile.position.distanceTo(wall.position) < CELL_SIZE / 2) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
-function convertColorToCSS(hexColor) {
-  // Převedeme číslo na řetězec a odstraníme prefix "0x" nebo "0X"
-  let hexString = hexColor.toString(16).slice(2);
-
-  // Zajistíme, že řetězec má 6 znaků (doplníme nulami zleva, pokud je potřeba)
-  while (hexString.length < 6) {
-    hexString = '0' + hexString;
-  }
-
-  // Přidáme na začátek znak #
-  return `#${hexString}`;
-}
 
 
 function updateBosses(deltaTime) {
@@ -2459,6 +2390,8 @@ function animate() {
   regenerateMana(deltaTime);
   regenerateHealth(deltaTime)
   animateStaffRotation(deltaTime);
+  updatePotionCooldowns(deltaTime);
+
 
 
   if (isMinimapVisible) {
@@ -2470,6 +2403,7 @@ function animate() {
 
   resetStaffColor();
   updateStaffColor(deltaTime);
+
   
 
   // Animace létajících objektů

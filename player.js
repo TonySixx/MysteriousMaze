@@ -2,21 +2,21 @@ import * as THREE from "three";
 import {  camera,  CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
+import { usePotion } from "./inventory.js";
 
 
 var player;
 var playerHealth = 100;
 var playerMana = 100;
 
-export let playerLevel = 1;
 export let playerExp = 0;
 export let expToNextLevel = 100;
 export let skillPoints = 0;
 
-export let playerGold = 0;
 
 
 const maxMana = 100;
+const maxHealth = 100;
 const manaRegenRate = 0.5;
 
 
@@ -37,6 +37,22 @@ const MAX_JUMP_HEIGHT = 2;
 
 
 const EXP_SEGMENTS = 20; // Počet segmentů v EXP baru
+
+export function getPlayerHealth() {
+    return playerHealth;
+}
+
+export function getPlayerMana() {
+    return playerMana;
+}
+
+export function getPlayerMaxHealth() {
+    return maxHealth;
+}
+
+export function getPlayerMaxMana() {
+    return maxMana;
+}
 
 export function setPlayerHealth(health) {
     playerHealth = health;
@@ -129,6 +145,9 @@ export function addGold(amount) {
     savePlayerProgress();
 }
 
+export function getGold() {
+    return playerGold;
+}
 
 function levelUp() {
     playerLevel++;
@@ -505,7 +524,7 @@ export function onKeyDown(event) {
             }
         }
     }
-    if (event.key === 'r' || event.key === 'R') {
+    else if (event.key === 'r' || event.key === 'R') {
         const chainLightningSpell = getActiveSpells().find(spell => spell.name === 'Chain Lightning');
         if (chainLightningSpell && chainLightningSpell.isReady()) {
             let fired = chainLightningSpell.cast();
@@ -514,6 +533,12 @@ export function onKeyDown(event) {
             }
         }
     }
+    
+    else if (event.code === 'Digit1') {
+        usePotion('hp');
+      } else if (event.code === 'Digit2') {
+        usePotion('mp');
+      }
 }
 
 export function onKeyUp(event) {

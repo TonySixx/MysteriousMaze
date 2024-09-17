@@ -1016,6 +1016,45 @@ function findNearestUnhitBoss(position, maxDistance, hitBosses) {
   return nearestBoss;
 }
 
+export function createSkillbar() {
+  const skillbar = document.getElementById('skillbar');
+  spells.forEach(spell => {
+    const spellElement = document.createElement('div');
+    spellElement.className = 'spell-icon';
+    spellElement.style.backgroundImage = `url(${spell.icon})`;
+    spellElement.style.backgroundSize = 'cover';
+    spellElement.innerHTML = `
+      <div class="spell-key">${spell.key}</div>
+      <div class="spell-cooldown" style="display: none;"></div>
+    `;
+    skillbar.appendChild(spellElement);
+  });
+}
+
+export function updateSkillbar() {
+  spells.forEach((spell, index) => {
+
+    if (spell.name === 'Chain Lightning' && !isSpellUnlocked('chainLightning')) {
+      const spellElement = document.querySelectorAll('.spell-icon')[index];
+      spellElement.style.display = 'none';
+    }
+    else if (isSpellUnlocked('chainLightning')) {
+      const spellElement = document.querySelectorAll('.spell-icon')[index];
+      spellElement.style.display = 'block';
+    }
+
+    const spellElement = document.querySelectorAll('.spell-icon')[index];
+    const cooldownElement = spellElement.querySelector('.spell-cooldown');
+    if (!spell.isReady()) {
+      const remainingCooldown = Math.ceil((spell.cooldown - (Date.now() - spell.lastCastTime)) / 1000);
+      cooldownElement.textContent = remainingCooldown;
+      cooldownElement.style.display = 'flex';
+    } else {
+      cooldownElement.style.display = 'none';
+    }
+  });
+}
+
 let originalStaffRotation;
 
 function animateStaffSwing() {

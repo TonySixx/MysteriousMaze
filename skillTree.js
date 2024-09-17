@@ -1,4 +1,4 @@
-import { playerLevel, useSkillPoint } from './player.js';
+import { useSkillPoint } from './player.js';
 import frostboltIcon from './public/spells/frostbolt-icon.png';
 import arcaneMissileIcon from './public/spells/arcane-missile-icon.png';
 import iceExplosionIcon from './public/spells/ice-explosion-icon.png';
@@ -9,9 +9,9 @@ import chainLightningIcon from './public/spells/chain-lightning-icon.png';
 import chainExplosionIcon from './public/spells/chain-explosion-icon.png';
 import frostAuraIcon from './public/spells/frost-aura-icon.png';
 import explosiveCoreIcon from './public/spells/explosive-core-icon.png';
-import { spells, updateSpellUpgrades } from './spells.js';
+import { spells, updateSkillbar, updateSpellUpgrades } from './spells.js';
 import { getSkillPoints } from './player.js';
-import { exitPointerLock, requestPointerLock, updateSkillbar } from './main.js';
+import { exitPointerLock, requestPointerLock } from './main.js';
 import { getTranslation } from './langUtils.js';
 
 let skillTreeModal = null;

@@ -24,7 +24,7 @@ export function updateUITexts() {
     document.getElementById("showScoreText").textContent = `${getTranslation('score')} [C]`;
     document.getElementById("showMinimapText").textContent = `${getTranslation('minimap')} [V]`;
     document.getElementById("showSkillTreeText").textContent = `${getTranslation('spells')} [K]`;
-    document.getElementById("showHintText").textContent = `${getTranslation('hint')} [I]`;
+    document.getElementById("showHintText").textContent = `${getTranslation('hint')} [H]`;
     document.getElementById("showOptions").textContent = `${getTranslation('settings')} [O]`;
     document.getElementById("toggleMusicText").textContent = `${getTranslation('music')} [B]`;
   }
