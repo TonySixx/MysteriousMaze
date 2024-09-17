@@ -333,6 +333,7 @@ function castFireball() {
     changeStaffColor(0xff4500);
 
     playSound(fireballSoundBuffer);
+    animateStaffSwing(); // Přidáno volání animace
 
     const fireball = createFireball();
     const staffWorldPosition = new THREE.Vector3();
@@ -396,7 +397,8 @@ function castFrostbolt() {
     lastSpellCastTime = Date.now();
     changeStaffColor(0x8feaff);
 
-   playSound(frostBoltSoundBuffer,0.7);
+    playSound(frostBoltSoundBuffer,0.7);
+    animateStaffSwing(); // Přidáno volání animace
 
     const frostbolt = createFrostbolt();
     const staffWorldPosition = new THREE.Vector3();
@@ -435,6 +437,7 @@ function castArcaneMissile() {
     changeStaffColor(0x9661ff);
 
     playSound(magicMissileSoundBuffer);
+    animateStaffSwing(); // Přidáno volání animace
     const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
     const multiShot = arcaneMissileSpell ? arcaneMissileSpell.multiShot : false;
     const missileCount = multiShot ? 3 : 1;
@@ -648,6 +651,7 @@ function castChainLightning() {
     changeStaffColor(0xbac5ff);
 
     playSound(chainLightningSoundBuffer);
+    animateStaffSwing(); // Přidáno volání animace
     const chainLightningSpell = spells.find(spell => spell.name === 'Chain Lightning');
     const lightning = createChainLightning();
     const staffWorldPosition = new THREE.Vector3();
@@ -1010,6 +1014,34 @@ function findNearestUnhitBoss(position, maxDistance, hitBosses) {
   }
 
   return nearestBoss;
+}
+
+let originalStaffRotation;
+
+function animateStaffSwing() {
+  if (!staffModel) return;
+
+  // Uložíme původní rotaci, pokud ještě není uložena
+  if (!originalStaffRotation) {
+    originalStaffRotation = staffModel.rotation.clone();
+  }
+
+  // Vždy nastavíme počáteční rotaci na původní hodnotu
+  staffModel.rotation.copy(originalStaffRotation);
+
+  const swingAngle = -(Math.PI / 4); // 30 stupňů
+
+  const animate = (progress) => {
+    if (progress <= 1) {
+      const currentAngle = Math.sin(progress * Math.PI) * swingAngle;
+      staffModel.rotation.z = originalStaffRotation.z + currentAngle;
+      requestAnimationFrame(() => animate(progress + 0.06));
+    } else {
+      staffModel.rotation.z = originalStaffRotation.z;
+    }
+  };
+
+  animate(0);
 }
 
 export { spells, Spell, castFireball, castFrostbolt, castArcaneMissile, updateFireballs, updateFrostbolts, updateArcaneMissiles };
