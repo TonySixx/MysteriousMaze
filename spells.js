@@ -198,7 +198,7 @@ function createFrostbolt() {
     // Získání směru kamery
     const cameraDirection = new THREE.Vector3();
     camera.getWorldDirection(cameraDirection);
-    
+
     // Animate ice trail
     const trailPositions = trailParticles.geometry.attributes.position.array;
     for (let i = trailPositions.length - 1; i >= 3; i -= 3) {
@@ -206,12 +206,12 @@ function createFrostbolt() {
       trailPositions[i - 1] = trailPositions[i - 4];
       trailPositions[i - 2] = trailPositions[i - 5];
     }
-    
+
     // Nastavení nové pozice částice podle směru kamery
     trailPositions[0] = -cameraDirection.x * 0.2;
     trailPositions[1] = -cameraDirection.y * 0.2;
     trailPositions[2] = -cameraDirection.z * 0.2;
-    
+
     trailParticles.geometry.attributes.position.needsUpdate = true;
 
     // Animate ice particles
@@ -333,7 +333,6 @@ function castFireball() {
     changeStaffColor(0xff4500);
 
     playSound(fireballSoundBuffer);
-    animateStaffSwing(); // Přidáno volání animace
 
     const fireball = createFireball();
     const staffWorldPosition = new THREE.Vector3();
@@ -341,6 +340,7 @@ function castFireball() {
     fireball.position.copy(staffWorldPosition);
     fireball.position.y += 0.3;
 
+    animateStaffSwing(); // Přidáno volání animace
     createCastEffect(staffWorldPosition, 0xff4500);
 
     const direction = getCameraDirection();
@@ -397,8 +397,7 @@ function castFrostbolt() {
     lastSpellCastTime = Date.now();
     changeStaffColor(0x8feaff);
 
-    playSound(frostBoltSoundBuffer,0.7);
-    animateStaffSwing(); // Přidáno volání animace
+    playSound(frostBoltSoundBuffer, 0.7);
 
     const frostbolt = createFrostbolt();
     const staffWorldPosition = new THREE.Vector3();
@@ -406,6 +405,7 @@ function castFrostbolt() {
     frostbolt.position.copy(staffWorldPosition);
     frostbolt.position.y += 0.3;
 
+    animateStaffSwing(); // Přidáno volání animace
     createCastEffect(staffWorldPosition, 0x00ffff);
     const direction = getCameraDirection();
     frostbolt.velocity = direction.multiplyScalar(0.25);
@@ -437,7 +437,6 @@ function castArcaneMissile() {
     changeStaffColor(0x9661ff);
 
     playSound(magicMissileSoundBuffer);
-    animateStaffSwing(); // Přidáno volání animace
     const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
     const multiShot = arcaneMissileSpell ? arcaneMissileSpell.multiShot : false;
     const missileCount = multiShot ? 3 : 1;
@@ -449,6 +448,7 @@ function castArcaneMissile() {
       arcaneMissile.position.copy(staffWorldPosition);
       arcaneMissile.position.y += 0.3;
 
+      animateStaffSwing(); // Přidáno volání animace
       createCastEffect(staffWorldPosition, 0x9661ff);
 
       const direction = getCameraDirection();
@@ -491,7 +491,7 @@ function updateFireballs(deltaTime) {
         boss.takeDamage(fireball.damage, fireball.burningEffect);
         if (fireball.explosiveCore) {
           // Způsobí poškození všem bossům v okruhu 3 metrů
-        createFireballExplosion(fireball.position);
+          createFireballExplosion(fireball.position);
 
           bosses.forEach(nearbyBoss => {
             if (nearbyBoss.model.position.distanceTo(fireball.position) <= 3) {
@@ -651,7 +651,6 @@ function castChainLightning() {
     changeStaffColor(0xbac5ff);
 
     playSound(chainLightningSoundBuffer);
-    animateStaffSwing(); // Přidáno volání animace
     const chainLightningSpell = spells.find(spell => spell.name === 'Chain Lightning');
     const lightning = createChainLightning();
     const staffWorldPosition = new THREE.Vector3();
@@ -660,6 +659,7 @@ function castChainLightning() {
     lightning.position.y += 0.3;
     lightning.damage = chainLightningSpell ? chainLightningSpell.damage : 300;
 
+    animateStaffSwing(); // Přidáno volání animace
     createCastEffect(staffWorldPosition, 0xbac5ff);
 
     const direction = getCameraDirection();
@@ -903,10 +903,10 @@ function createChainLightningVisual(startPosition, endPosition) {
 function createFrostAura() {
   const auraGeometry = new THREE.SphereGeometry(5, 32, 32);
   const auraMaterial = new THREE.MeshBasicMaterial({
-      color: 0x87CEFA,
-      transparent: true,
-      opacity: 0.3,
-      side: THREE.DoubleSide // Toto zajistí, že aura bude viditelná z obou stran
+    color: 0x87CEFA,
+    transparent: true,
+    opacity: 0.3,
+    side: THREE.DoubleSide // Toto zajistí, že aura bude viditelná z obou stran
   });
   const aura = new THREE.Mesh(auraGeometry, auraMaterial);
   aura.position.copy(player.position);
@@ -914,23 +914,23 @@ function createFrostAura() {
 
   // Animace a efekt aury
   const animate = () => {
-      aura.position.copy(player.position); // Aktualizujeme pozici aury s hráčem
-      aura.scale.multiplyScalar(1.01);
-      aura.material.opacity -= 0.005; // Zpomalíme mizení aury
-      if (aura.material.opacity > 0) {
-          requestAnimationFrame(animate);
+    aura.position.copy(player.position); // Aktualizujeme pozici aury s hráčem
+    aura.scale.multiplyScalar(1.01);
+    aura.material.opacity -= 0.005; // Zpomalíme mizení aury
+    if (aura.material.opacity > 0) {
+      requestAnimationFrame(animate);
 
-          // Zpomalení nepřátel v dosahu aury
-          bosses.forEach(boss => {
-              if (boss.position.distanceTo(player.position) <= 7) {
-                  boss.slow(0.7, 5000); // Zpomalí bosse na 70% rychlosti po dobu 5 sekund
-              }
-          });
-      } else {
-          scene.remove(aura);
-          aura.geometry.dispose();
-          aura.material.dispose();
-      }
+      // Zpomalení nepřátel v dosahu aury
+      bosses.forEach(boss => {
+        if (boss.position.distanceTo(player.position) <= 7) {
+          boss.slow(0.7, 5000); // Zpomalí bosse na 70% rychlosti po dobu 5 sekund
+        }
+      });
+    } else {
+      scene.remove(aura);
+      aura.geometry.dispose();
+      aura.material.dispose();
+    }
   };
   animate();
 }
@@ -942,28 +942,28 @@ function createFireballExplosion(position) {
   const colors = new Float32Array(particleCount * 3);
 
   for (let i = 0; i < particleCount; i++) {
-      const radius = Math.random() * 3;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI;
+    const radius = Math.random() * 3;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI;
 
-      positions[i * 3] = position.x + radius * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = position.y + radius * Math.sin(phi) * Math.sin(theta);
-      positions[i * 3 + 2] = position.z + radius * Math.cos(phi);
+    positions[i * 3] = position.x + radius * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = position.y + radius * Math.sin(phi) * Math.sin(theta);
+    positions[i * 3 + 2] = position.z + radius * Math.cos(phi);
 
-      colors[i * 3] = 1;  // R
-      colors[i * 3 + 1] = Math.random() * 0.5;  // G
-      colors[i * 3 + 2] = 0;  // B
+    colors[i * 3] = 1;  // R
+    colors[i * 3 + 1] = Math.random() * 0.5;  // G
+    colors[i * 3 + 2] = 0;  // B
   }
 
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
-      size: 0.1,
-      vertexColors: true,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      opacity: 1
+    size: 0.1,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    opacity: 1
   });
 
   const particles = new THREE.Points(geometry, material);
@@ -971,29 +971,29 @@ function createFireballExplosion(position) {
 
   // Animace částic
   const animate = () => {
-      const positions = particles.geometry.attributes.position.array;
-      const colors = particles.geometry.attributes.color.array;
+    const positions = particles.geometry.attributes.position.array;
+    const colors = particles.geometry.attributes.color.array;
 
-      for (let i = 0; i < positions.length; i += 3) {
-          positions[i] += (Math.random() - 0.5) * 0.1;
-          positions[i + 1] += (Math.random() - 0.5) * 0.1;
-          positions[i + 2] += (Math.random() - 0.5) * 0.1;
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] += (Math.random() - 0.5) * 0.1;
+      positions[i + 1] += (Math.random() - 0.5) * 0.1;
+      positions[i + 2] += (Math.random() - 0.5) * 0.1;
 
-          colors[i + 1] *= 0.99;  // Postupné ztmavování částic
-      }
+      colors[i + 1] *= 0.99;  // Postupné ztmavování částic
+    }
 
-      particles.geometry.attributes.position.needsUpdate = true;
-      particles.geometry.attributes.color.needsUpdate = true;
+    particles.geometry.attributes.position.needsUpdate = true;
+    particles.geometry.attributes.color.needsUpdate = true;
 
-      material.opacity -= 0.02;
+    material.opacity -= 0.02;
 
-      if (material.opacity > 0) {
-          requestAnimationFrame(animate);
-      } else {
-          scene.remove(particles);
-          geometry.dispose();
-          material.dispose();
-      }
+    if (material.opacity > 0) {
+      requestAnimationFrame(animate);
+    } else {
+      scene.remove(particles);
+      geometry.dispose();
+      material.dispose();
+    }
   };
 
   animate();
@@ -1029,13 +1029,13 @@ function animateStaffSwing() {
   // Vždy nastavíme počáteční rotaci na původní hodnotu
   staffModel.rotation.copy(originalStaffRotation);
 
-  const swingAngle = -(Math.PI / 4); // 30 stupňů
+  const swingAngle = -(Math.PI / 4); // 45 stupňů
 
   const animate = (progress) => {
     if (progress <= 1) {
       const currentAngle = Math.sin(progress * Math.PI) * swingAngle;
       staffModel.rotation.z = originalStaffRotation.z + currentAngle;
-      requestAnimationFrame(() => animate(progress + 0.06));
+      requestAnimationFrame(() => animate(progress + 0.045));
     } else {
       staffModel.rotation.z = originalStaffRotation.z;
     }
