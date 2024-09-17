@@ -139,6 +139,7 @@ function createTents() {
   ];
 
   tentPositions.forEach((pos) => {
+    // Vytvoříme viditelný stan
     const tent = new THREE.Mesh(tentGeometry, tentMaterial);
     tent.position.set(pos.x, 2, pos.z);
 
@@ -147,8 +148,13 @@ function createTents() {
     tent.rotation.y = angle;
 
     scene.add(tent);
+
+    // Vytvoříme neviditelné zdi kolem stanu
+    createTentWalls(tent, pos.x, pos.z, angle);
   });
 }
+
+
 
 function createMerchant() {
   const merchantPosition = { x: 0, y: 0, z: 2 };
@@ -424,3 +430,42 @@ function addLighting() {
   moonLight.position.set(20, 5, 20);
   scene.add(moonLight);
 }
+
+function createTentWalls(tent, x, z, angle) {
+  const wallHeight = 5;
+  const wallThickness = 0.2;
+  const tentRadius = 3;
+
+  // Úhly pro výpočet pozic zdí
+  const thetaStart = tent.geometry.parameters.thetaStart;
+  const thetaLength = tent.geometry.parameters.thetaLength;
+
+  // Úhel středu otvoru
+  const openingCenterAngle = angle;
+
+  // Úhly okrajů otvoru
+  const leftEdgeAngle = angle + thetaStart;
+  const rightEdgeAngle = angle + thetaStart + thetaLength;
+
+  // Vytvoříme dvě zdi pokrývající stěny stanu mimo otvor
+  const wallGeometry = new THREE.BoxGeometry(
+    tentRadius * 2,
+    wallHeight,
+    wallThickness
+  );
+
+  // První zeď (levá strana)
+  const leftWall = new THREE.Mesh(wallGeometry, new THREE.MeshBasicMaterial({ visible: false }));
+  leftWall.position.set(x, wallHeight / 2, z);
+  leftWall.rotation.y = leftEdgeAngle + Math.PI / 2;
+  scene.add(leftWall);
+  walls.push(leftWall);
+
+  // Druhá zeď (pravá strana)
+  const rightWall = new THREE.Mesh(wallGeometry, new THREE.MeshBasicMaterial({ visible: false }));
+  rightWall.position.set(x, wallHeight / 2, z);
+  rightWall.rotation.y = rightEdgeAngle - Math.PI / 2;
+  scene.add(rightWall);
+  walls.push(rightWall);
+}
+
