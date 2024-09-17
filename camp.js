@@ -175,6 +175,16 @@ function createWalls() {
     createWall(-15, WALL_HEIGHT / 2, i, wallGeometry, wallMaterial);
     createWall(15, WALL_HEIGHT / 2, i, wallGeometry, wallMaterial);
   }
+    // Přidáme pochodně na zdi
+  createTorchOnWall(-5, -15, { dx: 0, dz: 1 });  // Severní zeď
+  createTorchOnWall(5, -15, { dx: 0, dz: 1 });  // Severní zeď 
+  createTorchOnWall(5, 15, { dx: 0, dz: -1 });  // Jižní zeď
+  createTorchOnWall(-5, 15, { dx: 0, dz: -1 });  // Jižní zeď
+  createTorchOnWall(-15, 5, { dx: 1, dz: 0 });  // Západní zeď
+  createTorchOnWall(-15, -5, { dx: 1, dz: 0 });  // Západní zeď
+  createTorchOnWall(15, 5, { dx: -1, dz: 0 });  // Východní zeď
+  createTorchOnWall(15, -5, { dx: -1, dz: 0 });  // Východní zeď
+  
 }
 
 function createWall(x, y, z, geometry, material) {
@@ -311,7 +321,7 @@ function createCenterTower() {
     createTorchOnCenterTower(
       centerTowerPosition.x,
       centerTowerPosition.z,
-      centerTowerHeight,
+      centerTowerHeight / 1.4,
       dir
     );
   });
