@@ -341,7 +341,6 @@ async function init() {
     createPlayer();
     createSkillbar()
     initSkillTree();
-    initInventory();
     attachStaffToCamera();
     startTimer();
     const crosshair = createCrosshair();

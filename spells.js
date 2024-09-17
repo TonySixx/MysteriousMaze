@@ -340,6 +340,10 @@ function castFireball() {
     fireball.position.copy(staffWorldPosition);
     fireball.position.y += 0.3;
 
+    const cameraDirection = getCameraDirection();
+    const leftVector = new THREE.Vector3().crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+    fireball.position.addScaledVector(leftVector, -0.1);
+
     animateStaffSwing(); // Přidáno volání animace
     createCastEffect(staffWorldPosition, 0xff4500);
 
@@ -405,6 +409,10 @@ function castFrostbolt() {
     frostbolt.position.copy(staffWorldPosition);
     frostbolt.position.y += 0.3;
 
+    const cameraDirection = getCameraDirection();
+    const leftVector = new THREE.Vector3().crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+    frostbolt.position.addScaledVector(leftVector, -0.1);
+
     animateStaffSwing(); // Přidáno volání animace
     createCastEffect(staffWorldPosition, 0x00ffff);
     const direction = getCameraDirection();
@@ -447,6 +455,10 @@ function castArcaneMissile() {
       staffModel.getWorldPosition(staffWorldPosition);
       arcaneMissile.position.copy(staffWorldPosition);
       arcaneMissile.position.y += 0.3;
+      
+      const cameraDirection = getCameraDirection();
+      const leftVector = new THREE.Vector3().crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+      arcaneMissile.position.addScaledVector(leftVector, -0.1);
 
       animateStaffSwing(); // Přidáno volání animace
       createCastEffect(staffWorldPosition, 0x9661ff);
@@ -657,6 +669,11 @@ function castChainLightning() {
     staffModel.getWorldPosition(staffWorldPosition);
     lightning.position.copy(staffWorldPosition);
     lightning.position.y += 0.3;
+
+    const cameraDirection = getCameraDirection();
+    const leftVector = new THREE.Vector3().crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+    lightning.position.addScaledVector(leftVector, -0.1);
+
     lightning.damage = chainLightningSpell ? chainLightningSpell.damage : 300;
 
     animateStaffSwing(); // Přidáno volání animace

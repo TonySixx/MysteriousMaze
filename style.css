@@ -116,10 +116,15 @@ canvas {
   margin-right: 20px;
 }
 
-#showScoreText {
+.showBottomMenuText {
   font-size: 14px;
   opacity: 0.8;
+  margin-left: 15px;
 }
+.showBottomMenuText:first-of-type{
+  margin-left: 0;
+}
+
 
 #game-stats {
   font-size: 14px;
@@ -145,35 +150,6 @@ canvas {
 
 #minimap {
   border: 4px solid rgb(0, 0, 0);
-}
-
-#showMinimapText {
-  font-size: 14px;
-  opacity: 0.8;
-  margin-left: 15px;
-}
-
-#showSkillTreeText {
-  font-size: 14px;
-  opacity: 0.8;
-  margin-left: 15px;
-}
-
-#showHintText{
-  font-size: 14px;
-  opacity: 0.8;
-  margin-left: 15px;
-}
-#showOptions{
-  font-size: 14px;
-  opacity: 0.8;
-  margin-left: 15px;
-}
-
-#toggleMusicText {
-  font-size: 14px;
-  opacity: 0.8;
-  margin-left: 15px;
 }
 
 

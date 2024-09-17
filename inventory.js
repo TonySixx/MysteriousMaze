@@ -19,53 +19,60 @@ export let mpPotionCooldown = 0;
 const POTION_COOLDOWN = 10000; // 10 sekund v milisekundách
 
 export function initInventory() {
-  inventory = new Array(INVENTORY_SIZE).fill(null);
-  const mageStaff = {
-    name: "Mage's Staff",
-    type: "weapon",
-    rarity: "common",
-    requiredLevel: 1,
-    sellable: false,
-    sellPrice: 0,
-    stackable: false,
-    icon: 'inventory/mage-staff.jpg'
-  };
-  addItemToInventory(mageStaff);
-  equipItem("Mage's Staff", "weapon");
+  const savedInventory = localStorage.getItem('inventory');
+  const savedEquipment = localStorage.getItem('equipment');
 
-  // Příklad přidání stackovatelného předmětu
-  const healthPotion = {
-    name: "Health Potion",
-    type: "hpPotion",
-    rarity: "common",
-    requiredLevel: 1,
-    sellable: true,
-    sellPrice: 5,
-    stackable: true,
-    count: 1,
-    icon: 'inventory/hp-slot.jpg'
-  };
-  const manaPotion = {
-    name: "Mana Potion",
-    type: "mpPotion",
-    rarity: "common",
-    requiredLevel: 1,
-    sellable: true,
-    sellPrice: 5,
-    stackable: true,
-    count: 10,
-    icon: 'inventory/mp-slot.jpg'
-  };
-  addItemToInventory(healthPotion);
-  addItemToInventory(manaPotion);
+  if (savedInventory && savedEquipment) {
+    inventory = JSON.parse(savedInventory);
+    equipment = JSON.parse(savedEquipment);
+  } else {
+    inventory = new Array(INVENTORY_SIZE).fill(null);
+    const mageStaff = {
+      name: "Mage's Staff",
+      type: "weapon",
+      rarity: "common",
+      requiredLevel: 1,
+      sellable: false,
+      sellPrice: 0,
+      stackable: false,
+      icon: 'inventory/mage-staff.jpg'
+    };
+    addItemToInventory(mageStaff);
+    equipItem("Mage's Staff", "weapon");
+
+    const healthPotion = {
+      name: "Health Potion",
+      type: "hpPotion",
+      rarity: "common",
+      requiredLevel: 1,
+      sellable: true,
+      sellPrice: 5,
+      stackable: true,
+      count: 1,
+      icon: 'inventory/hp-slot.jpg'
+    };
+    const manaPotion = {
+      name: "Mana Potion",
+      type: "mpPotion",
+      rarity: "common",
+      requiredLevel: 1,
+      sellable: true,
+      sellPrice: 5,
+      stackable: true,
+      count: 10,
+      icon: 'inventory/mp-slot.jpg'
+    };
+    addItemToInventory(healthPotion);
+    addItemToInventory(manaPotion);
+  }
 
   console.log("Inventory initialized:", inventory);
   console.log("Equipment initialized:", equipment);
 
   initPotionBar();
-  renderPotionBar(); // Přidáno volání renderPotionBar
+  renderPotionBar();
+  updateStaffVisibility();
 }
-
 function initPotionBar() {
   const potionBar = document.getElementById('potionBar');
   potionBar.innerHTML = `
@@ -162,15 +169,15 @@ function renderEquipment() {
 }
 
 function renderPotionBar() {
-  const hpPotionSlot = document.getElementById('hpPotionSlotInBar');
-  const mpPotionSlot = document.getElementById('mpPotionSlotInBar');
-
-  renderPotionSlot(hpPotionSlot, equipment.hpPotion, 'hp-slot.jpg', hpPotionCooldown);
-  renderPotionSlot(mpPotionSlot, equipment.mpPotion, 'mp-slot.jpg', mpPotionCooldown);
+  renderPotionSlot('hpPotionSlotInBar', equipment.hpPotion, 'hp-slot.jpg', hpPotionCooldown);
+  renderPotionSlot('mpPotionSlotInBar', equipment.mpPotion, 'mp-slot.jpg', mpPotionCooldown);
 }
 
-function renderPotionSlot(slot, potion, placeholderIcon, cooldown) {
-  slot.innerHTML = `<div class="potion-key">${slot.id === 'hpPotionSlotInBar' ? '1' : '2'}</div>`;
+function renderPotionSlot(slotId, potion, placeholderIcon, cooldown) {
+  const slot = document.getElementById(slotId);
+  if (!slot) return;
+
+  slot.innerHTML = `<div class="potion-key">${slotId === 'hpPotionSlotInBar' ? '1' : '2'}</div>`;
   
   if (potion && potion.count > 0) {
     slot.innerHTML += `
@@ -315,6 +322,7 @@ function allowDrop(event) {
 function drag(event) {
   event.dataTransfer.setData('text/plain', event.target.dataset.name);
   hideTooltip(); // Skryjeme tooltip při zahájení přetahování
+  hideContextMenu();
 }
 
 function drop(event) {
@@ -359,6 +367,7 @@ function moveItem(itemName, targetSlot) {
     }
   }
 
+  saveInventoryToLocalStorage();
   renderInventory();
   renderEquipment();
 }
@@ -375,12 +384,12 @@ function canEquipItem(item, slotId) {
 function equipItem(itemName, slot) {
   const item = findItemByName(itemName);
   if (!item) {
-      console.error(`Item ${itemName} not found`);
-      return;
+    console.error(`Item ${itemName} not found`);
+    return;
   }
 
   if (equipment[slot]) {
-      addItemToInventory(equipment[slot]);
+    addItemToInventory(equipment[slot]);
   }
 
   equipment[slot] = item;
@@ -388,8 +397,8 @@ function equipItem(itemName, slot) {
   console.log(`Equipped ${itemName} in ${slot} slot`);
   console.log("Updated equipment:", equipment);
 
-  // Přidáme kontrolu, zda je vybavena zbraň
   updateStaffVisibility();
+  saveInventoryToLocalStorage();
 }
 
 function findItemByName(name) {
@@ -405,8 +414,10 @@ function addItemToInventory(item) {
         const overflow = existingItem.count - 255;
         existingItem.count = 255;
         const newItem = { ...item, count: overflow };
+        saveInventoryToLocalStorage();
         return addItemToInventory(newItem);
       }
+      saveInventoryToLocalStorage();
       return true;
     }
   }
@@ -414,6 +425,7 @@ function addItemToInventory(item) {
   const emptySlot = inventory.findIndex(slot => slot === null);
   if (emptySlot !== -1) {
     inventory[emptySlot] = item.stackable ? { ...item, count: item.count || 1 } : item;
+    saveInventoryToLocalStorage();
     return true;
   }
   return false;
@@ -431,6 +443,7 @@ function removeItemFromInventory(itemName, count = 1) {
     } else {
       inventory[index] = null;
     }
+    saveInventoryToLocalStorage();
     return true;
   }
   return false;
@@ -449,6 +462,7 @@ function removeItemFromEquipment(slot) {
       
       renderInventory();
       renderEquipment();
+      saveInventoryToLocalStorage();
       return true;
     } else {
       console.log(`Couldn't remove ${item.name} from ${slot} slot: inventory full`);
@@ -459,6 +473,7 @@ function removeItemFromEquipment(slot) {
 
 function showContextMenu(event) {
   event.preventDefault();
+  hideTooltip();
   const contextMenu = document.getElementById('contextMenu');
   const itemElement = event.target.closest('.item');
   if (!itemElement) return;
@@ -499,11 +514,20 @@ function sellItem(itemName) {
   const item = findItemByName(itemName);
   if (!item || !item.sellable || isItemEquipped(item)) return;
 
+  const equippedSlot = Object.entries(equipment).find(([_, equippedItem]) => equippedItem && equippedItem.name === itemName);
+  
+  if (equippedSlot) {
+    removeItemFromEquipment(equippedSlot[0]);
+  } else {
+    removeItemFromInventory(itemName, item.count);
+  }
+
   const sellCount = item.stackable ? item.count : 1;
   addGold(item.sellPrice * sellCount);
-  removeItemFromInventory(itemName, sellCount);
   renderInventory();
-  //updateGoldDisplay();
+  renderEquipment();
+  updateGoldDisplay();
+  saveInventoryToLocalStorage();
 }
 
 // Přidejte tuto funkci pro aktualizaci zobrazení goldů
@@ -531,6 +555,7 @@ export function usePotion(type) {
       equipment.hpPotion = null;
     }
     renderPotionBar();
+    saveInventoryToLocalStorage();
   } else if (type === 'mp' && equipment.mpPotion && equipment.mpPotion.count > 0 && mpPotionCooldown <= 0) {
     const manaAmount = 50;
     const newMana = Math.min(getPlayerMana() + manaAmount, getPlayerMaxMana());
@@ -541,6 +566,7 @@ export function usePotion(type) {
       equipment.mpPotion = null;
     }
     renderPotionBar();
+    saveInventoryToLocalStorage();
   }
 }
 
@@ -563,4 +589,9 @@ function updateStaffVisibility() {
   }
 }
 
-export { inventory, equipment, addItemToInventory,updateStaffVisibility };
+function saveInventoryToLocalStorage() {
+  localStorage.setItem('inventory', JSON.stringify(inventory));
+  localStorage.setItem('equipment', JSON.stringify(equipment));
+}
+
+export { inventory, equipment, addItemToInventory, updateStaffVisibility };

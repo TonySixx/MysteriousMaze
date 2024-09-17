@@ -27,6 +27,7 @@ export function updateUITexts() {
     document.getElementById("showHintText").textContent = `${getTranslation('hint')} [H]`;
     document.getElementById("showOptions").textContent = `${getTranslation('settings')} [O]`;
     document.getElementById("toggleMusicText").textContent = `${getTranslation('music')} [B]`;
+    document.getElementById("showInventoryText").textContent = `${getTranslation('inventory')} [I]`;
   }
 
  export function updateTranslations() {

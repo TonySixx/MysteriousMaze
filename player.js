@@ -2,7 +2,7 @@ import * as THREE from "three";
 import {  camera,  CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
-import { equipment, usePotion } from "./inventory.js";
+import { equipment, initInventory, usePotion } from "./inventory.js";
 
 
 var player;
@@ -128,6 +128,7 @@ export function loadPlayerProgress() {
     updatePlayerStats();
     updateGoldDisplay();
     updateExpBar();
+    initInventory();
 }
 
 export function addExperience(exp) {
