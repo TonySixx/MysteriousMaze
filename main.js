@@ -820,6 +820,38 @@ export function createExplosion(position, color = 0xff8f45) {
   return explosionGroup;
 }
 
+// Funkce pro přidání hvězd na oblohu
+function addStars() {
+  const starGeometry = new THREE.BufferGeometry();
+  const starCount = 1000; // Počet hvězd
+  const positions = new Float32Array(starCount * 3);
+
+  for (let i = 0; i < starCount; i++) {
+    const theta = THREE.MathUtils.randFloatSpread(360);
+    const phi = THREE.MathUtils.randFloatSpread(360);
+
+    const distance = 400; // Vzdálenost hvězd od středu scény
+
+    const x = distance * Math.sin(theta) * Math.cos(phi);
+    const y = distance * Math.sin(theta) * Math.sin(phi);
+    const z = distance * Math.cos(theta);
+
+    positions[i * 3] = x;
+    positions[i * 3 + 1] = y;
+    positions[i * 3 + 2] = z;
+  }
+
+  starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const starMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 1,
+    sizeAttenuation: true,
+  });
+
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  scene.add(stars);
+}
 
 function createCamp() {
   clearScene();
@@ -874,6 +906,9 @@ function createCamp() {
   const sky = new THREE.Mesh(skyGeometry, skyMaterial);
   scene.add(sky);
 
+  // Přidáme hvězdy na oblohu
+  addStars();
+
   // Přidáme statické stany
  const tentPositions = [
     { x: -7.5, z: -7.5 },
@@ -920,36 +955,36 @@ function createCamp() {
     updateMerchantAnimation();
   });
 
- // Inicializujeme LightManager
- lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
+   // Inicializujeme LightManager
+   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
 
- const wallTexture = loader.load(textureSets[0].wallTexture);
- wallTexture.colorSpace = THREE.SRGBColorSpace;
-
- // Přidáme zdi kolem tábora
- const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
- const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
- for (let i = -15; i <= 15; i += CELL_SIZE) {
-   const wallNorth = new THREE.Mesh(wallGeometry, wallMaterial);
-   wallNorth.position.set(i, WALL_HEIGHT / 2, -15);
-   scene.add(wallNorth);
-   walls.push(wallNorth);
-
-   const wallSouth = new THREE.Mesh(wallGeometry, wallMaterial);
-   wallSouth.position.set(i, WALL_HEIGHT / 2, 15);
-   scene.add(wallSouth);
-   walls.push(wallSouth);
-
-   const wallEast = new THREE.Mesh(wallGeometry, wallMaterial);
-   wallEast.position.set(15, WALL_HEIGHT / 2, i);
-   scene.add(wallEast);
-   walls.push(wallEast);
-
-   const wallWest = new THREE.Mesh(wallGeometry, wallMaterial);
-   wallWest.position.set(-15, WALL_HEIGHT / 2, i);
-   scene.add(wallWest);
-   walls.push(wallWest);
- }
+   const wallTexture = loader.load(textureSets[0].wallTexture);
+   wallTexture.colorSpace = THREE.SRGBColorSpace;
+ 
+   // Přidáme zdi kolem tábora
+   const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+   const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
+   for (let i = -15; i <= 15; i += CELL_SIZE) {
+     const wallNorth = new THREE.Mesh(wallGeometry, wallMaterial);
+     wallNorth.position.set(i, WALL_HEIGHT / 2, -15);
+     scene.add(wallNorth);
+     walls.push(wallNorth);
+ 
+     const wallSouth = new THREE.Mesh(wallGeometry, wallMaterial);
+     wallSouth.position.set(i, WALL_HEIGHT / 2, 15);
+     scene.add(wallSouth);
+     walls.push(wallSouth);
+ 
+     const wallEast = new THREE.Mesh(wallGeometry, wallMaterial);
+     wallEast.position.set(15, WALL_HEIGHT / 2, i);
+     scene.add(wallEast);
+     walls.push(wallEast);
+ 
+     const wallWest = new THREE.Mesh(wallGeometry, wallMaterial);
+     wallWest.position.set(-15, WALL_HEIGHT / 2, i);
+     scene.add(wallWest);
+     walls.push(wallWest);
+   }
 
  const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
  const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
@@ -1092,6 +1127,46 @@ function createCamp() {
   
       torches.push({ torch, fire, light });
     });
+  
+  
+   // Načteme model stromu a přidáme stromy kolem tábora
+   gltfLoader.load('Tree.glb', (gltf) => {
+    const treeModel = gltf.scene;
+
+    // Definujeme pozice stromů kolem tábora
+    const treePositions = [];
+     const treeDistance = 5; // Vzdálenost za zdí, kde budou stromy
+    const treeInterval = 5; // Interval mezi stromy
+
+    // Severní strana
+    for (let x = -15; x <= 15; x += treeInterval) {
+      treePositions.push({ x: x, z: -15 - treeDistance  });
+    }
+
+    // Jižní strana
+    for (let x = -15; x <= 15; x += treeInterval) {
+      treePositions.push({ x: x, z: 15 + treeDistance });
+    }
+
+    // Východní strana
+    for (let z = -15; z <= 15; z += treeInterval) {
+      treePositions.push({ x: 15 + treeDistance, z: z });
+    }
+
+    // Západní strana
+    for (let z = -15; z <= 15; z += treeInterval) {
+      treePositions.push({ x: -15 - treeDistance, z: z });
+    }
+
+    // Umístíme stromy na definované pozice
+    treePositions.forEach(pos => {
+      const tree = treeModel.clone();
+      tree.position.set(pos.x, 0, pos.z);
+      const randomHeight = 0.8 + Math.random() * 0.2; // Náhodná výška mezi 0.8 a 1.0
+      tree.scale.set(1, randomHeight, 1); // Upravená výška stromu
+      scene.add(tree);
+    });
+  });
 
   // Přidáme osvětlení
   const ambientLight = new THREE.AmbientLight(0x443c57, 1);
