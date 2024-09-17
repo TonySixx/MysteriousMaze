@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title data-translate="gameTitle">Tajemné bludiště</title>
-  <script type="module" crossorigin src="/MysteriousMaze/assets/index-ClBOfURe.js"></script>
-  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-Pr7lcXRa.css">
+  <title data-translate="gameTitle">Tajemné bludiště</title>
+  <script type="module" crossorigin src="/MysteriousMaze/assets/index-DZOdw1TY.js"></script>
+  <link rel="stylesheet" crossorigin href="/MysteriousMaze/assets/index-RQ6hg3BQ.css">
 </head>
 
-<body>
+<body oncontextmenu="return false;">
   <textarea id="gameConsole"
     style="display:none; position:fixed; bottom:0; left:0; width:100%; height:30px; background-color:black; color:white; border:none; outline:none; padding:5px; font-family:monospace; font-size:14px;"></textarea>
 
@@ -39,13 +39,15 @@
     </div>
   </div>
   <div id="game-ui-bot">
-    <span id="showScoreText" data-translate="score">Skóre [C]</span>
-    <span id="showMinimapText" data-translate="minimap">Minimapa [V]</span>
-    <span id="showSkillTreeText" data-translate="spells">Kouzla [K]</span>
-    <span id="showHintText" data-translate="hint">Nápověda [I]</span>
-    <span id="showOptions" data-translate="settings">Nastavení [O]</span>
-    <span id="toggleMusicText" data-translate="music">Hudba [B]</span>
+    <span class="showBottomMenuText" id="showScoreText" data-translate="score">Skóre [C]</span>
+    <span class="showBottomMenuText" id="showMinimapText" data-translate="minimap">Minimapa [V]</span>
+    <span class="showBottomMenuText" id="showSkillTreeText" data-translate="spells">Kouzla [K]</span>
+    <span class="showBottomMenuText" id="showInventoryText" data-translate="inventory">Inventář [I]</span>
+    <span class="showBottomMenuText" id="showHintText" data-translate="hint">Nápověda [H]</span>
+    <span class="showBottomMenuText" id="showOptions" data-translate="settings">Nastavení [O]</span>
+    <span class="showBottomMenuText" id="toggleMusicText" data-translate="music">♫ [B]</span>
   </div>
+  <div id="potionBar"></div>
   <div id="skillbar"></div>
   <div id="expBar">
     <div id="expFill"></div>
@@ -173,7 +175,21 @@
       </div>
     </div>
   </div>
-
+  <div id="inventoryModal" class="inventory-modal">
+    <div class="inventory-content">
+      <h2 data-translate="inventory">Inventář</h2>
+      <div class="equipment">
+        <div id="weaponSlot" class="equipment-slot"></div>
+        <div id="armorSlot" class="equipment-slot"></div>
+        <div id="hpPotionSlot" class="equipment-slot"></div>
+        <div id="mpPotionSlot" class="equipment-slot"></div>
+      </div>
+      <div id="inventoryGrid" class="inventory-grid"></div>
+    </div>
+  </div>
+  <div id="contextMenu" class="context-menu"></div>
+
+
 </body>
 
 </html>
