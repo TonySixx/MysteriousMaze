@@ -24,11 +24,12 @@ import {
   initPlayerUI,
   loadPlayerProgress,
   addExperience,
+  isAnyModalOpen,
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";
 import { createCamp } from "./camp.js";
-import { closeInventory, initInventory, openInventory, updatePotionCooldowns } from "./inventory.js";
+import { closeInventory, equipment, initInventory, openInventory, updatePotionCooldowns } from "./inventory.js";
 
 export const version = "1.2.1";
 
@@ -530,24 +531,26 @@ function attachStaffToCamera() {
 }
 
 function onMouseDown(event) {
-  if (player.isFrozen) return; // Přidáme tuto kontrolu
+  if (player.isFrozen) return;
+  if (isAnyModalOpen()) return;
+  if (!equipment.weapon) return; // Přidáme kontrolu vybavené zbraně
 
   if (event.button === 0) {
-    const fireballSpell = spells.find(spell => spell.name === 'Fireball');
-    if (fireballSpell && fireballSpell.isReady()) {
-      let fired = fireballSpell.cast();
-      if (fired) {
-        fireballSpell.lastCastTime = Date.now();
+      const fireballSpell = spells.find(spell => spell.name === 'Fireball');
+      if (fireballSpell && fireballSpell.isReady()) {
+          let fired = fireballSpell.cast();
+          if (fired) {
+              fireballSpell.lastCastTime = Date.now();
+          }
       }
-    }
   } else if (event.button === 2) {
-    const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
-    if (arcaneMissileSpell && arcaneMissileSpell.isReady()) {
-      let fired = arcaneMissileSpell.cast();
-      if (fired) {
-        arcaneMissileSpell.lastCastTime = Date.now();
+      const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
+      if (arcaneMissileSpell && arcaneMissileSpell.isReady()) {
+          let fired = arcaneMissileSpell.cast();
+          if (fired) {
+              arcaneMissileSpell.lastCastTime = Date.now();
+          }
       }
-    }
   }
 }
 

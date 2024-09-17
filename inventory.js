@@ -1,6 +1,7 @@
 import { addGold, getGold } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana } from './player.js';
+import { exitPointerLock, requestPointerLock, staffModel } from './main.js';
 
 let inventory = [];
 let equipment = {
@@ -41,7 +42,7 @@ export function initInventory() {
     sellable: true,
     sellPrice: 5,
     stackable: true,
-    count: 10,
+    count: 1,
     icon: 'inventory/hp-slot.jpg'
   };
   const manaPotion = {
@@ -78,6 +79,7 @@ function initPotionBar() {
 }
 
 export function openInventory() {
+  exitPointerLock();
   const inventoryModal = document.getElementById('inventoryModal');
   inventoryModal.style.display = 'block';
   renderInventory();
@@ -86,6 +88,7 @@ export function openInventory() {
 }
 
 export function closeInventory() {
+  requestPointerLock();
   const inventoryModal = document.getElementById('inventoryModal');
   inventoryModal.style.display = 'none';
 }
@@ -169,7 +172,7 @@ function renderPotionBar() {
 function renderPotionSlot(slot, potion, placeholderIcon, cooldown) {
   slot.innerHTML = `<div class="potion-key">${slot.id === 'hpPotionSlotInBar' ? '1' : '2'}</div>`;
   
-  if (potion) {
+  if (potion && potion.count > 0) {
     slot.innerHTML += `
       <div class="potion-icon" style="background-image: url('${potion.icon}')"></div>
       <div class="potion-count">${potion.count}</div>
@@ -320,10 +323,16 @@ function drop(event) {
   const targetSlot = event.target.closest('.inventory-slot, .equipment-slot');
 
   if (targetSlot) {
+    if (targetSlot.classList.contains('inventory-slot')) {
+      const equippedSlot = Object.entries(equipment).find(([_, item]) => item && item.name === itemName);
+      if (equippedSlot) {
+        removeItemFromEquipment(equippedSlot[0]);
+      }
+    }
     moveItem(itemName, targetSlot);
   }
   
-  hideTooltip(); // Skryjeme tooltip po dokončení přetahování
+  hideTooltip();
 }
 
 function moveItem(itemName, targetSlot) {
@@ -366,18 +375,21 @@ function canEquipItem(item, slotId) {
 function equipItem(itemName, slot) {
   const item = findItemByName(itemName);
   if (!item) {
-    console.error(`Item ${itemName} not found`);
-    return;
+      console.error(`Item ${itemName} not found`);
+      return;
   }
 
   if (equipment[slot]) {
-    addItemToInventory(equipment[slot]);
+      addItemToInventory(equipment[slot]);
   }
 
   equipment[slot] = item;
-  removeItemFromInventory(itemName, item.count); // Odebere celý stack
+  removeItemFromInventory(itemName, item.count);
   console.log(`Equipped ${itemName} in ${slot} slot`);
   console.log("Updated equipment:", equipment);
+
+  // Přidáme kontrolu, zda je vybavena zbraň
+  updateStaffVisibility();
 }
 
 function findItemByName(name) {
@@ -420,6 +432,27 @@ function removeItemFromInventory(itemName, count = 1) {
       inventory[index] = null;
     }
     return true;
+  }
+  return false;
+}
+
+function removeItemFromEquipment(slot) {
+  if (equipment[slot]) {
+    const item = equipment[slot];
+    if (addItemToInventory(item)) {
+      equipment[slot] = null;
+      console.log(`Removed ${item.name} from ${slot} slot`);
+      console.log("Updated equipment:", equipment);
+      
+      // Přidáme volání updateStaffVisibility
+      updateStaffVisibility();
+      
+      renderInventory();
+      renderEquipment();
+      return true;
+    } else {
+      console.log(`Couldn't remove ${item.name} from ${slot} slot: inventory full`);
+    }
   }
   return false;
 }
@@ -488,13 +521,15 @@ export function debugInventory() {
 }
 
 export function usePotion(type) {
-  const currentTime = Date.now();
   if (type === 'hp' && equipment.hpPotion && equipment.hpPotion.count > 0 && hpPotionCooldown <= 0) {
     const healAmount = 50;
     const newHealth = Math.min(getPlayerHealth() + healAmount, getPlayerMaxHealth());
     setPlayerHealth(newHealth);
     equipment.hpPotion.count--;
     hpPotionCooldown = POTION_COOLDOWN;
+    if (equipment.hpPotion.count === 0) {
+      equipment.hpPotion = null;
+    }
     renderPotionBar();
   } else if (type === 'mp' && equipment.mpPotion && equipment.mpPotion.count > 0 && mpPotionCooldown <= 0) {
     const manaAmount = 50;
@@ -502,6 +537,9 @@ export function usePotion(type) {
     setPlayerMana(newMana);
     equipment.mpPotion.count--;
     mpPotionCooldown = POTION_COOLDOWN;
+    if (equipment.mpPotion.count === 0) {
+      equipment.mpPotion = null;
+    }
     renderPotionBar();
   }
 }
@@ -516,5 +554,13 @@ export function updatePotionCooldowns(deltaTime) {
   renderPotionBar();
 }
 
+// Přidáme novou funkci pro aktualizaci viditelnosti staffModel
+function updateStaffVisibility() {
+  if (equipment.weapon) {
+      if (staffModel) staffModel.visible = true;
+  } else {
+      if (staffModel) staffModel.visible = false;
+  }
+}
 
-export { inventory, equipment, addItemToInventory };
+export { inventory, equipment, addItemToInventory,updateStaffVisibility };

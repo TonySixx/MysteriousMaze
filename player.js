@@ -2,7 +2,7 @@ import * as THREE from "three";
 import {  camera,  CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
-import { usePotion } from "./inventory.js";
+import { equipment, usePotion } from "./inventory.js";
 
 
 var player;
@@ -513,7 +513,11 @@ export function onKeyDown(event) {
 
     }
 
-    if (player.isFrozen) return; // Přidáme tuto kontrolu
+     // Přidáme kontrolu, zda je nějaký modál otevřený
+     if (isAnyModalOpen()) return;
+
+     if (player.isFrozen) return;
+     if (!equipment.weapon) return; // Přidáme kontrolu vybavené zbraně
 
     if (event.key === 'e' || event.key === 'E') {
         const frostboltSpell = spells.find(spell => spell.name === 'Frostbolt');
@@ -556,6 +560,15 @@ export function onKeyUp(event) {
             moveRight = false;
             break;
     }
+}
+
+// Přidáme novou funkci pro kontrolu otevřených modálů
+export function isAnyModalOpen() {
+    return document.getElementById("scoreModal")?.style.display === "block" ||
+           document.getElementById("hintModal")?.style.display === "block" ||
+           document.getElementById("settingsModal")?.style.display === "block" ||
+           document.getElementById("inventoryModal")?.style.display === "block" ||
+           document.getElementById("skillTreeModal")?.style.display === "block";
 }
 
 export {
