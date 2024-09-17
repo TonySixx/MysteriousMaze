@@ -171,6 +171,7 @@ let treasureModel;
 // Přidejte globální proměnné
 const BLOCKING_WALL = 2;
 export var staffModel;
+export var staffTopPart;
 export let magicBalls = [];
 
 let isConsoleOpen = false;
@@ -1952,11 +1953,9 @@ async function loadStaffModel() {
             child.material = new THREE.MeshStandardMaterial({
               color: currentStaffColor,
               emissive: currentStaffColor, // Emisivní oranžová barva
-              emissiveIntensity: 1.5, // Intenzita emisivní barvy
-              metalness: 0.5,
-              roughness: 0.5
+              emissiveIntensity: 1, // Intenzita emisivní barvy 
             });
-
+            staffTopPart = child; // Uložíme vrchní část hůlky
           }
 
         });
@@ -2284,6 +2283,13 @@ export function createFireParticles(color) {
   return new THREE.Points(geometry, material);
 }
 
+// Přidejte novou funkci pro animaci otáčení hůlky
+function animateStaffRotation(deltaTime) {
+  if (staffTopPart) {
+    staffTopPart.rotation.y += deltaTime * 1; // Upravte rychlost otáčení podle potřeby
+  }
+}
+
 
 // Přidejte tuto funkci pro animaci ohně
 function animateFire(deltaTime) {
@@ -2452,6 +2458,7 @@ function animate() {
   updateMagicBalls(deltaTime);
   regenerateMana(deltaTime);
   regenerateHealth(deltaTime)
+  animateStaffRotation(deltaTime);
 
 
   if (isMinimapVisible) {
@@ -2463,6 +2470,7 @@ function animate() {
 
   resetStaffColor();
   updateStaffColor(deltaTime);
+  
 
   // Animace létajících objektů
   floatingObjects.forEach(obj => {
