@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { scene, walls, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel, createCastEffect, getCameraDirection, isHighWallArea, maze, chainLightningSoundBuffer, camera, playSound } from './main.js';
+import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel, createCastEffect, getCameraDirection, isHighWallArea, maze, chainLightningSoundBuffer, camera, playSound } from './main.js';
 import { player } from "./player.js"
 import { createExplosion, changeStaffColor, fireballSoundBuffer, frostBoltSoundBuffer, magicMissileSoundBuffer } from "./main.js"
 import frostboltIcon from './public/spells/frostbolt-icon.png';
