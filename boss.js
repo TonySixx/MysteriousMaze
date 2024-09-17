@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience } from "./player.js"
+import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold } from "./player.js"
 import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer } from './main.js';
 import { getTranslation } from "./langUtils.js";
 
@@ -557,6 +557,39 @@ class Boss {
         }
     }
 
+    showGoldText(gold) {
+        if (this.model) {
+            const expText = document.createElement('div');
+            expText.textContent = `+${gold} G`;
+            expText.style.position = 'absolute';
+            expText.style.color = 'gold';
+            expText.style.fontSize = '24px';
+            expText.style.fontWeight = 'bold';
+            expText.style.textShadow = '2px 2px 2px black';
+            expText.style.pointerEvents = 'none';
+
+            document.body.appendChild(expText);
+
+            const startTime = performance.now();
+            const duration = 3000; // 3 sekundy
+
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                if (elapsed < duration) {
+                    const bossScreenPosition = this.getScreenPosition();
+                    expText.style.left = `${bossScreenPosition.x}px`;
+                    expText.style.top = `${bossScreenPosition.y - 130 - (elapsed / duration) * 100}px`;
+                    expText.style.opacity = 1 - (elapsed / duration);
+                    requestAnimationFrame(animate);
+                } else {
+                    document.body.removeChild(expText);
+                }
+            };
+
+            requestAnimationFrame(animate);
+        }
+    }
+
 
 
     die() {
@@ -585,6 +618,11 @@ class Boss {
         const totalExperience = Math.round(expGained * Math.pow(this.floor, exponent));
         addExperience(totalExperience);
         this.showExpText(totalExperience);
+
+        // Přidání zlaťáků za zabití bosse
+        const goldGained = Math.round((this.maxHealth / 100) + (this.floor * 10) + (Math.random() * 0.1 * this.maxHealth / 100));
+        addGold(goldGained);
+        this.showGoldText(goldGained);
     }
 
     attack() {

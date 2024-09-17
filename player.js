@@ -13,10 +13,11 @@ export let playerExp = 0;
 export let expToNextLevel = 100;
 export let skillPoints = 0;
 
+export let playerGold = 0;
+
 
 const maxMana = 100;
 const manaRegenRate = 0.5;
-
 
 
 var moveForward = false,
@@ -52,6 +53,7 @@ export function savePlayerProgress() {
     localStorage.setItem('playerExp', playerExp);
     localStorage.setItem('expToNextLevel', expToNextLevel);
     localStorage.setItem('skillPoints', skillPoints);
+    localStorage.setItem('playerGold', playerGold.toString());
     localStorage.setItem('version', version);
 }
 
@@ -59,6 +61,7 @@ export function loadPlayerProgress() {
     const savedVersion = localStorage.getItem('version');
     const savedLevel = localStorage.getItem('playerLevel');
     const savedExp = localStorage.getItem('playerExp');
+    const savedGold = localStorage.getItem('playerGold') || 0;
     const savedExpToNextLevel = localStorage.getItem('expToNextLevel');
     const playerName = localStorage.getItem('playerName');
 
@@ -69,12 +72,14 @@ export function loadPlayerProgress() {
             playerLevel = parseInt(savedLevel);
             playerExp = parseInt(savedExp);
             expToNextLevel = parseInt(savedExpToNextLevel);
+            playerGold = parseInt(savedGold);
             skillPoints = Math.max(0, playerLevel - 1); // Resetujeme skillPoints na (playerLevel - 1)
         } else {
             // Pokud nemáme uložená data, nastavíme výchozí hodnoty
             playerLevel = 1;
             playerExp = 0;
             expToNextLevel = 1000;
+            playerGold = 0;
             skillPoints = 0;
         }
         localStorage.setItem('version', version);
@@ -82,6 +87,7 @@ export function loadPlayerProgress() {
         localStorage.setItem('playerLevel', playerLevel);
         localStorage.setItem('playerExp', playerExp);
         localStorage.setItem('expToNextLevel', expToNextLevel);
+        localStorage.setItem('playerGold', playerGold);
         if (playerName) {
             localStorage.setItem('playerName', playerName);
         }
@@ -93,15 +99,18 @@ export function loadPlayerProgress() {
             playerExp = parseInt(savedExp);
             expToNextLevel = parseInt(savedExpToNextLevel);
             skillPoints = parseInt(savedSkillPoints);
+            playerGold = parseInt(savedGold);
         } else {
             // Pokud nemáme uložená data, nastavíme výchozí hodnoty
             playerLevel = 1;
             playerExp = 0;
             expToNextLevel = 1000;
             skillPoints = 0;
+            playerGold = 0;
         }
     }
     updatePlayerStats();
+    updateGoldDisplay();
     updateExpBar();
 }
 
@@ -113,6 +122,13 @@ export function addExperience(exp) {
     updateExpBar();
     savePlayerProgress();
 }
+
+export function addGold(amount) {
+    playerGold += amount;
+    updateGoldDisplay();
+    savePlayerProgress();
+}
+
 
 function levelUp() {
     playerLevel++;
@@ -140,6 +156,13 @@ function updateExpBar() {
     const expPercentage = (playerExp / expToNextLevel) * 100;
     document.getElementById('expFill').style.width = `${expPercentage}%`;
     document.getElementById('expText').textContent = `${playerExp} / ${expToNextLevel}`;
+}
+
+function updateGoldDisplay() {
+    const goldCountElement = document.getElementById('goldCount');
+    if (goldCountElement) {
+        goldCountElement.textContent = playerGold.toLocaleString();
+    }
 }
 
 function updatePlayerStats() {

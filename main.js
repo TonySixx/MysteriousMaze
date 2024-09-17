@@ -1737,6 +1737,9 @@ async function stopTimer() {
   // Kontrola, zda je to první dokončení tohoto bludiště
   if (bestTime === Infinity) {
     addExperienceForCompletion(selectedFloor);
+         // Přidání zlaťáků
+        const goldGained = Math.round((selectedFloor * 2) + (MAZE_SIZE/5));
+        addGold(goldGained);
   }
 
   if (elapsedTime < bestTime) {
