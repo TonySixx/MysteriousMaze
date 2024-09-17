@@ -29,7 +29,7 @@ import {
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";
 import { createCamp } from "./camp.js";
-import { closeInventory, equipment, initInventory, openInventory, updatePotionCooldowns } from "./inventory.js";
+import { closeInventory, equipment, initInventory, openInventory, updatePotionCooldowns, updateStaffVisibility } from "./inventory.js";
 
 export const version = "1.2.1";
 
@@ -333,6 +333,7 @@ async function init() {
     await loadKeyModel();
     await loadTreasureModel();
     await loadStaffModel();
+    updateStaffVisibility();
 
     // Use the seed from URL or input to create the maze
     const _inputText = document.getElementById("mazeInput").value;
