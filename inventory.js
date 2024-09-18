@@ -1,7 +1,8 @@
 import { addGold, getGold } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana } from './player.js';
-import { exitPointerLock, requestPointerLock, staffModel } from './main.js';
+import { errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, staffModel } from './main.js';
+import { getItemName, itemDatabase } from './itemDatabase.js';
 
 let inventory = [];
 let equipment = {
@@ -18,18 +19,17 @@ export let mpPotionCooldown = 0;
 
 const POTION_COOLDOWN = 10000; // 10 sekund v milisekundách
 
-export function createItem(name, type, rarity, requiredLevel, sellable, sellPrice, stackable, count, icon) {
+export function createItem(itemKey, count = 1) {
+  const itemTemplate = itemDatabase[itemKey];
+  if (!itemTemplate) {
+    console.error(`Item with key ${itemKey} not found in the database.`);
+    return null;
+  }
+
   return {
     id: crypto.randomUUID(),
-    name,
-    type,
-    rarity,
-    requiredLevel,
-    sellable,
-    sellPrice,
-    stackable,
-    count: stackable ? count : 1,
-    icon
+    ...itemTemplate,
+    count: itemTemplate.stackable ? count : 1
   };
 }
 
@@ -43,17 +43,17 @@ export function initInventory() {
     equipment = JSON.parse(savedEquipment);
   } else {
     inventory = new Array(INVENTORY_SIZE).fill(null);
-    const mageStaff = createItem("Mage's Staff", "weapon", "common", 1, false, 0, false, 1, 'inventory/mage-staff.jpg');
-    addItemToInventory(mageStaff);
-    equipItem(mageStaff.id, "weapon");
+    addItemsForTesting();
 
-    const healthPotion = createItem("Health Potion", "hpPotion", "common", 1, true, 5, true, 2, 'inventory/hp-slot.jpg');
-    const healthPotion2 = createItem("Health Potion", "hpPotion", "common", 1, true, 5, true, 2, 'inventory/hp-slot.jpg');
-    const manaPotion = createItem("Mana Potion", "mpPotion", "common", 1, true, 5, true, 10, 'inventory/mp-slot.jpg');
-    
-    addItemToInventory(healthPotion);
-    addItemToInventory(healthPotion2);
-    addItemToInventory(manaPotion);
+    // const mageStaff = createItem("mageStaff");
+    // addItemToInventory(mageStaff);
+    // equipItem(mageStaff.id, "weapon");
+
+    // const healthPotion = createItem("healthPotion",5);
+    // const manaPotion = createItem("manaPotion", 5);
+
+    // addItemToInventory(healthPotion);
+    // addItemToInventory(manaPotion);
   }
 
   console.log("Inventory initialized:", inventory);
@@ -77,6 +77,8 @@ function initPotionBar() {
 }
 
 export function openInventory() {
+  hideContextMenu();
+  hideTooltip();
   exitPointerLock();
   const inventoryModal = document.getElementById('inventoryModal');
   inventoryModal.style.display = 'block';
@@ -86,6 +88,8 @@ export function openInventory() {
 }
 
 export function closeInventory() {
+  hideContextMenu();
+  hideTooltip();
   requestPointerLock();
   const inventoryModal = document.getElementById('inventoryModal');
   inventoryModal.style.display = 'none';
@@ -169,7 +173,7 @@ function renderPotionSlot(slotId, potion, placeholderIcon, cooldown) {
   if (!slot) return;
 
   slot.innerHTML = `<div class="potion-key">${slotId === 'hpPotionSlotInBar' ? '1' : '2'}</div>`;
-  
+
   if (potion && potion.count > 0) {
     slot.innerHTML += `
       <div class="potion-icon" style="background-image: url('${potion.icon}')"></div>
@@ -224,20 +228,27 @@ function createItemElement(item, isEquipped = false) {
 }
 
 
-function showTooltip(event) {
+export function showTooltip(event, itemArg) {
   const itemId = event.target.dataset.id;
-  const item = findItemById(itemId) || findEquippedItemById(itemId);
+  const item = itemArg || findItemById(itemId) || findEquippedItemById(itemId) || this.items.find(i => i.id === itemId);
   if (!item) return;
 
   const tooltip = document.createElement('div');
   tooltip.className = 'tooltip';
+
+  const requiredLevelColor = playerLevel >= item.requiredLevel ? 'inherit' : '#ff0000';
+  const bonusColor = '#ffff99'; // Světle žlutá barva pro bonusy
+
   tooltip.innerHTML = `
-    <h3 style="color: ${getRarityColor(item.rarity)}">${item.name}</h3>
-    <p>${getItemTypeText(item.type)}</p>
-    <p>${getTranslation('requiredLevel', item.requiredLevel)}</p>
-    ${item.stackable ? `<p>${getTranslation('count')}: ${item.count}</p>` : ''}
-    ${item.sellable ? `<p>${getTranslation('sellPrice')}: ${item.sellPrice} ${getTranslation('gold')}</p>` : ''}
-    ${findEquippedItemById(itemId) ? `<p>${getTranslation('equipped')}</p>` : ''}
+    <h3 style="color: ${getRarityColor(item.rarity)}; margin-bottom: 10px;">${item.name}</h3>
+    <p>${getTranslation("itemType")}: ${getItemTypeText(item.type)}</p>
+    <p style="color: ${requiredLevelColor}">${getTranslation('requiredLevel', item.requiredLevel)}</p>
+    ${item.attackBonus ? `<p style="color: ${bonusColor}">${getTranslation('attackBonus')}: +${item.attackBonus}</p>` : ''}
+    ${item.hpBonus ? `<p style="color: ${bonusColor}">${getTranslation('hpBonus')}: +${item.hpBonus}</p>` : ''}
+    ${item.mpBonus ? `<p style="color: ${bonusColor}">${getTranslation('mpBonus')}: +${item.mpBonus}</p>` : ''}
+    ${item.sellable ? `<p style="margin-top: 10px;">${getTranslation(itemArg ? 'buyPrice' : 'sellPrice')}: ${itemArg ? item.buyPrice.toLocaleString() : item.sellPrice.toLocaleString()} ${getTranslation('gold')}${item.stackable && item.count > 1 ? ` (${(itemArg ? item.buyPrice.toLocaleString() : item.sellPrice.toLocaleString()) * item.count} ${getTranslation('gold')})` : ''}</p>` : ''}
+    ${item.description ? `<p style="margin-top: 10px;">${item.description}</p>` : ''}
+    ${findEquippedItemById(itemId) ? `<p style="font-style: italic; color:aqua; margin-top: 10px;">${getTranslation('equipped')}</p>` : ''}
   `;
 
   document.body.appendChild(tooltip);
@@ -291,7 +302,9 @@ function getRarityColor(rarity) {
     common: '#ffffff',
     uncommon: '#1eff00',
     rare: '#0070dd',
-    legendary: '#ff8000'
+    epic: '#a335ee',  // Přidáme barvu pro epické předměty
+    legendary: '#ff8000',
+    mythic: '#ff00ff'
   };
   return rarityColors[rarity] || '#ffffff';
 }
@@ -330,7 +343,7 @@ function drop(event) {
     }
     moveItem(itemId, targetSlot);
   }
-  
+
   hideTooltip();
 }
 
@@ -340,9 +353,16 @@ function moveItem(itemId, targetSlot) {
 
   if (targetSlot.classList.contains('equipment-slot')) {
     if (canEquipItem(sourceItem, targetSlot.id)) {
+      playSound(itemSoundBuffer);
+
       equipItem(itemId, targetSlot.id.replace('Slot', ''));
     }
+    else {
+      playSound(errorSoundBuffer);
+    }
   } else {
+    playSound(itemSoundBuffer);
+
     const targetIndex = parseInt(targetSlot.dataset.index);
     if (isNaN(targetIndex)) return;
 
@@ -467,10 +487,10 @@ function removeItemFromEquipment(slot) {
       equipment[slot] = null;
       console.log(`Removed ${item.name} from ${slot} slot`);
       console.log("Updated equipment:", equipment);
-      
+
       // Přidáme volání updateStaffVisibility
       updateStaffVisibility();
-      
+
       renderInventory();
       renderEquipment();
       saveInventoryToLocalStorage();
@@ -496,7 +516,7 @@ function showContextMenu(event) {
 
   contextMenu.innerHTML = `
     <ul>
-      <li data-action="sell" data-item-id="${item.id}">${getTranslation('sellItem')} (${item.sellPrice} ${getTranslation('gold')})</li>
+      <li data-action="sell" data-item-id="${item.id}">${getTranslation('sellItem')} (${item.sellPrice.toLocaleString()} ${getTranslation('gold')})</li>
     </ul>
   `;
 
@@ -526,7 +546,7 @@ function sellItem(itemId) {
   if (!item || !item.sellable || isItemEquipped(item)) return;
 
   const equippedSlot = Object.entries(equipment).find(([_, equippedItem]) => equippedItem && equippedItem.id === itemId);
-  
+
   if (equippedSlot) {
     removeItemFromEquipment(equippedSlot[0]);
   } else {
@@ -555,27 +575,60 @@ export function debugInventory() {
   console.log("Current equipment:", equipment);
 }
 
+function addItemsForTesting() {
+  addItemToInventory(createItem(getItemName(itemDatabase.apprenticeShardStaff)));
+  addItemToInventory(createItem(getItemName(itemDatabase.healthPotion)));
+  addItemToInventory(createItem(getItemName(itemDatabase.manaPotion)));
+  addItemToInventory(createItem(getItemName(itemDatabase.greaterManaPotion)));
+  addItemToInventory(createItem(getItemName(itemDatabase.greaterHealthPotion)));
+  addItemToInventory(createItem(getItemName(itemDatabase.ultimateHealthPotion)));
+  addItemToInventory(createItem(getItemName(itemDatabase.ultimateManaPotion)));
+
+  addItemToInventory(createItem(getItemName(itemDatabase.angelsGraceVestments)));
+  addItemToInventory(createItem(getItemName(itemDatabase.angelsGraceVestments)));
+  addItemToInventory(createItem(getItemName(itemDatabase.bloomShadeKimono)));
+  addItemToInventory(createItem(getItemName(itemDatabase.infernalDragonhideRobe)));
+  addItemToInventory(createItem(getItemName(itemDatabase.emeraldVineStaff)));
+  addItemToInventory(createItem(getItemName(itemDatabase.frostbaneCorruption)));
+
+
+}
+
 export function usePotion(type) {
-  if (type === 'hp' && equipment.hpPotion && equipment.hpPotion.count > 0 && hpPotionCooldown <= 0) {
-    const healAmount = 50;
-    const newHealth = Math.min(getPlayerHealth() + healAmount, getPlayerMaxHealth());
-    setPlayerHealth(newHealth);
-    equipment.hpPotion.count--;
-    hpPotionCooldown = POTION_COOLDOWN;
-    if (equipment.hpPotion.count === 0) {
-      equipment.hpPotion = null;
+  const potionSlot = type === 'hp' ? 'hpPotion' : 'mpPotion';
+  const potion = equipment[potionSlot];
+  const cooldown = type === 'hp' ? hpPotionCooldown : mpPotionCooldown;
+
+  if (potion && potion.count > 0 && cooldown <= 0) {
+    let restoreAmount;
+
+    if (typeof potion.restoreAmount === 'number') {
+      restoreAmount = potion.restoreAmount;
+    } else if (typeof potion.restoreAmount === 'string' && potion.restoreAmount.endsWith('%')) {
+      const percentage = parseInt(potion.restoreAmount) / 100;
+      restoreAmount = type === 'hp'
+        ? Math.floor(getPlayerMaxHealth() * percentage)
+        : Math.floor(getPlayerMaxMana() * percentage);
+    } else {
+      console.error(`Neplatná hodnota restoreAmount pro ${potion.name}`);
+      return;
     }
-    renderPotionBar();
-    saveInventoryToLocalStorage();
-  } else if (type === 'mp' && equipment.mpPotion && equipment.mpPotion.count > 0 && mpPotionCooldown <= 0) {
-    const manaAmount = 50;
-    const newMana = Math.min(getPlayerMana() + manaAmount, getPlayerMaxMana());
-    setPlayerMana(newMana);
-    equipment.mpPotion.count--;
-    mpPotionCooldown = POTION_COOLDOWN;
-    if (equipment.mpPotion.count === 0) {
-      equipment.mpPotion = null;
+
+    if (type === 'hp') {
+      const newHealth = Math.min(getPlayerHealth() + restoreAmount, getPlayerMaxHealth());
+      setPlayerHealth(newHealth);
+      hpPotionCooldown = POTION_COOLDOWN;
+    } else {
+      const newMana = Math.min(getPlayerMana() + restoreAmount, getPlayerMaxMana());
+      setPlayerMana(newMana);
+      mpPotionCooldown = POTION_COOLDOWN;
     }
+
+    potion.count--;
+    if (potion.count === 0) {
+      equipment[potionSlot] = null;
+    }
+
     renderPotionBar();
     saveInventoryToLocalStorage();
   }
@@ -594,9 +647,9 @@ export function updatePotionCooldowns(deltaTime) {
 // Přidáme novou funkci pro aktualizaci viditelnosti staffModel
 function updateStaffVisibility() {
   if (equipment.weapon) {
-      if (staffModel) staffModel.visible = true;
+    if (staffModel) staffModel.visible = true;
   } else {
-      if (staffModel) staffModel.visible = false;
+    if (staffModel) staffModel.visible = false;
   }
 }
 

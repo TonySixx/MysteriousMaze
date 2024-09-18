@@ -1,17 +1,23 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { getGold, addGold, player } from "./player.js";
-import { addItemToInventory, inventory, INVENTORY_SIZE } from "./inventory.js";
+import { addItemToInventory, hideTooltip, inventory, INVENTORY_SIZE, showTooltip } from "./inventory.js";
 import { getTranslation } from "./langUtils.js";
 import {
   CELL_SIZE,
   createFireParticles,
+  errorSoundBuffer,
+  exitPointerLock,
+  itemSoundBuffer,
   keys,
   LightManager,
   MAX_VISIBLE_LIGHTS,
+  playSound,
+  requestPointerLock,
   textureSets,
   WALL_HEIGHT,
 } from "./main.js";
+import { itemDatabase } from "./itemDatabase.js";
 
 export function createCamp() {
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
@@ -261,7 +267,9 @@ function createMerchant() {
           keys.f = false; // Resetujeme stav klávesy, aby se obchod neotevíral/nezavíral opakovaně
         }
       } else {
-        potionMerchant.closeShop();
+        if (document.getElementById('shopModal')) {
+          potionMerchant.closeShop();
+        }
         interactionText.style.display = "none";
       }
     }
@@ -570,10 +578,12 @@ export class Merchant {
   }
 
   showShop() {
+    hideTooltip();
+    exitPointerLock();
     if (document.getElementById('shopModal')) {
       return; // Obchod je již otevřen, neotevírejte ho znovu
     }
-  
+
     const shopModal = document.createElement('div');
     shopModal.id = 'shopModal';
     shopModal.className = 'shop-modal';
@@ -591,23 +601,23 @@ export class Merchant {
       </div>
     `;
     document.body.appendChild(shopModal);
-  
+
     const closeButton = shopModal.querySelector('.close-button');
     closeButton.addEventListener('click', () => {
       this.closeShop();
     });
-  
+
     const shopGrid = document.getElementById('shopGrid');
     this.items.forEach(item => {
       const itemElement = this.createShopItemElement(item);
       shopGrid.appendChild(itemElement);
     });
-  
+
     this.updateShopGoldDisplay();
-  
+
     document.addEventListener('keydown', this.handleEscapeKey);
   }
-  
+
   updateShopGoldDisplay() {
     const goldDisplay = document.getElementById('shopGoldDisplay');
     if (goldDisplay) {
@@ -616,8 +626,10 @@ export class Merchant {
   }
 
   closeShop() {
+    hideTooltip();
     const shopModal = document.getElementById('shopModal');
     if (shopModal) {
+      requestPointerLock();
       shopModal.remove();
       document.removeEventListener('keydown', this.handleEscapeKey);
     }
@@ -629,53 +641,59 @@ export class Merchant {
     itemElement.style.backgroundImage = `url(${item.icon})`;
 
     itemElement.addEventListener("mouseover", (event) =>
-      this.showTooltip(event, item)
+      showTooltip(event, item)
     );
-    itemElement.addEventListener("mouseout", this.hideTooltip);
+    itemElement.addEventListener("mouseout", hideTooltip);
     itemElement.addEventListener("click", () => this.buyItem(item));
 
     return itemElement;
   }
 
-  showTooltip(event, item) {
-    const tooltip = document.createElement("div");
-    tooltip.className = "tooltip";
-    tooltip.innerHTML = `
-      <h3>${item.name}</h3>
-      <p>${getTranslation("itemType")}: ${getTranslation(item.type)}</p>
-      <p>${getTranslation("itemRarity")}: ${getTranslation(item.rarity)}</p>
-      <p>${getTranslation("requiredLevel",item.requiredLevel)}</p>
-      <p>${getTranslation("buyPrice")}: ${item.buyPrice} ${getTranslation(
-      "gold"
-    )}</p>
-    `;
+  // showTooltip(event, item) {
+  //   const tooltip = document.createElement("div");
+  //   tooltip.className = "tooltip";
+  //   tooltip.innerHTML = `
+  //   <h3>${item.name}</h3>
+  //   <p>${getTranslation("itemType")}: ${getTranslation(item.type)}</p>
+  //   <p>${getTranslation("itemRarity")}: ${getTranslation(item.rarity)}</p>
+  //   <p>${getTranslation("requiredLevel", item.requiredLevel)}</p>
+  //   ${item.description ? `<p>${item.description}</p>` : ''}
+  //   ${item.attackBonus ? `<p>${getTranslation("attackBonus")}: +${item.attackBonus}</p>` : ''}
+  //   ${item.hpBonus ? `<p>${getTranslation("hpBonus")}: +${item.hpBonus}</p>` : ''}
+  //   ${item.mpBonus ? `<p>${getTranslation("mpBonus")}: +${item.mpBonus}</p>` : ''}
+  //   ${item.restoreAmount ? `<p>${getTranslation("restoreAmount")}: ${item.restoreAmount}</p>` : ''}
+  //   <p>${getTranslation("buyPrice")}: ${item.buyPrice} ${getTranslation("gold")}</p>
+  // `;
 
-    tooltip.style.left = `${event.clientX + 10}px`;
-    tooltip.style.top = `${event.clientY + 10}px`;
+  //   tooltip.style.left = `${event.clientX + 10}px`;
+  //   tooltip.style.top = `${event.clientY + 10}px`;
 
-    document.body.appendChild(tooltip);
-  }
+  //   document.body.appendChild(tooltip);
+  // };
 
-  hideTooltip() {
-    const tooltip = document.querySelector(".tooltip");
-    if (tooltip) {
-      tooltip.remove();
-    }
-  }
+  // hideTooltip() {
+  //   const tooltip = document.querySelector(".tooltip");
+  //   if (tooltip) {
+  //     tooltip.remove();
+  //   }
+  // }
 
   buyItem(item) {
     if (getGold() < item.buyPrice) {
+      playSound(errorSoundBuffer);
       this.showMessage(getTranslation("notEnoughGold"));
       return;
     }
 
     if (inventory.filter((i) => i !== null).length >= INVENTORY_SIZE) {
+      playSound(errorSoundBuffer);
       this.showMessage(getTranslation("inventoryFull"));
       return;
     }
 
     addGold(-item.buyPrice);
-    addItemToInventory({...item});
+    playSound(itemSoundBuffer);
+    addItemToInventory({ ...item, id: crypto.randomUUID() });
     this.updateShopGoldDisplay();
     this.showMessage(getTranslation("itemPurchased"));
   }
@@ -693,39 +711,22 @@ export class Merchant {
 
   handleEscapeKey(event) {
     if (event.key === "Escape") {
-      this.closeShop();
+      //TODO: zavřít obchod 
+      //this.closeShop();
     }
   }
 }
 
+function createMerchantItem(itemKey, count = 1) {
+  const item = { ...itemDatabase[itemKey], count };
+  item.id = crypto.randomUUID();
+  return item;
+}
+
 export function createMerchantItems() {
   return [
-    {
-      id: crypto.randomUUID(),
-      name: "Health Potion",
-      type: "hpPotion",
-      rarity: "common",
-      requiredLevel: 1,
-      sellable: true,
-      sellPrice: 5,
-      buyPrice: 10,
-      stackable: true,
-      count: 1,
-      icon: 'inventory/hp-slot.jpg'
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "Mana Potion",
-      type: "mpPotion",
-      rarity: "common",
-      requiredLevel: 1,
-      sellable: true,
-      sellPrice: 5,
-      buyPrice: 10,
-      stackable: true,
-      count: 1,
-      icon: 'inventory/mp-slot.jpg'
-    }
+    createMerchantItem("healthPotion", 1),
+    createMerchantItem("manaPotion", 1),
   ];
 }
 
@@ -735,7 +736,7 @@ function createPotionBottle() {
   const neckGeometry = new THREE.CylinderGeometry(0.05, 0.1, 0.1, 16);
   const corkGeometry = new THREE.CylinderGeometry(0.06, 0.06, 0.05, 16);
 
-  const bottleMaterial = new THREE.MeshPhongMaterial({ color: 0x8844aa, transparent: true, opacity: 0.7 });
+  const bottleMaterial = new THREE.MeshPhongMaterial({ color: 0x8844aa, transparent: true, opacity: 0.8 });
   const corkMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
 
   const bottle = new THREE.Mesh(bottleGeometry, bottleMaterial);

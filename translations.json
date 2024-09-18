@@ -129,9 +129,11 @@
       "common": "Common",
       "uncommon": "Uncommon",
       "rare": "Rare",
+      "epic": "Epic",
       "legendary": "Legendary",
+      "mythic": "Mythic",
       "sellItem": "Sell item",
-      "gold": "Gold",
+      "gold": "G",
       "count": "Count",
       "sellPrice": "Sell Price",
       "weaponSlot": "Weapon",
@@ -146,7 +148,11 @@
       "shop": "Shop",
       "buyPrice": "Price",
       "itemType": "Item type",
-      "itemRarity": "Rarity"
+      "itemRarity": "Rarity",
+      "attackBonus": "Attack Bonus",
+      "hpBonus": "HP Bonus",
+      "mpBonus": "MP Bonus",
+      "restoreAmount": "Restore Amount"
     },
     "cs": {
       "enterName": "Zadejte své jméno",
@@ -278,9 +284,11 @@
       "common": "Obyčejný",
       "uncommon": "Neobvyklý",
       "rare": "Vzácný",
+      "epic": "Epický",
       "legendary": "Legendarní",
+      "mythic": "Mýtický",
       "sellItem": "Prodat předmět",
-      "gold": "Zlato",
+      "gold": "G",
       "count": "Počet",
       "sellPrice": "Prodejní cena",
       "weaponSlot": "Zbraň",
@@ -295,6 +303,10 @@
       "shop": "Obchod",
       "buyPrice": "Cena",
       "itemType": "Typ předmětu",
-      "itemRarity": "Vzácnost"
+      "itemRarity": "Vzácnost",
+      "attackBonus": "Bonus k útoku",
+      "hpBonus": "Bonus k HP",
+      "mpBonus": "Bonus k MP",
+      "restoreAmount": "Množství obnovení"
     }
   }

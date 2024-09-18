@@ -91,7 +91,11 @@
 .item-common { border: 1px solid #ffffff; box-shadow: 0 0 5px #ffffff; }
 .item-uncommon { border: 1px solid #1eff00; box-shadow: 0 0 5px #1eff00; }
 .item-rare { border: 1px solid #0070dd; box-shadow: 0 0 5px #0070dd; }
+.item-epic { border: 1px solid #a335ee; box-shadow: 0 0 5px #a335ee; }
 .item-legendary { border: 1px solid #ff8000; box-shadow: 0 0 5px #ff8000; }
+.item-mythic { border: 1px solid #ff00ff; box-shadow: 0 0 5px #ff00ff; }
+
+
 
 
 .context-menu {
@@ -166,8 +170,8 @@
   background-position: center;
   top: 5px;
   left: 5px;
-  opacity: 0.6;
-  filter: grayscale(85%);
+  opacity: 0.25;
+  filter: grayscale(80%);
 
 }
 

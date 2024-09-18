@@ -190,7 +190,7 @@ let consoleInput = '';
 export let canWalkThroughWalls = false;
 export let isFlying = false;
 
-let currentStaffColor = new THREE.Color(0xff4500);
+let currentStaffColor = new THREE.Color(0xd8fcfd);
 let targetStaffColor = new THREE.Color(0xff4500);
 let colorTransitionSpeed = 5; // Rychlost přechodu barev
 
@@ -216,6 +216,9 @@ export var killConfirmationSoundBuffer;
 export var chainLightningSoundBuffer;
 export var magicArrowSoundBuffer;
 export var landSoundBuffer;
+export var coinSoundBuffer;
+export var itemSoundBuffer;
+export var errorSoundBuffer;
 
 
 export var bossSoundBuffer;
@@ -321,13 +324,23 @@ async function init() {
     aoeBlastSoundBuffer = buffer;
   });
 
-
   audioLoader.load('snd_chain_lightning.mp3', function (buffer) {
     chainLightningSoundBuffer = buffer;
   });
 
   audioLoader.load('snd_land.mp3', function (buffer) {
     landSoundBuffer = buffer;
+  });
+
+  audioLoader.load('snd_coin.mp3', function (buffer) {
+    coinSoundBuffer = buffer;
+  });
+  audioLoader.load('snd_item.mp3', function (buffer) {
+    itemSoundBuffer = buffer;
+  });
+
+  audioLoader.load('snd_error.mp3', function (buffer) {
+    errorSoundBuffer = buffer;
   });
 
   loadPlayerProgress();
@@ -495,6 +508,9 @@ function processConsoleCommand(command) {
     case 'exp.cmd':
       addExperience(40000);
       break;
+    case 'exp2.cmd':
+      addExperience(100000);
+      break;
     case 'gold.cmd':
       addGold(50);
       break;
@@ -553,21 +569,21 @@ function onMouseDown(event) {
   if (!equipment.weapon) return; // Přidáme kontrolu vybavené zbraně
 
   if (event.button === 0) {
-      const fireballSpell = spells.find(spell => spell.name === 'Fireball');
-      if (fireballSpell && fireballSpell.isReady()) {
-          let fired = fireballSpell.cast();
-          if (fired) {
-              fireballSpell.lastCastTime = Date.now();
-          }
+    const fireballSpell = spells.find(spell => spell.name === 'Fireball');
+    if (fireballSpell && fireballSpell.isReady()) {
+      let fired = fireballSpell.cast();
+      if (fired) {
+        fireballSpell.lastCastTime = Date.now();
       }
+    }
   } else if (event.button === 2) {
-      const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
-      if (arcaneMissileSpell && arcaneMissileSpell.isReady()) {
-          let fired = arcaneMissileSpell.cast();
-          if (fired) {
-              arcaneMissileSpell.lastCastTime = Date.now();
-          }
+    const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
+    if (arcaneMissileSpell && arcaneMissileSpell.isReady()) {
+      let fired = arcaneMissileSpell.cast();
+      if (fired) {
+        arcaneMissileSpell.lastCastTime = Date.now();
       }
+    }
   }
 }
 
@@ -1760,9 +1776,9 @@ async function stopTimer() {
   // Kontrola, zda je to první dokončení tohoto bludiště
   if (bestTime === Infinity) {
     addExperienceForCompletion(selectedFloor);
-         // Přidání zlaťáků
-        const goldGained = Math.round((selectedFloor * 2) + (MAZE_SIZE/5));
-        addGold(goldGained);
+    // Přidání zlaťáků
+    const goldGained = Math.round((selectedFloor * 2) + (MAZE_SIZE / 5));
+    addGold(goldGained);
   }
 
   if (elapsedTime < bestTime) {
@@ -2065,7 +2081,8 @@ function rotateTeleports(deltaTime) {
 
 function resetStaffColor() {
   if (Date.now() - lastSpellCastTime > 500) {
-    changeStaffColor(0xff4500); // Obnovení výchozí oranžové barvy
+    changeStaffColor(0xd8fcfd);
+    //changeStaffColor(0xff4500); // Obnovení výchozí oranžové barvy
   }
 }
 
@@ -2424,7 +2441,7 @@ function animate() {
   resetStaffColor();
   updateStaffColor(deltaTime);
 
-  
+
 
   // Animace létajících objektů
   floatingObjects.forEach(obj => {
