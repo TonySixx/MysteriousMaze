@@ -137,7 +137,16 @@
       "weaponSlot": "Weapon",
       "armorSlot": "Armor",
       "hpPotionSlot": "HP Potion",
-      "mpPotionSlot": "MP Potion"
+      "mpPotionSlot": "MP Potion",
+      "pressFToShop": "Press 'F' to show shop",
+      "notEnoughGold": "Not enough gold",
+      "inventoryFull": "Inventory is full",
+      "itemPurchased": "Item purchased",
+      "equipped": "Equipped",
+      "shop": "Shop",
+      "buyPrice": "Price",
+      "itemType": "Item type",
+      "itemRarity": "Rarity"
     },
     "cs": {
       "enterName": "Zadejte své jméno",
@@ -277,6 +286,15 @@
       "weaponSlot": "Zbraň",
       "armorSlot": "Zbroj",
       "hpPotionSlot": "HP lektvar",
-      "mpPotionSlot": "MP lektvar"
+      "mpPotionSlot": "MP lektvar",
+      "pressFToShop": "Stiskněte 'F' pro zobrazení obchodu",
+      "notEnoughGold": "Nemáš dostatek zlata",
+      "inventoryFull": "Inventář je plný",
+      "itemPurchased": "Předmět koupen",
+      "equipped": "Vybaveno",
+      "shop": "Obchod",
+      "buyPrice": "Cena",
+      "itemType": "Typ předmětu",
+      "itemRarity": "Vzácnost"
     }
   }

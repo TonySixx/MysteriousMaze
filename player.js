@@ -569,7 +569,8 @@ export function isAnyModalOpen() {
            document.getElementById("hintModal")?.style.display === "block" ||
            document.getElementById("settingsModal")?.style.display === "block" ||
            document.getElementById("inventoryModal")?.style.display === "block" ||
-           document.getElementById("skillTreeModal")?.style.display === "block";
+           document.getElementById("skillTreeModal")?.style.display === "block" ||
+           document.getElementById("shopModal");
 }
 
 export {

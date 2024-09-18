@@ -1,17 +1,20 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { getGold, addGold, player } from "./player.js";
+import { addItemToInventory, inventory, INVENTORY_SIZE } from "./inventory.js";
+import { getTranslation } from "./langUtils.js";
 import {
   CELL_SIZE,
   createFireParticles,
+  keys,
   LightManager,
   MAX_VISIBLE_LIGHTS,
   textureSets,
   WALL_HEIGHT,
 } from "./main.js";
 
-
 export function createCamp() {
-  lightManager = new LightManager(scene,MAX_VISIBLE_LIGHTS);
+  lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
   createGround();
   createSky();
   addStars();
@@ -111,7 +114,7 @@ function createTents() {
   tentTexture.wrapT = THREE.RepeatWrapping;
   tentTexture.repeat.set(5.14, 2.5);
 
-  const thetaLength = (5 * Math.PI) / 2.85; 
+  const thetaLength = (5 * Math.PI) / 2.85;
   const thetaStart = -thetaLength / 2; // Centrum otvoru
 
   const tentGeometry = new THREE.CylinderGeometry(
@@ -154,8 +157,6 @@ function createTents() {
   });
 }
 
-
-
 function createMerchant() {
   const merchantPosition = { x: 0, y: 0, z: 2 };
   const gltfLoader = new GLTFLoader();
@@ -182,6 +183,94 @@ function createMerchant() {
       requestAnimationFrame(updateMerchantAnimation);
     }
     updateMerchantAnimation();
+
+    const potionBottle = createPotionBottle();
+    potionBottle.position.set(-0.1, 2.5, 0); // Umístění nad hlavou obchodníka
+    merchant.add(potionBottle);
+
+    // Animace "pohupování"
+    const bobAnimation = () => {
+      const time = Date.now() * 0.001;
+      potionBottle.position.y = 2.5 + Math.sin(time * 2) * 0.1;
+      requestAnimationFrame(bobAnimation);
+    };
+    bobAnimation();
+
+    // Přidání zářivého efektu
+    const glowMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        color: { value: new THREE.Color(0x8844aa) },
+        offset: { value: 0.1 }, // Nastavte hodnotu posunu podle potřeby
+      },
+      vertexShader: `
+        uniform float offset;
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vec3 newPosition = position + vec3(0.0, offset, 0.0);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 0.9);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color;
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow(1.0 - dot(vNormal, vec3(0, 0, 1.0)), 2.0);
+          gl_FragColor = vec4(color, 1.0) * intensity;
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const glowSphere = new THREE.Mesh(
+      new THREE.SphereGeometry(0.3, 32, 32),
+      glowMaterial
+    );
+    potionBottle.add(glowSphere);
+
+    // Vytvoření instance třídy Merchant
+    const potionMerchant = new Merchant("Potion Merchant", createMerchantItems());
+
+    // Přidání interakční zóny
+    const interactionZone = new THREE.Mesh(
+      new THREE.CylinderGeometry(2, 2, 2, 32),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    interactionZone.position.copy(merchant.position);
+    scene.add(interactionZone);
+
+    // Přidání textu pro interakci
+    const interactionText = document.createElement("div");
+    interactionText.className = "interaction-text";
+    interactionText.textContent = getTranslation("pressFToShop");
+    interactionText.style.display = "none";
+    document.body.appendChild(interactionText);
+
+    // Funkce pro kontrolu vzdálenosti hráče od obchodníka
+    function checkPlayerDistance() {
+      const distance = player.position.distanceTo(merchant.position);
+      if (distance < 2) {
+        interactionText.style.display = "block";
+        if (keys.f) {
+          if (document.getElementById('shopModal')) {
+            potionMerchant.closeShop();
+          } else {
+            potionMerchant.showShop();
+          }
+          keys.f = false; // Resetujeme stav klávesy, aby se obchod neotevíral/nezavíral opakovaně
+        }
+      } else {
+        potionMerchant.closeShop();
+        interactionText.style.display = "none";
+      }
+    }
+    // Spustíme kontrolu vzdálenosti v herní smyčce
+    function update() {
+      checkPlayerDistance();
+      requestAnimationFrame(update);
+    }
+    update();
   });
 }
 
@@ -199,16 +288,15 @@ function createWalls() {
     createWall(-15, WALL_HEIGHT / 2, i, wallGeometry, wallMaterial);
     createWall(15, WALL_HEIGHT / 2, i, wallGeometry, wallMaterial);
   }
-    // Přidáme pochodně na zdi
-  createTorchOnWall(-5, -15, { dx: 0, dz: 1 });  // Severní zeď
-  createTorchOnWall(5, -15, { dx: 0, dz: 1 });  // Severní zeď 
-  createTorchOnWall(5, 15, { dx: 0, dz: -1 });  // Jižní zeď
-  createTorchOnWall(-5, 15, { dx: 0, dz: -1 });  // Jižní zeď
-  createTorchOnWall(-15, 5, { dx: 1, dz: 0 });  // Západní zeď
-  createTorchOnWall(-15, -5, { dx: 1, dz: 0 });  // Západní zeď
-  createTorchOnWall(15, 5, { dx: -1, dz: 0 });  // Východní zeď
-  createTorchOnWall(15, -5, { dx: -1, dz: 0 });  // Východní zeď
-  
+  // Přidáme pochodně na zdi
+  createTorchOnWall(-5, -15, { dx: 0, dz: 1 }); // Severní zeď
+  createTorchOnWall(5, -15, { dx: 0, dz: 1 }); // Severní zeď
+  createTorchOnWall(5, 15, { dx: 0, dz: -1 }); // Jižní zeď
+  createTorchOnWall(-5, 15, { dx: 0, dz: -1 }); // Jižní zeď
+  createTorchOnWall(-15, 5, { dx: 1, dz: 0 }); // Západní zeď
+  createTorchOnWall(-15, -5, { dx: 1, dz: 0 }); // Západní zeď
+  createTorchOnWall(15, 5, { dx: -1, dz: 0 }); // Východní zeď
+  createTorchOnWall(15, -5, { dx: -1, dz: 0 }); // Východní zeď
 }
 
 function createWall(x, y, z, geometry, material) {
@@ -233,7 +321,7 @@ function createTowers() {
 
   const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
   const wallMaterial = new THREE.MeshStandardMaterial({
-    map: wallTexture
+    map: wallTexture,
   });
 
   towerPositions.forEach((pos) => {
@@ -320,7 +408,7 @@ function createCenterTower() {
 
   const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
   const wallMaterial = new THREE.MeshStandardMaterial({
-    map: wallTexture
+    map: wallTexture,
   });
 
   for (let i = 0; i < centerTowerHeight; i++) {
@@ -455,17 +543,213 @@ function createTentWalls(tent, x, z, angle) {
   );
 
   // První zeď (levá strana)
-  const leftWall = new THREE.Mesh(wallGeometry, new THREE.MeshBasicMaterial({ visible: false }));
+  const leftWall = new THREE.Mesh(
+    wallGeometry,
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
   leftWall.position.set(x, wallHeight / 2, z);
   leftWall.rotation.y = leftEdgeAngle + Math.PI / 2;
   scene.add(leftWall);
   walls.push(leftWall);
 
   // Druhá zeď (pravá strana)
-  const rightWall = new THREE.Mesh(wallGeometry, new THREE.MeshBasicMaterial({ visible: false }));
+  const rightWall = new THREE.Mesh(
+    wallGeometry,
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
   rightWall.position.set(x, wallHeight / 2, z);
   rightWall.rotation.y = rightEdgeAngle - Math.PI / 2;
   scene.add(rightWall);
   walls.push(rightWall);
 }
 
+export class Merchant {
+  constructor(name, items) {
+    this.name = name;
+    this.items = items;
+  }
+
+  showShop() {
+    if (document.getElementById('shopModal')) {
+      return; // Obchod je již otevřen, neotevírejte ho znovu
+    }
+  
+    const shopModal = document.createElement('div');
+    shopModal.id = 'shopModal';
+    shopModal.className = 'shop-modal';
+    shopModal.innerHTML = `
+      <div class="shop-content">
+        <span class="close-button">&times;</span>
+        <div class="shop-header">
+          <h2>${this.name}</h2>
+          <div class="gold-display">
+            <img src="gold-coin.png" alt="Gold" class="gold-icon">
+            <span id="shopGoldDisplay"></span>
+          </div>
+        </div>
+        <div id="shopGrid" class="shop-grid"></div>
+      </div>
+    `;
+    document.body.appendChild(shopModal);
+  
+    const closeButton = shopModal.querySelector('.close-button');
+    closeButton.addEventListener('click', () => {
+      this.closeShop();
+    });
+  
+    const shopGrid = document.getElementById('shopGrid');
+    this.items.forEach(item => {
+      const itemElement = this.createShopItemElement(item);
+      shopGrid.appendChild(itemElement);
+    });
+  
+    this.updateShopGoldDisplay();
+  
+    document.addEventListener('keydown', this.handleEscapeKey);
+  }
+  
+  updateShopGoldDisplay() {
+    const goldDisplay = document.getElementById('shopGoldDisplay');
+    if (goldDisplay) {
+      goldDisplay.textContent = getGold();
+    }
+  }
+
+  closeShop() {
+    const shopModal = document.getElementById('shopModal');
+    if (shopModal) {
+      shopModal.remove();
+      document.removeEventListener('keydown', this.handleEscapeKey);
+    }
+  }
+
+  createShopItemElement(item) {
+    const itemElement = document.createElement("div");
+    itemElement.className = `shop-item item-${item.rarity}`;
+    itemElement.style.backgroundImage = `url(${item.icon})`;
+
+    itemElement.addEventListener("mouseover", (event) =>
+      this.showTooltip(event, item)
+    );
+    itemElement.addEventListener("mouseout", this.hideTooltip);
+    itemElement.addEventListener("click", () => this.buyItem(item));
+
+    return itemElement;
+  }
+
+  showTooltip(event, item) {
+    const tooltip = document.createElement("div");
+    tooltip.className = "tooltip";
+    tooltip.innerHTML = `
+      <h3>${item.name}</h3>
+      <p>${getTranslation("itemType")}: ${getTranslation(item.type)}</p>
+      <p>${getTranslation("itemRarity")}: ${getTranslation(item.rarity)}</p>
+      <p>${getTranslation("requiredLevel",item.requiredLevel)}</p>
+      <p>${getTranslation("buyPrice")}: ${item.buyPrice} ${getTranslation(
+      "gold"
+    )}</p>
+    `;
+
+    tooltip.style.left = `${event.clientX + 10}px`;
+    tooltip.style.top = `${event.clientY + 10}px`;
+
+    document.body.appendChild(tooltip);
+  }
+
+  hideTooltip() {
+    const tooltip = document.querySelector(".tooltip");
+    if (tooltip) {
+      tooltip.remove();
+    }
+  }
+
+  buyItem(item) {
+    if (getGold() < item.buyPrice) {
+      this.showMessage(getTranslation("notEnoughGold"));
+      return;
+    }
+
+    if (inventory.filter((i) => i !== null).length >= INVENTORY_SIZE) {
+      this.showMessage(getTranslation("inventoryFull"));
+      return;
+    }
+
+    const playerGold = getGold();
+    addGold(-item.buyPrice);
+    addItemToInventory(item);
+    this.updateShopGoldDisplay();
+    this.showMessage(getTranslation("itemPurchased"));
+  }
+
+  showMessage(message) {
+    const messageElement = document.createElement("div");
+    messageElement.className = "shop-message";
+    messageElement.textContent = message;
+    document.body.appendChild(messageElement);
+
+    setTimeout(() => {
+      messageElement.remove();
+    }, 3000);
+  }
+
+  handleEscapeKey(event) {
+    if (event.key === "Escape") {
+      this.closeShop();
+    }
+  }
+}
+
+export function createMerchantItems() {
+  return [
+    {
+      id: crypto.randomUUID(),
+      name: "Health Potion",
+      type: "hpPotion",
+      rarity: "common",
+      requiredLevel: 1,
+      sellable: true,
+      sellPrice: 5,
+      buyPrice: 10,
+      stackable: true,
+      count: 1,
+      icon: 'inventory/hp-slot.jpg'
+    },
+    {
+      id: crypto.randomUUID(),
+      name: "Mana Potion",
+      type: "mpPotion",
+      rarity: "common",
+      requiredLevel: 1,
+      sellable: true,
+      sellPrice: 5,
+      buyPrice: 10,
+      stackable: true,
+      count: 1,
+      icon: 'inventory/mp-slot.jpg'
+    }
+  ];
+}
+
+
+function createPotionBottle() {
+  const bottleGeometry = new THREE.CylinderGeometry(0.1, 0.15, 0.3, 16);
+  const neckGeometry = new THREE.CylinderGeometry(0.05, 0.1, 0.1, 16);
+  const corkGeometry = new THREE.CylinderGeometry(0.06, 0.06, 0.05, 16);
+
+  const bottleMaterial = new THREE.MeshPhongMaterial({ color: 0x8844aa, transparent: true, opacity: 0.7 });
+  const corkMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
+
+  const bottle = new THREE.Mesh(bottleGeometry, bottleMaterial);
+  const neck = new THREE.Mesh(neckGeometry, bottleMaterial);
+  const cork = new THREE.Mesh(corkGeometry, corkMaterial);
+
+  neck.position.y = 0.2;
+  cork.position.y = 0.3;
+
+  const potionBottle = new THREE.Group();
+  potionBottle.add(bottle);
+  potionBottle.add(neck);
+  potionBottle.add(cork);
+
+  return potionBottle;
+}

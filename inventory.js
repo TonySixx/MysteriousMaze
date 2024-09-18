@@ -11,7 +11,7 @@ let equipment = {
   mpPotion: null
 };
 
-const INVENTORY_SIZE = 8 * 6;
+export const INVENTORY_SIZE = 8 * 6;
 
 export let hpPotionCooldown = 0;
 export let mpPotionCooldown = 0;

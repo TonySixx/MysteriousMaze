@@ -51,6 +51,22 @@ if (savedLanguage) {
 let playerName = "";
 let bestTime = Infinity;
 
+export const keys = {
+  f: false
+};
+
+document.addEventListener('keydown', (event) => {
+  if (event.key.toLowerCase() === 'f') {
+    keys.f = true;
+  }
+});
+
+document.addEventListener('keyup', (event) => {
+  if (event.key.toLowerCase() === 'f') {
+    keys.f = false;
+  }
+});
+
 
 export const textureSets = [
   {
@@ -477,10 +493,10 @@ function processConsoleCommand(command) {
       toggleFlyMode();
       break;
     case 'exp.cmd':
-      addExperience(4000);
-      break;
-    case 'exp2.cmd':
       addExperience(40000);
+      break;
+    case 'gold.cmd':
+      addGold(50);
       break;
     default:
       console.log('Neznámý příkaz:', command);
