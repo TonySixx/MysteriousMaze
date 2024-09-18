@@ -172,19 +172,19 @@
 }
 
 #weaponSlot::before {
-  background-image: url('inventory/weapon-slot.jpg');
+  background-image: url('/inventory/weapon-slot.jpg');
 }
 
 #armorSlot::before {
-  background-image: url('inventory/armor-slot.jpg');
+  background-image: url('/inventory/armor-slot.jpg');
 }
 
 #hpPotionSlot::before {
-  background-image: url('inventory/hp-slot.jpg');
+  background-image: url('/inventory/hp-slot.jpg');
 }
 
 #mpPotionSlot::before {
-  background-image: url('inventory/mp-slot.jpg');
+  background-image: url('/inventory/mp-slot.jpg');
 }
 
 
