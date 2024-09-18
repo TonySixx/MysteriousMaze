@@ -25,6 +25,7 @@ import {
   loadPlayerProgress,
   addExperience,
   isAnyModalOpen,
+  addGold,
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";

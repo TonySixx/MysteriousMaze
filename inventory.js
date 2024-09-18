@@ -18,6 +18,22 @@ export let mpPotionCooldown = 0;
 
 const POTION_COOLDOWN = 10000; // 10 sekund v milisekundách
 
+export function createItem(name, type, rarity, requiredLevel, sellable, sellPrice, stackable, count, icon) {
+  return {
+    id: crypto.randomUUID(),
+    name,
+    type,
+    rarity,
+    requiredLevel,
+    sellable,
+    sellPrice,
+    stackable,
+    count: stackable ? count : 1,
+    icon
+  };
+}
+
+
 export function initInventory() {
   const savedInventory = localStorage.getItem('inventory');
   const savedEquipment = localStorage.getItem('equipment');
@@ -27,56 +43,14 @@ export function initInventory() {
     equipment = JSON.parse(savedEquipment);
   } else {
     inventory = new Array(INVENTORY_SIZE).fill(null);
-    const mageStaff = {
-      id: crypto.randomUUID(),
-      name: "Mage's Staff",
-      type: "weapon",
-      rarity: "common",
-      requiredLevel: 1,
-      sellable: false,
-      sellPrice: 0,
-      stackable: false,
-      icon: 'inventory/mage-staff.jpg'
-    };
+    const mageStaff = createItem("Mage's Staff", "weapon", "common", 1, false, 0, false, 1, 'inventory/mage-staff.jpg');
     addItemToInventory(mageStaff);
     equipItem(mageStaff.id, "weapon");
 
-    const healthPotion = {
-      id: crypto.randomUUID(),
-      name: "Health Potion",
-      type: "hpPotion",
-      rarity: "common",
-      requiredLevel: 1,
-      sellable: true,
-      sellPrice: 5,
-      stackable: true,
-      count: 2,
-      icon: 'inventory/hp-slot.jpg'
-    };
-    const healthPotion2 = {
-      id: crypto.randomUUID(),
-      name: "Health Potion",
-      type: "hpPotion",
-      rarity: "common",
-      requiredLevel: 1,
-      sellable: true,
-      sellPrice: 5,
-      stackable: true,
-      count: 2,
-      icon: 'inventory/hp-slot.jpg'
-    };
-    const manaPotion = {
-      id: crypto.randomUUID(),
-      name: "Mana Potion",
-      type: "mpPotion",
-      rarity: "common",
-      requiredLevel: 1,
-      sellable: true,
-      sellPrice: 5,
-      stackable: true,
-      count: 10,
-      icon: 'inventory/mp-slot.jpg'
-    };
+    const healthPotion = createItem("Health Potion", "hpPotion", "common", 1, true, 5, true, 2, 'inventory/hp-slot.jpg');
+    const healthPotion2 = createItem("Health Potion", "hpPotion", "common", 1, true, 5, true, 2, 'inventory/hp-slot.jpg');
+    const manaPotion = createItem("Mana Potion", "mpPotion", "common", 1, true, 5, true, 10, 'inventory/mp-slot.jpg');
+    
     addItemToInventory(healthPotion);
     addItemToInventory(healthPotion2);
     addItemToInventory(manaPotion);
@@ -89,6 +63,7 @@ export function initInventory() {
   renderPotionBar();
   updateStaffVisibility();
 }
+
 function initPotionBar() {
   const potionBar = document.getElementById('potionBar');
   potionBar.innerHTML = `
