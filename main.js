@@ -26,11 +26,15 @@ import {
   addExperience,
   isAnyModalOpen,
   addGold,
+  getPlayerMaxHealth,
+  getPlayerMana,
+  getPlayerMaxMana,
+  updatePlayerStats,
 } from './player.js';
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";
 import { createCamp } from "./camp.js";
-import { closeInventory, equipment, initInventory, openInventory, updatePotionCooldowns, updateStaffVisibility } from "./inventory.js";
+import { closeInventory, equipment, openInventory, updatePotionCooldowns, updateStaffVisibility } from "./inventory.js";
 
 export const version = "1.2.1";
 
@@ -372,6 +376,7 @@ async function init() {
     createPlayer();
     createSkillbar()
     initSkillTree();
+    updatePlayerStats(true);
     attachStaffToCamera();
     startTimer();
     const crosshair = createCrosshair();
@@ -1143,8 +1148,8 @@ function createMaze(inputText = "", selectedFloor = 1) {
   }
 
   // Resetování zdraví hráče při vytvoření nového bludiště
-  setPlayerHealth(100);
-  setPlayerMana(maxMana);
+  setPlayerHealth(getPlayerMaxHealth());
+  setPlayerMana(getPlayerMaxMana());
   updatePlayerHealthBar();
   updatePlayerManaBar();
 

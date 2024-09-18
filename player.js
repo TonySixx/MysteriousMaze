@@ -1,13 +1,18 @@
 import * as THREE from "three";
-import {  camera,  CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
+import { camera, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
 import { getActiveSpells, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 import { equipment, initInventory, usePotion } from "./inventory.js";
+import { calculateSpellDamage, skillTree } from "./skillTree.js";
 
 
 var player;
 var playerHealth = 100;
 var playerMana = 100;
+
+export let baseMaxHealth = 100;
+export let baseMaxMana = 100;
+export let baseAttackBonus = 0;
 
 export let playerExp = 0;
 export let expToNextLevel = 100;
@@ -15,8 +20,8 @@ export let skillPoints = 0;
 
 
 
-const maxMana = 100;
-const maxHealth = 100;
+var maxMana = 100;
+var maxHealth = 100;
 const manaRegenRate = 0.5;
 
 
@@ -63,6 +68,54 @@ export function setPlayerMana(mana) {
     playerMana = mana;
     updatePlayerManaBar();
 }
+
+export function updatePlayerStats(initialCall = false) {
+    debugger;
+    let totalHpBonus = 0;
+    let totalMpBonus = 0;
+    let totalAttackBonus = 0;
+
+    // Procházíme vybavení a sčítáme bonusy
+    for (const [slot, item] of Object.entries(equipment)) {
+        if (item) {
+            totalHpBonus += item.hpBonus || 0;
+            totalMpBonus += item.mpBonus || 0;
+            totalAttackBonus += item.attackBonus || 0;
+        }
+    }
+
+    // Aktualizujeme maximální zdraví a manu
+    maxHealth = baseMaxHealth + totalHpBonus;
+    maxMana = baseMaxMana + totalMpBonus;
+
+    // Aktualizujeme aktuální zdraví a manu, aby nepřesáhly nové maximum
+    playerHealth = Math.min(playerHealth, maxHealth);
+    playerMana = Math.min(playerMana, maxMana);
+
+    if (initialCall) {
+        setPlayerHealth(maxHealth);
+        setPlayerMana(maxMana);
+    }
+
+    // Aktualizujeme útočný bonus
+    baseAttackBonus = totalAttackBonus;
+
+    // Aktualizujeme uživatelské rozhraní
+    updatePlayerHealthBar();
+    updatePlayerManaBar();
+
+    // Aktualizujeme poškození kouzel
+    updateSpellDamage();
+}
+
+function updateSpellDamage() {
+    spells.forEach(spell => {
+        const spellInfo = skillTree[spell.id];
+        spell.damage = calculateSpellDamage(spellInfo);
+    });
+}
+
+
 
 export function savePlayerProgress() {
     localStorage.setItem('playerLevel', playerLevel);
@@ -125,7 +178,7 @@ export function loadPlayerProgress() {
             playerGold = 0;
         }
     }
-    updatePlayerStats();
+    updatePlayerLevelStats();
     updateGoldDisplay();
     updateExpBar();
     initInventory();
@@ -155,7 +208,7 @@ function levelUp() {
     playerExp -= expToNextLevel;
     expToNextLevel = Math.floor(expToNextLevel * 1.5);
     addSkillPoint();
-    updatePlayerStats();
+    updatePlayerLevelStats();
     updateFloorOptions(); // Přidáme toto volání
 }
 
@@ -185,7 +238,7 @@ function updateGoldDisplay() {
     }
 }
 
-function updatePlayerStats() {
+function updatePlayerLevelStats() {
     document.getElementById('playerLevel').textContent = `Level ${playerLevel}`;
     updateSkillPointsDisplay();
 }
@@ -236,7 +289,7 @@ function createPlayer() {
     scene.add(player);
 
     if (selectedFloor === 999) { //Tábor
-        player.position.set(0,0, 15 - (CELL_SIZE / 2));
+        player.position.set(0, 0, 15 - (CELL_SIZE / 2));
         return;
     }
 
@@ -426,7 +479,7 @@ function updatePlayerHealthBar() {
     const healthText = document.getElementById('playerHealthText');
     const healthPercentage = Math.max(playerHealth, 0) + '%';
     healthBarFill.style.width = healthPercentage;
-    healthText.textContent = `${Math.round(playerHealth)} / 100`;
+    healthText.textContent = `${Math.round(playerHealth)} / ${getPlayerMaxHealth()}`;
 }
 
 
@@ -435,19 +488,19 @@ function updatePlayerManaBar() {
     const manaText = document.getElementById('playerManaText');
     const manaPercentage = Math.max(playerMana, 0) + '%';
     manaBarFill.style.width = manaPercentage;
-    manaText.textContent = `${Math.round(playerMana)} / ${maxMana}`;
+    manaText.textContent = `${Math.round(playerMana)} / ${getPlayerMaxMana()}`;
 }
 
 function regenerateMana(deltaTime) {
-    if (playerMana < maxMana) {
-        playerMana = Math.min(playerMana + (manaRegenRate * (deltaTime * 40)), maxMana);
+    if (playerMana < getPlayerMaxMana()) {
+        playerMana = Math.min(playerMana + (manaRegenRate * (deltaTime * 40)), getPlayerMaxMana());
         updatePlayerManaBar();
     }
 }
 
 function regenerateHealth(deltaTime) {
-    if (playerHealth < 100) {
-        playerHealth = Math.min(playerHealth + (0.05 * (deltaTime * 40)), 100);
+    if (playerHealth < getPlayerMaxHealth()) {
+        playerHealth = Math.min(playerHealth + (0.05 * (deltaTime * 40)), getPlayerMaxHealth());
         updatePlayerHealthBar();
     }
 }
@@ -514,11 +567,11 @@ export function onKeyDown(event) {
 
     }
 
-     // Přidáme kontrolu, zda je nějaký modál otevřený
-     if (isAnyModalOpen()) return;
+    // Přidáme kontrolu, zda je nějaký modál otevřený
+    if (isAnyModalOpen()) return;
 
-     if (player.isFrozen) return;
-     if (!equipment.weapon) return; // Přidáme kontrolu vybavené zbraně
+    if (player.isFrozen) return;
+    if (!equipment.weapon) return; // Přidáme kontrolu vybavené zbraně
 
     if (event.key === 'e' || event.key === 'E') {
         const frostboltSpell = spells.find(spell => spell.name === 'Frostbolt');
@@ -538,12 +591,12 @@ export function onKeyDown(event) {
             }
         }
     }
-    
+
     else if (event.code === 'Digit1') {
         usePotion('hp');
-      } else if (event.code === 'Digit2') {
+    } else if (event.code === 'Digit2') {
         usePotion('mp');
-      }
+    }
 }
 
 export function onKeyUp(event) {
@@ -566,11 +619,11 @@ export function onKeyUp(event) {
 // Přidáme novou funkci pro kontrolu otevřených modálů
 export function isAnyModalOpen() {
     return document.getElementById("scoreModal")?.style.display === "block" ||
-           document.getElementById("hintModal")?.style.display === "block" ||
-           document.getElementById("settingsModal")?.style.display === "block" ||
-           document.getElementById("inventoryModal")?.style.display === "block" ||
-           document.getElementById("skillTreeModal")?.style.display === "block" ||
-           document.getElementById("shopModal");
+        document.getElementById("hintModal")?.style.display === "block" ||
+        document.getElementById("settingsModal")?.style.display === "block" ||
+        document.getElementById("inventoryModal")?.style.display === "block" ||
+        document.getElementById("skillTreeModal")?.style.display === "block" ||
+        document.getElementById("shopModal");
 }
 
 export {

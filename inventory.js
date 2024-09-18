@@ -1,4 +1,4 @@
-import { addGold, getGold } from './player.js';
+import { addGold, getGold, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana } from './player.js';
 import { errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, staffModel } from './main.js';
@@ -44,16 +44,6 @@ export function initInventory() {
   } else {
     inventory = new Array(INVENTORY_SIZE).fill(null);
     addItemsForTesting();
-
-    // const mageStaff = createItem("mageStaff");
-    // addItemToInventory(mageStaff);
-    // equipItem(mageStaff.id, "weapon");
-
-    // const healthPotion = createItem("healthPotion",5);
-    // const manaPotion = createItem("manaPotion", 5);
-
-    // addItemToInventory(healthPotion);
-    // addItemToInventory(manaPotion);
   }
 
   console.log("Inventory initialized:", inventory);
@@ -430,6 +420,7 @@ function equipItem(itemId, slot) {
 
   updateStaffVisibility();
   saveInventoryToLocalStorage();
+  updatePlayerStats(); // Přidáme volání této funkce
 }
 
 function findItemById(id) {
@@ -488,12 +479,11 @@ function removeItemFromEquipment(slot) {
       console.log(`Removed ${item.name} from ${slot} slot`);
       console.log("Updated equipment:", equipment);
 
-      // Přidáme volání updateStaffVisibility
       updateStaffVisibility();
-
       renderInventory();
       renderEquipment();
       saveInventoryToLocalStorage();
+      updatePlayerStats(); // Přidáme volání této funkce
       return true;
     } else {
       console.log(`Couldn't remove ${item.name} from ${slot} slot: inventory full`);

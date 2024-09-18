@@ -26,7 +26,7 @@ export function resetSpells() {
 
 
 class Spell {
-  constructor(name, icon, key, cooldown, id, castFunction) {
+  constructor(name, icon, key, cooldown, id, castFunction, damage) {
     this.name = name;
     this.icon = icon;
     this.key = key;
@@ -34,6 +34,7 @@ class Spell {
     this.lastCastTime = 0;
     this.id = id;
     this.cast = castFunction;
+    this.damage = 0;
   }
 
   isReady() {
@@ -43,10 +44,10 @@ class Spell {
 
 // Definice kouzel
 var spells = [
-  new Spell('Fireball', fireballIcon, 'LMB', 500, "fireball", castFireball),
-  new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, "arcaneMissile", castArcaneMissile),
-  new Spell('Frostbolt', frostboltIcon, 'E', 5000, "frostbolt", castFrostbolt),
-  new Spell('Chain Lightning', chainLightningIcon, 'R', 8000, "chainLightning", castChainLightning)
+  new Spell('Fireball', fireballIcon, 'LMB', 500, "fireball", castFireball, 100),
+  new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, "arcaneMissile", castArcaneMissile, 50),
+  new Spell('Frostbolt', frostboltIcon, 'E', 5000, "frostbolt", castFrostbolt, 0),
+  new Spell('Chain Lightning', chainLightningIcon, 'R', 8000, "chainLightning", castChainLightning,300)
 ];
 
 // Funkce pro získání aktivních kouzel

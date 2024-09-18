@@ -1,4 +1,4 @@
-import { useSkillPoint } from './player.js';
+import { baseAttackBonus, useSkillPoint } from './player.js';
 import frostboltIcon from './public/spells/frostbolt-icon.png';
 import arcaneMissileIcon from './public/spells/arcane-missile-icon.png';
 import iceExplosionIcon from './public/spells/ice-explosion-icon.png';
@@ -504,7 +504,7 @@ function canUnlockUpgrade(spellKey, upgrade) {
 
 
 export function calculateSpellDamage(spell) {
-    let totalDamage = spell.baseDamage;
+    let totalDamage = spell.baseDamage + baseAttackBonus;
     for (let i = 0; i < spell.level - 1; i++) {
         totalDamage += spell.damageIncreasePerLevel[i] || 0;
     }
