@@ -107,7 +107,7 @@ export const itemDatabase = {
   angelsGraceVestments: {
     name: "Angel's Grace Vestments",
     type: "armor",
-    rarity: "legendary",
+    rarity: ITEM_RARITIES.LEGENDARY,
     requiredLevel: 55,
     sellable: true,
     sellPrice: 5000,
@@ -121,7 +121,7 @@ export const itemDatabase = {
   arcaneRunecloak: {
     name: "Arcane Runecloak",
     type: "armor",
-    rarity: "epic",
+    rarity: ITEM_RARITIES.EPIC,
     requiredLevel: 45,
     sellable: true,
     sellPrice: 3000,
@@ -135,7 +135,7 @@ export const itemDatabase = {
   bloomShadeKimono: {
     name: "Bloom Shade Kimono",
     type: "armor",
-    rarity: "rare",
+    rarity: ITEM_RARITIES.RARE,
     requiredLevel: 35,
     sellable: true,
     sellPrice: 1500,
@@ -149,7 +149,7 @@ export const itemDatabase = {
   crimsonEmberCloak: {
     name: "Crimson Ember Cloak",
     type: "armor",
-    rarity: "epic",
+    rarity: ITEM_RARITIES.EPIC,
     requiredLevel: 50,
     sellable: true,
     sellPrice: 3500,
@@ -163,7 +163,7 @@ export const itemDatabase = {
   emeraldSagesAttire: {
     name: "Emerald Sage's Attire",
     type: "armor",
-    rarity: "epic",
+    rarity: ITEM_RARITIES.EPIC,
     requiredLevel: 40,
     sellable: true,
     sellPrice: 2800,
@@ -177,7 +177,7 @@ export const itemDatabase = {
   flamewreathedMantle: {
     name: "Flamewreathed Mantle",
     type: "armor",
-    rarity: "rare",
+    rarity: ITEM_RARITIES.RARE,
     requiredLevel: 30,
     sellable: true,
     sellPrice: 1200,
@@ -191,7 +191,7 @@ export const itemDatabase = {
   goldenDawnRobe: {
     name: "Golden Dawn Robe",
     type: "armor",
-    rarity: "epic",
+    rarity: ITEM_RARITIES.EPIC,
     requiredLevel: 45,
     sellable: true,
     sellPrice: 3200,
@@ -205,7 +205,7 @@ export const itemDatabase = {
   infernalDragonhideRobe: {
     name: "Infernal Dragonhide Robe",
     type: "armor",
-    rarity: "legendary",
+    rarity: ITEM_RARITIES.LEGENDARY,
     requiredLevel: 60,
     sellable: true,
     sellPrice: 6000,
@@ -219,7 +219,7 @@ export const itemDatabase = {
   novicesFrostedMantle: {
     name: "Novice's Frosted Mantle",
     type: "armor",
-    rarity: "common",
+    rarity: ITEM_RARITIES.COMMON,
     requiredLevel: 1,
     sellable: true,
     sellPrice: 50,

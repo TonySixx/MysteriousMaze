@@ -70,7 +70,6 @@ export function setPlayerMana(mana) {
 }
 
 export function updatePlayerStats(initialCall = false) {
-    debugger;
     let totalHpBonus = 0;
     let totalMpBonus = 0;
     let totalAttackBonus = 0;
@@ -477,18 +476,19 @@ function checkCollisions(newPosition) {
 function updatePlayerHealthBar() {
     const healthBarFill = document.getElementById('playerHealthFill');
     const healthText = document.getElementById('playerHealthText');
-    const healthPercentage = Math.max(playerHealth, 0) + '%';
+    const maxHealth = getPlayerMaxHealth();
+    const healthPercentage = Math.min(Math.max((playerHealth / maxHealth) * 100, 0), 100) + '%';
     healthBarFill.style.width = healthPercentage;
-    healthText.textContent = `${Math.round(playerHealth)} / ${getPlayerMaxHealth()}`;
+    healthText.textContent = `${Math.round(playerHealth)} / ${maxHealth}`;
 }
-
 
 function updatePlayerManaBar() {
     const manaBarFill = document.getElementById('playerManaFill');
     const manaText = document.getElementById('playerManaText');
-    const manaPercentage = Math.max(playerMana, 0) + '%';
+    const maxMana = getPlayerMaxMana();
+    const manaPercentage = Math.min(Math.max((playerMana / maxMana) * 100, 0), 100) + '%';
     manaBarFill.style.width = manaPercentage;
-    manaText.textContent = `${Math.round(playerMana)} / ${getPlayerMaxMana()}`;
+    manaText.textContent = `${Math.round(playerMana)} / ${maxMana}`;
 }
 
 function regenerateMana(deltaTime) {
@@ -623,7 +623,7 @@ export function isAnyModalOpen() {
         document.getElementById("settingsModal")?.style.display === "block" ||
         document.getElementById("inventoryModal")?.style.display === "block" ||
         document.getElementById("skillTreeModal")?.style.display === "block" ||
-        document.getElementById("shopModal");
+        document.getElementsByClassName("shop-modal")?.length > 0;
 }
 
 export {

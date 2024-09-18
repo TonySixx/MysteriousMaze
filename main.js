@@ -34,9 +34,9 @@ import {
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";
 import { createCamp } from "./camp.js";
-import { closeInventory, equipment, openInventory, updatePotionCooldowns, updateStaffVisibility } from "./inventory.js";
+import { addItemToInventory, closeInventory, createItem, equipment, openInventory, updatePotionCooldowns, updateStaffVisibility } from "./inventory.js";
 
-export const version = "1.2.1";
+export const version = "1.2.3";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -500,6 +500,16 @@ async function init() {
 }
 
 function processConsoleCommand(command) {
+
+  if (command.includes(".item")) {
+    addItemToInventory(createItem(command.replaceAll("Shift", "").replaceAll("Alt", "").split(".item")[0]));
+    return;
+  }
+  else if (command.includes(".exp")) {
+    addExperience(parseInt(command.replaceAll("Shift", "").replaceAll("Alt", "").split(".exp")[0]));
+    return;
+  }
+
   switch (command.toLowerCase()) {
     case 'ghost.cmd':
       enableGhostMode();
@@ -518,7 +528,7 @@ function processConsoleCommand(command) {
       break;
     case 'gold.cmd':
       addGold(50);
-      break;
+      break;   
     default:
       console.log('Neznámý příkaz:', command);
       break;

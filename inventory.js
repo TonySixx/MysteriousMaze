@@ -1,7 +1,7 @@
 import { addGold, getGold, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana } from './player.js';
-import { errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, staffModel } from './main.js';
+import { coinSoundBuffer, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, staffModel } from './main.js';
 import { getItemName, itemDatabase } from './itemDatabase.js';
 
 let inventory = [];
@@ -43,7 +43,12 @@ export function initInventory() {
     equipment = JSON.parse(savedEquipment);
   } else {
     inventory = new Array(INVENTORY_SIZE).fill(null);
-    addItemsForTesting();
+    const staff = createItem(getItemName(itemDatabase.apprenticeShardStaff));
+    addItemToInventory(staff);
+    equipItem(staff.id, 'weapon');
+    addItemToInventory(createItem(getItemName(itemDatabase.healthPotion), 5));
+    addItemToInventory(createItem(getItemName(itemDatabase.manaPotion), 5));
+    //addItemsForTesting();
   }
 
   console.log("Inventory initialized:", inventory);
@@ -545,6 +550,7 @@ function sellItem(itemId) {
 
   const sellCount = item.stackable ? item.count : 1;
   addGold(item.sellPrice * sellCount);
+  playSound(coinSoundBuffer);
   renderInventory();
   renderEquipment();
   updateGoldDisplay();
