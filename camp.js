@@ -674,9 +674,8 @@ export class Merchant {
       return;
     }
 
-    const playerGold = getGold();
     addGold(-item.buyPrice);
-    addItemToInventory(item);
+    addItemToInventory({...item});
     this.updateShopGoldDisplay();
     this.showMessage(getTranslation("itemPurchased"));
   }
