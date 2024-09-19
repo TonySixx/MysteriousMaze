@@ -120,6 +120,7 @@
       "chainExplosionDescription": "The last hit enemy explodes and deals 100 damage to all enemies within 5 meters",
       "unlocked": "Unlocked",
       "damage": "Damage",
+      "bonusDamage": "Bonus Damage",
       "floorCamp": "Camp",
       "inventory": "Inventory",
       "weapon": "Weapon",
@@ -152,7 +153,10 @@
       "attackBonus": "Attack Bonus",
       "hpBonus": "HP Bonus",
       "mpBonus": "MP Bonus",
-      "restoreAmount": "Restore Amount"
+      "restoreAmount": "Restore Amount",
+      "experience": "Experience",
+      "maxHealth": "Max Health",
+      "maxMana": "Max Mana"
     },
     "cs": {
       "enterName": "Zadejte své jméno",
@@ -275,6 +279,7 @@
       "chainExplosionDescription": "Poslední zasažený nepřítel exploduje a způsobí 100 poškození všem nepřátelům v okruhu 5 metrů",
       "unlocked": "Odemčeno",
       "damage": "Poškození",
+      "bonusDamage": "Bonus k poškození",
       "floorCamp": "Tábor",
       "inventory": "Inventář",
       "weapon": "Zbraň",
@@ -307,6 +312,9 @@
       "attackBonus": "Bonus k útoku",
       "hpBonus": "Bonus k HP",
       "mpBonus": "Bonus k MP",
-      "restoreAmount": "Množství obnovení"
+      "restoreAmount": "Množství obnovení",
+      "experience": "Zkušenosti",
+      "maxHealth": "Max. zdraví",
+      "maxMana": "Max. mana"
     }
   }

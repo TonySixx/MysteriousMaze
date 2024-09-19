@@ -195,6 +195,13 @@
 }
 
 
+
+.gold-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+
 .gold-display {
   position: absolute;
   top: 10px;
@@ -203,12 +210,6 @@
   color: #ffd700;
   display: flex;
   align-items: center;
-}
-
-.gold-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 5px;
 }
 
 .item-count {
@@ -233,3 +234,57 @@
   margin-bottom: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
+
+#previewStatsContainer {
+  display: flex;
+  margin-bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+#playerStats {
+  margin-left: 20px;
+  color: #f0e6d2;
+}
+
+#playerStats h3 {
+  margin-top: 0;
+  color: #c8a97e;
+}
+
+#playerStats table {
+  border-collapse: collapse;
+}
+
+#playerStats td {
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(200, 169, 126, 0.3);
+}
+
+#playerStats td:first-child {
+  font-weight: bold;
+  color: #c8a97e;
+}
+
+#playerStats .gold-display {
+  position: static;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+}
+
+#playerStats .gold-display .gold-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+#playerStats .gold-display #goldDisplay {
+  color: #e9b266;
+  font-weight: bold;
+}
+
+
+

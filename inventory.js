@@ -1,6 +1,6 @@
-import { addGold, getGold, updatePlayerStats } from './player.js';
+import { addGold, expToNextLevel, getGold, getPlayerLevel, playerExp, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
-import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana } from './player.js';
+import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
 import { coinSoundBuffer, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, staffModel } from './main.js';
 import { getItemName, itemDatabase, getDefaultPlayerPreview } from './itemDatabase.js';
 
@@ -94,38 +94,61 @@ function renderInventory() {
   const inventoryGrid = document.getElementById('inventoryGrid');
   inventoryGrid.innerHTML = '';
 
-    // Přidáme křížek pro zavření
-    const closeButton = document.createElement('span');
-    closeButton.className = 'close-button';
-    closeButton.innerHTML = '&times;';
-    closeButton.onclick = closeInventory;
-    document.querySelector('.inventory-content').appendChild(closeButton);
+  // Přidáme křížek pro zavření
+  const closeButton = document.createElement('span');
+  closeButton.className = 'close-button';
+  closeButton.innerHTML = '&times;';
+  closeButton.onclick = closeInventory;
+  document.querySelector('.inventory-content').appendChild(closeButton);
 
-  // Nejprve odstraníme existující playerPreview, pokud existuje
+  // Nejprve odstraníme existující playerPreview a playerStats, pokud existují
   const existingPlayerPreview = document.getElementById('playerPreview');
+  const existingPlayerStats = document.getElementById('playerStats');
+  const existingPreviewStatsContainer = document.getElementById('previewStatsContainer');
   if (existingPlayerPreview) {
     existingPlayerPreview.remove();
   }
+  if (existingPlayerStats) {
+    existingPlayerStats.remove();
+  }
+  if (existingPreviewStatsContainer) {
+    existingPreviewStatsContainer.remove();
+  }
+
+  // Přidáme kontejner pro preview a statistiky
+  const previewStatsContainer = document.createElement('div');
+  previewStatsContainer.id = 'previewStatsContainer';
+  previewStatsContainer.style.display = 'flex';
+  previewStatsContainer.style.marginBottom = '20px';
 
   // Přidáme zobrazení hráčovy postavy
-  const equipmentContainer = document.querySelector('.equipment');
   const playerPreview = document.createElement('div');
   playerPreview.id = 'playerPreview';
   playerPreview.style.backgroundImage = `url('${getPlayerPreviewImage()}')`;
-  document.querySelector('.inventory-content').insertBefore(playerPreview, equipmentContainer);
+  previewStatsContainer.appendChild(playerPreview);
 
-  // Přidáme nebo aktualizujeme zobrazení goldů
-  let goldDisplay = document.querySelector('.gold-display');
-  if (!goldDisplay) {
-    goldDisplay = document.createElement('div');
-    goldDisplay.className = 'gold-display';
-    goldDisplay.innerHTML = `
+  // Přidáme zobrazení statistik
+  const playerStats = document.createElement('div');
+  playerStats.id = 'playerStats';
+  playerStats.style.marginLeft = '20px';
+  playerStats.innerHTML = `
+    <h3>${getPlayerName()}</h3>
+    <table>
+      <tr><td>${getTranslation('level')}:</td><td>${getPlayerLevel()}</td></tr>
+      <tr><td>${getTranslation('experience')}:</td><td>${playerExp} / ${expToNextLevel}</td></tr>
+      <tr><td>${getTranslation('maxHealth')}:</td><td>${getPlayerMaxHealth()}</td></tr>
+      <tr><td>${getTranslation('maxMana')}:</td><td>${getPlayerMaxMana()}</td></tr>
+      <tr><td>${getTranslation('bonusDamage')}:</td><td>${calculatePlayerDamage()}</td></tr>
+    </table>
+        <div class="gold-display">
       <img src="gold-coin.png" alt="Gold" class="gold-icon">
-      <span id="goldDisplay"></span>
-    `;
-    document.querySelector('.inventory-content').appendChild(goldDisplay);
-  }
-  updateGoldDisplay();
+      <span id="goldDisplay">${getGold().toLocaleString()}</span>
+    </div>
+  `;
+  previewStatsContainer.appendChild(playerStats);
+
+  document.querySelector('.inventory-content').insertBefore(previewStatsContainer, document.querySelector('.equipment'));
+
 
   for (let i = 0; i < INVENTORY_SIZE; i++) {
     const slot = document.createElement('div');

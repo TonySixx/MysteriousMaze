@@ -74,6 +74,16 @@ export function getPlayerLevel() {
     return playerLevel;
 }
 
+export function getPlayerName() {
+    return localStorage.getItem('playerName') || 'Unnamed';
+  }
+  
+  export function calculatePlayerDamage() {
+    const baseDamage = 0; 
+    const weaponDamage = equipment.weapon ? equipment.weapon.attackBonus || 0 : 0;
+    return baseDamage + weaponDamage;
+  }
+
 export function updatePlayerStats(initialCall = false) {
     let totalHpBonus = 0;
     let totalMpBonus = 0;
