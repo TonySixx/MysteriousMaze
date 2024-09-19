@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold } from "./player.js"
+import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold, getPlayerLevel } from "./player.js"
 import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, camera, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer } from './main.js';
 import { getTranslation } from "./langUtils.js";
 
@@ -612,12 +612,28 @@ class Boss {
             bossHealthElement.remove();
         }
 
-        // Přidání exp za zabití bosse
-        const expGained = this.maxHealth + ((this.floor-1)* 1000);
-        const exponent = 1.1;
-        const totalExperience = Math.round(expGained * Math.pow(this.floor, exponent));
-        addExperience(totalExperience);
-        this.showExpText(totalExperience);
+    // Přidání exp za zabití bosse
+    const expGained = this.maxHealth + ((this.floor-1)* 1000);
+    const exponent = 1.1;
+    let totalExperience = Math.round(expGained * Math.pow(this.floor, exponent));
+
+    // Úprava zkušeností na základě úrovně hráče a podlaží
+    const playerLevel = getPlayerLevel(); // Předpokládáme, že tato funkce existuje
+    let expMultiplier = 1;
+
+    if (this.floor === 1 && playerLevel > 7) {
+        expMultiplier = Math.max(0.1, 1 - (playerLevel - 7) * 0.15);
+    } else if (this.floor === 2 && playerLevel > 12) {
+        expMultiplier = Math.max(0.1, 1 - (playerLevel - 12) * 0.15);
+    } else if (this.floor === 3 && playerLevel > 16) {
+        expMultiplier = Math.max(0.1, 1 - (playerLevel - 16) * 0.15);
+    } else if (this.floor === 4 && playerLevel > 20) {
+        expMultiplier = Math.max(0.1, 1 - (playerLevel - 20) * 0.15);
+    }
+
+    totalExperience = Math.round(totalExperience * expMultiplier);
+    addExperience(totalExperience);
+    this.showExpText(totalExperience)
 
         // Přidání zlaťáků za zabití bosse
         const goldGained = Math.round((this.maxHealth / 100) + (this.floor * 10) + (Math.random() * 0.1 * this.maxHealth / 100));

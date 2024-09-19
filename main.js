@@ -2,13 +2,24 @@ import * as THREE from "three";
 import seedrandom from "seedrandom";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { createClient } from "@supabase/supabase-js";
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { AudioLoader } from 'three';
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { AudioLoader } from "three";
 
-import { setBossCounter, setBosses, spawnBossInMaze, bosses } from './boss.js';
-import { spells, updateFireballs, updateFrostbolts, updateArcaneMissiles, lastSpellCastTime, updateChainLightnings, updateSpellUpgrades, resetSpells, createSkillbar, updateSkillbar } from './spells.js';
+import { setBossCounter, setBosses, spawnBossInMaze, bosses } from "./boss.js";
+import {
+  spells,
+  updateFireballs,
+  updateFrostbolts,
+  updateArcaneMissiles,
+  lastSpellCastTime,
+  updateChainLightnings,
+  updateSpellUpgrades,
+  resetSpells,
+  createSkillbar,
+  updateSkillbar,
+} from "./spells.js";
 import {
   createPlayer,
   updatePlayerPosition,
@@ -20,7 +31,15 @@ import {
   setPlayerMana,
   maxMana,
   playerHealth,
-  player, moveBackward, moveForward, moveLeft, moveRight, onMouseClick, onMouseMove, onKeyDown, onKeyUp,
+  player,
+  moveBackward,
+  moveForward,
+  moveLeft,
+  moveRight,
+  onMouseClick,
+  onMouseMove,
+  onKeyDown,
+  onKeyUp,
   initPlayerUI,
   loadPlayerProgress,
   addExperience,
@@ -30,11 +49,25 @@ import {
   getPlayerMana,
   getPlayerMaxMana,
   updatePlayerStats,
-} from './player.js';
+} from "./player.js";
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
-import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils.js";
+import {
+  currentLanguage,
+  getTranslation,
+  setLanguage,
+  updateTranslations,
+  updateUITexts,
+} from "./langUtils.js";
 import { createCamp } from "./camp.js";
-import { addItemToInventory, closeInventory, createItem, equipment, openInventory, updatePotionCooldowns, updateStaffVisibility } from "./inventory.js";
+import {
+  addItemToInventory,
+  closeInventory,
+  createItem,
+  equipment,
+  openInventory,
+  updatePotionCooldowns,
+  updateStaffVisibility,
+} from "./inventory.js";
 
 export const version = "1.2.3";
 
@@ -44,9 +77,7 @@ const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9saGd1dGRvemhkdm5pZWZtbHR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI4NzYwNTgsImV4cCI6MjAzODQ1MjA1OH0.RmahBsbb4QnO0xpTH-Bpe8f9vJFypcq6z5--e4s0MJI";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-
-
-export const savedLanguage = localStorage.getItem('language');
+export const savedLanguage = localStorage.getItem("language");
 if (savedLanguage) {
   setLanguage(savedLanguage);
 }
@@ -56,29 +87,32 @@ let playerName = "";
 let bestTime = Infinity;
 
 export const keys = {
-  f: false
+  f: false,
 };
 
-document.addEventListener('keydown', (event) => {
-  if (event.key.toLowerCase() === 'f') {
+document.addEventListener("keydown", (event) => {
+  if (event.key.toLowerCase() === "f") {
     keys.f = true;
   }
 });
 
-document.addEventListener('keyup', (event) => {
-  if (event.key.toLowerCase() === 'f') {
+document.addEventListener("keyup", (event) => {
+  if (event.key.toLowerCase() === "f") {
     keys.f = false;
   }
 });
-
 
 export const textureSets = [
   {
     wallTexture: "textures/wall.jpg",
     ceilingTexture: "textures/wall.jpg",
     floorTexture: "textures/floor.jpg",
-    specialTextures: ["textures/wall.jpg", "textures/wall.jpg", "textures/wall.jpg"],
-    torchColor: { light: 0x00bfff, particles: 0x1e90ff } // Magical blue
+    specialTextures: [
+      "textures/wall.jpg",
+      "textures/wall.jpg",
+      "textures/wall.jpg",
+    ],
+    torchColor: { light: 0x00bfff, particles: 0x1e90ff }, // Magical blue
   },
   {
     wallTexture: "textures/wall-egypt.jpg",
@@ -89,7 +123,7 @@ export const textureSets = [
       "textures/wall-egypt-sign-2.jpg",
       "textures/wall-egypt-sign-3.jpg",
     ],
-    torchColor: { light: 0xffa500, particles: 0xff4500 } // Original orange color
+    torchColor: { light: 0xffa500, particles: 0xff4500 }, // Original orange color
   },
   {
     wallTexture: "textures/wall-jungle.jpg",
@@ -100,7 +134,7 @@ export const textureSets = [
       "textures/wall-jungle-sign-2.jpg",
       "textures/wall-jungle-sign-3.jpg",
     ],
-    torchColor: { light: 0x00ff7f, particles: 0x2ecc71 } // Emerald green
+    torchColor: { light: 0x00ff7f, particles: 0x2ecc71 }, // Emerald green
   },
   {
     wallTexture: "textures/wall-mythical.jpg",
@@ -111,7 +145,7 @@ export const textureSets = [
       "textures/wall-mythical-sign-2.jpg",
       "textures/wall-mythical-sign-3.jpg",
     ],
-    torchColor: { light: 0xa35ee8, particles: 0xa35ee8 } // Amethyst purple
+    torchColor: { light: 0xa35ee8, particles: 0xa35ee8 }, // Amethyst purple
   },
   {
     wallTexture: "textures/wall-obsidian.jpg",
@@ -122,7 +156,7 @@ export const textureSets = [
       "textures/wall-obsidian-sign-2.jpg",
       "textures/wall-obsidian-sign-3.jpg",
     ],
-    torchColor: { light: 0x9896ff, particles: 0x9896ff }
+    torchColor: { light: 0x9896ff, particles: 0x9896ff },
   },
   {
     wallTexture: "textures/wall-obsidian.jpg",
@@ -133,7 +167,7 @@ export const textureSets = [
       "textures/wall-obsidian-sign-2.jpg",
       "textures/wall-obsidian-sign-3.jpg",
     ],
-    torchColor: { light: 0xfdff6b, particles: 0xfdff6b }
+    torchColor: { light: 0xfdff6b, particles: 0xfdff6b },
   },
   {
     wallTexture: "textures/wall-abyss.jpg",
@@ -144,7 +178,7 @@ export const textureSets = [
       "textures/wall-abyss.jpg",
       "textures/wall-abyss.jpg",
     ],
-    torchColor: { light: 0x69ffb9, particles: 0x69ffb9 }
+    torchColor: { light: 0x69ffb9, particles: 0x69ffb9 },
   },
   {
     wallTexture: "textures/wall-abyss.jpg",
@@ -155,10 +189,9 @@ export const textureSets = [
       "textures/wall-abyss.jpg",
       "textures/wall-abyss.jpg",
     ],
-    torchColor: { light: 0xd6fffc, particles: 0xd6fffc }
+    torchColor: { light: 0xd6fffc, particles: 0xd6fffc },
   },
 ];
-
 
 export let camera, renderer, maze;
 let startTime, timerInterval;
@@ -170,13 +203,11 @@ export const WALL_HEIGHT = 3.1;
 export const CELL_SIZE = 2.5;
 export const OBJECT_HEIGHT = 1.6;
 
-
-
 let lastTeleportTime = 0;
 const teleportCooldown = 1000;
 export var nearTeleport = null;
 
-export let composer
+export let composer;
 
 export let MAX_VISIBLE_LIGHTS = 10; // Default value
 let qualityFactor = 1;
@@ -190,14 +221,13 @@ export var staffTopPart;
 export let magicBalls = [];
 
 let isConsoleOpen = false;
-let consoleInput = '';
+let consoleInput = "";
 export let canWalkThroughWalls = false;
 export let isFlying = false;
 
 let currentStaffColor = new THREE.Color(0xd8fcfd);
 let targetStaffColor = new THREE.Color(0xff4500);
 let colorTransitionSpeed = 5; // Rychlost přechodu barev
-
 
 let isMinimapVisible = false;
 let minimapTimeMultiplier = 1;
@@ -207,7 +237,6 @@ let canOpenMinimap = true;
 let minimapCooldownTimer = null;
 
 let teleportPairsCount = 0;
-
 
 let nebula, nebulaMaterial;
 
@@ -224,7 +253,6 @@ export var coinSoundBuffer;
 export var itemSoundBuffer;
 export var errorSoundBuffer;
 
-
 export var bossSoundBuffer;
 export var aoeBlastSoundBuffer;
 
@@ -232,15 +260,12 @@ export var backgroundMusic;
 let isMusicPlaying = true;
 let footstepsSound;
 
-
-const showFloorSelectBtn = document.getElementById('showFloorSelect');
-const floorSelectModal = document.getElementById('floorSelectModal');
-const floorOptions = document.querySelectorAll('.floor-option');
+const showFloorSelectBtn = document.getElementById("showFloorSelect");
+const floorSelectModal = document.getElementById("floorSelectModal");
+const floorOptions = document.querySelectorAll(".floor-option");
 export let selectedFloor = 1;
 
-
 const audioLoader = new AudioLoader();
-
 
 export function setTotalKeys(value) {
   totalKeys = value;
@@ -248,14 +273,12 @@ export function setTotalKeys(value) {
 
 // Přidejte tuto funkci do init() nebo tam, kde načítáte ostatní nastavení
 function loadSettings() {
-  MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem('maxVisibleLights')) || 10;
-  qualityFactor = parseFloat(localStorage.getItem('qualityFactor')) || 1;
+  MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem("maxVisibleLights")) || 10;
+  qualityFactor = parseFloat(localStorage.getItem("qualityFactor")) || 1;
   setQuality(qualityFactor);
 }
 
 async function init() {
-
-
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
     75,
@@ -271,21 +294,19 @@ async function init() {
   document.body.appendChild(renderer.domElement);
 
   // Check for seed in URL
-  const seedFromUrl = getUrlParameter('seed');
+  const seedFromUrl = getUrlParameter("seed");
   if (seedFromUrl) {
     document.getElementById("mazeInput").value = seedFromUrl;
   }
 
-  audioLoader.load('footstep.mp3', function (buffer) {
+  audioLoader.load("footstep.mp3", function (buffer) {
     footstepsSound = new THREE.Audio(new THREE.AudioListener());
     footstepsSound.setBuffer(buffer);
     footstepsSound.setLoop(true);
     footstepsSound.setVolume(0.5); // Upravte hlasitost podle potřeby
   });
 
-
-
-  audioLoader.load('audio_bg.mp3', function (buffer) {
+  audioLoader.load("audio_bg.mp3", function (buffer) {
     backgroundMusic = new THREE.Audio(new THREE.AudioListener());
     backgroundMusic.setBuffer(buffer);
     backgroundMusic.setLoop(true);
@@ -293,75 +314,69 @@ async function init() {
     backgroundMusic.play();
   });
 
-
-
-  audioLoader.load('snd_fireball.wav', function (buffer) {
+  audioLoader.load("snd_fireball.wav", function (buffer) {
     fireballSoundBuffer = buffer;
   });
-  audioLoader.load('snd_frostbolt.wav', function (buffer) {
+  audioLoader.load("snd_frostbolt.wav", function (buffer) {
     frostBoltSoundBuffer = buffer;
   });
-  audioLoader.load('snd_frostbolt_hit.wav', function (buffer) {
+  audioLoader.load("snd_frostbolt_hit.wav", function (buffer) {
     frostBoltHitSoundBuffer = buffer;
   });
-  audioLoader.load('snd_magicmissile.wav', function (buffer) {
+  audioLoader.load("snd_magicmissile.wav", function (buffer) {
     magicMissileSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_teleport.mp3', function (buffer) {
+  audioLoader.load("snd_teleport.mp3", function (buffer) {
     teleportSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_kill_confirm.mp3', function (buffer) {
+  audioLoader.load("snd_kill_confirm.mp3", function (buffer) {
     killConfirmationSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_boss_attack.wav', function (buffer) {
+  audioLoader.load("snd_boss_attack.wav", function (buffer) {
     bossSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_magic_arrow.wav', function (buffer) {
+  audioLoader.load("snd_magic_arrow.wav", function (buffer) {
     magicArrowSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_aoe_blast.mp3', function (buffer) {
+  audioLoader.load("snd_aoe_blast.mp3", function (buffer) {
     aoeBlastSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_chain_lightning.mp3', function (buffer) {
+  audioLoader.load("snd_chain_lightning.mp3", function (buffer) {
     chainLightningSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_land.mp3', function (buffer) {
+  audioLoader.load("snd_land.mp3", function (buffer) {
     landSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_coin.mp3', function (buffer) {
+  audioLoader.load("snd_coin.mp3", function (buffer) {
     coinSoundBuffer = buffer;
   });
-  audioLoader.load('snd_item.mp3', function (buffer) {
+  audioLoader.load("snd_item.mp3", function (buffer) {
     itemSoundBuffer = buffer;
   });
 
-  audioLoader.load('snd_error.mp3', function (buffer) {
+  audioLoader.load("snd_error.mp3", function (buffer) {
     errorSoundBuffer = buffer;
   });
 
   loadPlayerProgress();
-  const floorParam = getUrlParameter('floor');
+  const floorParam = getUrlParameter("floor");
   if (floorParam) {
     let selectedFloorInt = parseInt(floorParam);
     if (canSelectFloor(selectedFloorInt)) {
       selectedFloor = selectedFloorInt;
-    }
-    else {
+    } else {
       selectedFloor = 1;
-      setUrlParameter('floor', selectedFloor);
+      setUrlParameter("floor", selectedFloor);
     }
   }
-
-
-
 
   try {
     await loadKeyModel();
@@ -374,7 +389,7 @@ async function init() {
     await getBestTime(_inputText);
     createMaze(_inputText, selectedFloor);
     createPlayer();
-    createSkillbar()
+    createSkillbar();
     initSkillTree();
     updatePlayerStats(true);
     attachStaffToCamera();
@@ -382,10 +397,12 @@ async function init() {
     const crosshair = createCrosshair();
     camera.add(crosshair);
 
-
     initPlayerUI();
-    showFloorSelectBtn.textContent = selectedFloor === 999 ? getTranslation('floorCamp') : `${getTranslation('selectFloor')} ${selectedFloor}`;
-    updateFloorOptions()
+    showFloorSelectBtn.textContent =
+      selectedFloor === 999
+        ? getTranslation("floorCamp")
+        : `${getTranslation("selectFloor")} ${selectedFloor}`;
+    updateFloorOptions();
     updateSpellUpgrades(skillTree);
 
     // Načtení jména hráče z local storage
@@ -396,14 +413,12 @@ async function init() {
       document.getElementById("playerName").textContent = playerName;
     }
 
-
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     document.addEventListener("mousemove", onMouseMove, false);
     document.addEventListener("click", onMouseClick, false);
-    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener("mousedown", onMouseDown);
     window.addEventListener("resize", onWindowResize);
-
 
     document
       .getElementById("mazeSearchInput")
@@ -420,8 +435,6 @@ async function init() {
         activeElement.tagName === "INPUT" ||
         activeElement.tagName === "TEXTAREA";
       if (event.key === "c" || event.key === "C") {
-
-
         if (!isInput) {
           if (document.getElementById("scoreModal").style.display === "block") {
             hideScoreModal();
@@ -430,8 +443,7 @@ async function init() {
             displayScores(null);
           }
         }
-      }
-      else if (event.key === "h" || event.key === "H") {
+      } else if (event.key === "h" || event.key === "H") {
         if (!isInput) {
           if (document.getElementById("hintModal").style.display === "block") {
             hideHintModal();
@@ -439,26 +451,24 @@ async function init() {
             showHintModal();
           }
         }
-      }
-      else if (event.key === 'p' || event.key === 'P') {
+      } else if (event.key === "p" || event.key === "P") {
         if (!isInput) {
           showFPS = !showFPS;
-          fpsCounter.style.display = showFPS ? 'block' : 'none';
+          fpsCounter.style.display = showFPS ? "block" : "none";
         }
-      }
-      else if (event.key === "o" || event.key === "O") {
+      } else if (event.key === "o" || event.key === "O") {
         if (!isInput) {
           showSettingsModal();
         }
-      }
-      else if (event.key === "b" || event.key === "B") {
+      } else if (event.key === "b" || event.key === "B") {
         if (!isInput) {
           toggleBackgroundMusic();
         }
-      }
-      else if (event.key === "i" || event.key === "I") {
+      } else if (event.key === "i" || event.key === "I") {
         if (!isInput) {
-          if (document.getElementById("inventoryModal").style.display === "block") {
+          if (
+            document.getElementById("inventoryModal").style.display === "block"
+          ) {
             closeInventory();
           } else {
             openInventory();
@@ -467,7 +477,9 @@ async function init() {
       }
     });
 
-    document.querySelector("#hintModal .close").addEventListener("click", hideHintModal)
+    document
+      .querySelector("#hintModal .close")
+      .addEventListener("click", hideHintModal);
 
     // Nastavení post-processingu
     composer = new EffectComposer(renderer);
@@ -492,49 +504,52 @@ async function init() {
     updateUITexts();
 
     animate();
-
-
   } catch (error) {
     console.error("Failed to load key model:", error);
   }
 }
 
 function processConsoleCommand(command) {
-
   if (command.includes(".item")) {
-    addItemToInventory(createItem(command.replaceAll("Shift", "").replaceAll("Alt", "").split(".item")[0]));
+    addItemToInventory(
+      createItem(
+        command.replaceAll("Shift", "").replaceAll("Alt", "").split(".item")[0]
+      )
+    );
     return;
-  }
-  else if (command.includes(".exp")) {
-    addExperience(parseInt(command.replaceAll("Shift", "").replaceAll("Alt", "").split(".exp")[0]));
+  } else if (command.includes(".exp")) {
+    addExperience(
+      parseInt(
+        command.replaceAll("Shift", "").replaceAll("Alt", "").split(".exp")[0]
+      )
+    );
     return;
   }
 
   switch (command.toLowerCase()) {
-    case 'ghost.cmd':
+    case "ghost.cmd":
       enableGhostMode();
       break;
-    case 'walk.cmd':
+    case "walk.cmd":
       disableGhostMode();
       break;
-    case 'fly.cmd':
+    case "fly.cmd":
       toggleFlyMode();
       break;
-    case 'exp.cmd':
+    case "exp.cmd":
       addExperience(40000);
       break;
-    case 'exp2.cmd':
+    case "exp2.cmd":
       addExperience(100000);
       break;
-    case 'gold.cmd':
+    case "gold.cmd":
       addGold(50);
-      break;   
+      break;
     default:
-      console.log('Neznámý příkaz:', command);
+      console.log("Neznámý příkaz:", command);
       break;
   }
 }
-
 
 function enableGhostMode() {
   canWalkThroughWalls = true;
@@ -552,13 +567,11 @@ function toggleFlyMode() {
   if (isFlying) {
     console.log("Fly mode activated!");
     scene.fog = null;
-
   } else {
     console.log("Fly mode deactivated!");
     scene.fog = new THREE.FogExp2(0x000000, 0.05);
   }
 }
-
 
 function attachStaffToCamera() {
   if (staffModel) {
@@ -570,7 +583,7 @@ function attachStaffToCamera() {
           emissive: currentStaffColor,
           emissiveIntensity: 2,
           metalness: 1,
-          roughness: 0.5
+          roughness: 0.5,
         });
       }
     });
@@ -584,7 +597,7 @@ function onMouseDown(event) {
   if (!equipment.weapon) return; // Přidáme kontrolu vybavené zbraně
 
   if (event.button === 0) {
-    const fireballSpell = spells.find(spell => spell.name === 'Fireball');
+    const fireballSpell = spells.find((spell) => spell.name === "Fireball");
     if (fireballSpell && fireballSpell.isReady()) {
       let fired = fireballSpell.cast();
       if (fired) {
@@ -592,7 +605,9 @@ function onMouseDown(event) {
       }
     }
   } else if (event.button === 2) {
-    const arcaneMissileSpell = spells.find(spell => spell.name === 'Arcane Missile');
+    const arcaneMissileSpell = spells.find(
+      (spell) => spell.name === "Arcane Missile"
+    );
     if (arcaneMissileSpell && arcaneMissileSpell.isReady()) {
       let fired = arcaneMissileSpell.cast();
       if (fired) {
@@ -615,8 +630,6 @@ function toggleBackgroundMusic() {
   }
 }
 
-
-
 let freezeEndTime = 0;
 
 function freezePlayer() {
@@ -632,11 +645,11 @@ function freezePlayer() {
   if (!player.iceEffect) {
     const iceGeometry = new THREE.BoxGeometry(2, 2, 0.1);
     const iceMaterial = new THREE.MeshPhongMaterial({
-      color: 0xADD8E6,
+      color: 0xadd8e6,
       transparent: true,
       opacity: 0.4,
       shininess: 100,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
     });
     player.iceEffect = new THREE.Mesh(iceGeometry, iceMaterial);
     player.iceEffect.position.set(0, 0, -0.5);
@@ -653,11 +666,10 @@ function removeFreezeEffect() {
     player.iceEffect.geometry.dispose();
     player.iceEffect.material.dispose();
     player.iceEffect = null;
-
   }
   // Odstraňte vizuální efekt zamrznutí z ikon kouzel
-  document.querySelectorAll('.spell-icon').forEach(icon => {
-    icon.classList.remove('frozen');
+  document.querySelectorAll(".spell-icon").forEach((icon) => {
+    icon.classList.remove("frozen");
   });
   player.isFrozen = false;
   freezeEndTime = 0;
@@ -672,8 +684,8 @@ function updateFreezeEffect() {
       player.iceEffect.visible = true;
     }
     // Přidejte vizuální efekt zamrznutí na ikony kouzel
-    document.querySelectorAll('.spell-icon').forEach(icon => {
-      icon.classList.add('frozen');
+    document.querySelectorAll(".spell-icon").forEach((icon) => {
+      icon.classList.add("frozen");
     });
   } else {
     player.isFrozen = false;
@@ -681,8 +693,8 @@ function updateFreezeEffect() {
       player.iceEffect.visible = false;
     }
     // Odstraňte vizuální efekt zamrznutí z ikon kouzel
-    document.querySelectorAll('.spell-icon').forEach(icon => {
-      icon.classList.remove('frozen');
+    document.querySelectorAll(".spell-icon").forEach((icon) => {
+      icon.classList.remove("frozen");
     });
   }
 }
@@ -690,7 +702,9 @@ function updateFreezeEffect() {
 function updateMagicBalls(deltaTime) {
   for (let i = magicBalls.length - 1; i >= 0; i--) {
     const magicBall = magicBalls[i];
-    magicBall.position.add(magicBall.velocity.clone().multiplyScalar(deltaTime * 40));
+    magicBall.position.add(
+      magicBall.velocity.clone().multiplyScalar(deltaTime * 40)
+    );
 
     var player_position_for_collision = { ...player.position };
     player_position_for_collision.y = 1;
@@ -720,15 +734,14 @@ function updateMagicBalls(deltaTime) {
     }
 
     // Časový limit - pokud střela existuje déle než 5 sekund, odstranit ji
-    magicBall.userData.lifeTime = (magicBall.userData.lifeTime || 0) + deltaTime;
+    magicBall.userData.lifeTime =
+      (magicBall.userData.lifeTime || 0) + deltaTime;
     if (magicBall.userData.lifeTime > 5) {
       scene.remove(magicBall);
       magicBalls.splice(i, 1);
     }
-
   }
 }
-
 
 function updateFootstepsSound() {
   if (moveForward || moveBackward || moveLeft || moveRight) {
@@ -746,10 +759,6 @@ export function playerDeath() {
   // Restart hry
   startGame();
 }
-
-
-
-
 
 export function createCastEffect(position, color = 0xffa500) {
   const castEffectGroup = new THREE.Group();
@@ -772,7 +781,10 @@ export function createCastEffect(position, color = 0xffa500) {
     positions[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
   }
 
-  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particles.geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
   castEffectGroup.add(particles);
 
   castEffectGroup.position.copy(position);
@@ -833,10 +845,19 @@ export function createExplosion(position, color = 0xff8f45) {
     sizes[i] = Math.random() * 0.2 + 0.05;
   }
 
-  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  particles.geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
-  particles.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  particles.geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  particles.geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
+  particles.geometry.setAttribute(
+    "velocity",
+    new THREE.BufferAttribute(velocities, 3)
+  );
+  particles.geometry.setAttribute(
+    "color",
+    new THREE.BufferAttribute(colors, 3)
+  );
+  particles.geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 
   explosionGroup.position.copy(position);
   scene.add(explosionGroup);
@@ -881,7 +902,6 @@ export function createExplosion(position, color = 0xff8f45) {
   return explosionGroup;
 }
 
-
 function clearScene() {
   // Odstraníme všechny objekty ze scény
   while (scene.children.length > 0) {
@@ -892,7 +912,7 @@ function clearScene() {
   walls = [];
   highWallAreas = [];
   torches = [];
-  floatingObjects.forEach(obj => scene.remove(obj));
+  floatingObjects.forEach((obj) => scene.remove(obj));
   floatingObjects = [];
 
   // Odstraníme mlhovinu a mlhu
@@ -914,7 +934,6 @@ function clearScene() {
   magicBalls = [];
   resetSpells();
 
-
   // Vyčistíme kontejner pro zdraví bosse
   const bossHealthContainer = document.getElementById("bossHealthContainer");
   while (bossHealthContainer.firstChild) {
@@ -922,9 +941,7 @@ function clearScene() {
   }
 }
 
-
 function createMaze(inputText = "", selectedFloor = 1) {
-
   if (selectedFloor === 999) {
     clearScene();
     createCamp(lightManager);
@@ -934,7 +951,6 @@ function createMaze(inputText = "", selectedFloor = 1) {
   clearScene();
 
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
-
 
   // Nastavení seed pro generátor náhodných čísel
   const seed = getHash(inputText);
@@ -958,7 +974,6 @@ function createMaze(inputText = "", selectedFloor = 1) {
   }
   const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
   const selectedTextureSet = availableTextureSets[textureSetIndex];
-
 
   const loader = new THREE.TextureLoader();
   const floorTexture = loader.load(selectedTextureSet.floorTexture);
@@ -998,7 +1013,10 @@ function createMaze(inputText = "", selectedFloor = 1) {
 
   teleportPairsCount = Math.max(1, Math.min(3, 1 + Math.floor(rng() * 3)));
 
-  const floorGeometry = new THREE.PlaneGeometry(MAZE_SIZE * CELL_SIZE, MAZE_SIZE * CELL_SIZE);
+  const floorGeometry = new THREE.PlaneGeometry(
+    MAZE_SIZE * CELL_SIZE,
+    MAZE_SIZE * CELL_SIZE
+  );
   const floorMaterial = new THREE.MeshStandardMaterial({
     map: floorTexture,
   });
@@ -1011,22 +1029,26 @@ function createMaze(inputText = "", selectedFloor = 1) {
 
   maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed, selectedFloor);
 
-
   const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
   const wallMaterial = new THREE.MeshStandardMaterial({ map: brickTexture });
 
-  const ceilingGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+  const ceilingGeometry = new THREE.BoxGeometry(
+    CELL_SIZE,
+    WALL_HEIGHT,
+    CELL_SIZE
+  );
   const ceilingMaterial = new THREE.MeshStandardMaterial({
     map: ceilingTexture,
   });
   const ceilingMaterialHigh = new THREE.MeshStandardMaterial({
     map: ceilingTexture,
-    color: 0x918B88,
+    color: 0x918b88,
   });
 
-
   // Determine high wall areas
-  highWallAreas = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+  highWallAreas = Array(MAZE_SIZE)
+    .fill()
+    .map(() => Array(MAZE_SIZE).fill(false));
   for (let i = 0; i < MAZE_SIZE; i++) {
     for (let j = 0; j < MAZE_SIZE; j++) {
       if (maze[i][j] === 0 && rng() < 0.1) {
@@ -1034,7 +1056,12 @@ function createMaze(inputText = "", selectedFloor = 1) {
         // Zajistíme, že okolní buňky budou také vysoké
         for (let di = -1; di <= 1; di++) {
           for (let dj = -1; dj <= 1; dj++) {
-            if (i + di >= 0 && i + di < MAZE_SIZE && j + dj >= 0 && j + dj < MAZE_SIZE) {
+            if (
+              i + di >= 0 &&
+              i + di < MAZE_SIZE &&
+              j + dj >= 0 &&
+              j + dj < MAZE_SIZE
+            ) {
               highWallAreas[i + di][j + dj] = true;
             }
           }
@@ -1073,7 +1100,10 @@ function createMaze(inputText = "", selectedFloor = 1) {
       }
 
       // Strop pro každou buňku
-      const ceiling = new THREE.Mesh(ceilingGeometry, (isHighWallArea) ? ceilingMaterialHigh : ceilingMaterial);
+      const ceiling = new THREE.Mesh(
+        ceilingGeometry,
+        isHighWallArea ? ceilingMaterialHigh : ceilingMaterial
+      );
       ceiling.position.set(
         (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
         wallHeight + WALL_HEIGHT / 2,
@@ -1131,7 +1161,13 @@ function createMaze(inputText = "", selectedFloor = 1) {
   }
 
   createKeys(rng);
-  createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, selectedTextureSet.torchColor);
+  createTorches(
+    walls,
+    maze,
+    CELL_SIZE,
+    MAZE_SIZE,
+    selectedTextureSet.torchColor
+  );
 
   // Použijeme model truhly jako cíl
   const goal = treasureModel.clone();
@@ -1152,7 +1188,6 @@ function createMaze(inputText = "", selectedFloor = 1) {
   keyCount = 0;
   updateKeyCount();
 
-
   if (isMinimapVisible) {
     toggleMinimap();
   }
@@ -1167,7 +1202,6 @@ function createMaze(inputText = "", selectedFloor = 1) {
   console.log("lights " + lightManager.lights.length);
   console.log("bosses " + bosses.length);
 }
-
 
 export function getHash(str) {
   let hash = 0;
@@ -1194,7 +1228,9 @@ function createKeys(rng) {
 
   // Ujistíme se, že počet klíčů je v požadovaném rozmezí
   if (remainingKeys < 0) {
-    console.error("Počet klíčů přiřazených bossům přesahuje celkový počet klíčů.");
+    console.error(
+      "Počet klíčů přiřazených bossům přesahuje celkový počet klíčů."
+    );
     return;
   }
 
@@ -1208,7 +1244,7 @@ function createKeys(rng) {
         child.material = new THREE.MeshStandardMaterial({
           color: 0xffd700,
           metalness: 0.6,
-          roughness: 0.10,
+          roughness: 0.1,
         });
       }
     });
@@ -1322,7 +1358,8 @@ function generateMaze(width, height, seed, selectedFloor) {
   // Přidáme generování hal a bossů
   const baseHallProbability = 0.02;
   const hallProbabilityDecrease = -0.001;
-  let hallProbability = baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
+  let hallProbability =
+    baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
 
   // Zvýšíme pravděpodobnost hal pro 4. podlaží
   if (selectedFloor === 4) {
@@ -1339,7 +1376,8 @@ function generateMaze(width, height, seed, selectedFloor) {
   } else {
     maxHallSize = 5;
   }
-  const hallSize = minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
+  const hallSize =
+    minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
   var bossProbability = 0.8; // 80% šance na spawnutí bosse v hale
   if (selectedFloor === 4) {
     bossProbability = 1.0;
@@ -1407,14 +1445,6 @@ function generateMaze(width, height, seed, selectedFloor) {
   return maze;
 }
 
-
-
-
-
-
-
-
-
 function placeObjectInFreeCell(object, rng) {
   let freeCells = [];
 
@@ -1472,13 +1502,15 @@ function createBlockingWall(brickTexture) {
     positions[i * 3 + 2] = (Math.random() - 0.5) * CELL_SIZE;
   }
 
-  particles.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particles.geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
   wall.add(particles);
 
   wall.userData.isBlockingWall = true;
   return wall;
 }
-
 
 // Funkce pro vytvoření nového 3D modelu teleportu s particle efekty
 function createTeleportModel(color) {
@@ -1532,12 +1564,6 @@ function createTeleportModel(color) {
   return teleport;
 }
 
-
-
-
-
-
-
 function checkCollisionsWhenTeleport() {
   if (canWalkThroughWalls) {
     return false; // Pokud je aktivní Ghost mode, ignorujeme kolize
@@ -1562,8 +1588,6 @@ function checkCollisionsWhenTeleport() {
   }
   return false;
 }
-
-
 
 let lastTeleport = null;
 
@@ -1654,7 +1678,10 @@ function showFinishMessage() {
 
 function showGoalMessage(keyCount, totalKeys) {
   const goalMessageElement = document.getElementById("goalMessage");
-  goalMessageElement.textContent = `${getTranslation('collectKeys', `${keyCount}/${totalKeys}`)}`;
+  goalMessageElement.textContent = `${getTranslation(
+    "collectKeys",
+    `${keyCount}/${totalKeys}`
+  )}`;
   goalMessageElement.style.display = "block";
 
   setTimeout(() => {
@@ -1707,7 +1734,7 @@ function showTeleportPrompt() {
     promptElement.style.fontSize = "20px";
     document.body.appendChild(promptElement);
   }
-  promptElement.textContent = getTranslation('pressToUse', 'F');
+  promptElement.textContent = getTranslation("pressToUse", "F");
   promptElement.style.display = "block";
 }
 
@@ -1731,7 +1758,6 @@ async function startGame() {
   // Reset času
   cumulativeTime = 0;
   document.getElementById("timeCount").textContent = "0:00";
-
 
   // Zastavíme předchozí časovač, pokud běží
   if (timerInterval) {
@@ -1778,7 +1804,6 @@ function updateKeyCount() {
   document.getElementById("keyCount").textContent = `${keyCount}/${totalKeys}`;
 }
 
-
 function startTimer() {
   lastUpdateTime = Date.now();
   timerInterval = setInterval(updateTimer, 1000 / 60);
@@ -1792,7 +1817,7 @@ async function stopTimer() {
   if (bestTime === Infinity) {
     addExperienceForCompletion(selectedFloor);
     // Přidání zlaťáků
-    const goldGained = Math.round((selectedFloor * 2) + (MAZE_SIZE / 5));
+    const goldGained = Math.round(selectedFloor * 2 + MAZE_SIZE / 5);
     addGold(goldGained);
   }
 
@@ -1800,10 +1825,7 @@ async function stopTimer() {
     bestTime = elapsedTime;
     submitScore(document.getElementById("mazeInput").value, bestTime);
   }
-
-
 }
-
 
 function updateTimer() {
   const now = Date.now();
@@ -1814,10 +1836,10 @@ function updateTimer() {
   const totalSeconds = Math.floor(cumulativeTime / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  document.getElementById("timeCount").textContent = `${minutes}:${
+    seconds < 10 ? "0" : ""
+  }${seconds}`;
 }
-
-
 
 function hideTeleportPrompt() {
   const promptElement = document.getElementById("teleportPrompt");
@@ -2006,11 +2028,10 @@ async function loadStaffModel() {
             child.material = new THREE.MeshStandardMaterial({
               color: currentStaffColor,
               emissive: currentStaffColor, // Emisivní oranžová barva
-              emissiveIntensity: 1, // Intenzita emisivní barvy 
+              emissiveIntensity: 1, // Intenzita emisivní barvy
             });
             staffTopPart = child; // Uložíme vrchní část hůlky
           }
-
         });
 
         staffModel.scale.set(0.1, 0.1, 0.1);
@@ -2026,7 +2047,6 @@ async function loadStaffModel() {
     );
   });
 }
-
 
 // Funkce pro načtení modelu klíče
 function loadKeyModel() {
@@ -2092,8 +2112,6 @@ function rotateTeleports(deltaTime) {
   });
 }
 
-
-
 function resetStaffColor() {
   if (Date.now() - lastSpellCastTime > 500) {
     changeStaffColor(0xd8fcfd);
@@ -2101,12 +2119,9 @@ function resetStaffColor() {
   }
 }
 
-
-
 function updateBosses(deltaTime) {
-  bosses.forEach(boss => boss.update(deltaTime));
+  bosses.forEach((boss) => boss.update(deltaTime));
 }
-
 
 // Třída pro správu světel
 export class LightManager {
@@ -2128,69 +2143,88 @@ export class LightManager {
     const frustum = new THREE.Frustum();
     const cameraViewProjectionMatrix = new THREE.Matrix4();
     camera.updateMatrixWorld(); // Zajistíme, že matice kamery je aktuální
-    cameraViewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    cameraViewProjectionMatrix.multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse
+    );
     frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
 
-    this.lights.forEach(light => {
+    this.lights.forEach((light) => {
       light.visible = false;
     });
 
     // Seřaďte světla podle vzdálenosti od hráče a zjistěte, zda jsou v záběru s tolerancí
     const sortedLights = this.lights
-      .map(light => ({
+      .map((light) => ({
         light,
         distance: light.position.distanceTo(playerPosition),
-        inView: frustum.intersectsSphere(new THREE.Sphere(light.position, this.tolerance))
+        inView: frustum.intersectsSphere(
+          new THREE.Sphere(light.position, this.tolerance)
+        ),
       }))
-      .filter(lightInfo => lightInfo.inView) // Filtrujte pouze světla, která jsou v záběru nebo blízko záběru
+      .filter((lightInfo) => lightInfo.inView) // Filtrujte pouze světla, která jsou v záběru nebo blízko záběru
       .sort((a, b) => a.distance - b.distance);
 
     // Zapněte pouze nejbližší světla
-    for (let i = 0; i < Math.min(this.maxVisibleLights, sortedLights.length); i++) {
+    for (
+      let i = 0;
+      i < Math.min(this.maxVisibleLights, sortedLights.length);
+      i++
+    ) {
       sortedLights[i].light.visible = true;
     }
   }
 }
 
-
-
 function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
   const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
-  const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+  const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
 
-  const rng = new seedrandom(getHash(document.getElementById("mazeInput").value));
+  const rng = new seedrandom(
+    getHash(document.getElementById("mazeInput").value)
+  );
 
   const selectedColor = torchColor;
 
   // Vytvoříme pomocné pole pro sledování, kde už jsou pochodně umístěny
-  const torchPositions = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+  const torchPositions = Array(MAZE_SIZE)
+    .fill()
+    .map(() => Array(MAZE_SIZE).fill(false));
 
   for (let x = 0; x < MAZE_SIZE; x++) {
     for (let z = 0; z < MAZE_SIZE; z++) {
-      if (maze[x][z] === 0) { // Jsme v chodbě
+      if (maze[x][z] === 0) {
+        // Jsme v chodbě
         // Zkontrolujeme sousední buňky
         const directions = [
           { dx: 1, dz: 0 },
           { dx: -1, dz: 0 },
           { dx: 0, dz: 1 },
-          { dx: 0, dz: -1 }
+          { dx: 0, dz: -1 },
         ];
 
-        directions.forEach(dir => {
+        directions.forEach((dir) => {
           const nx = x + dir.dx;
           const nz = z + dir.dz;
 
           // Pokud je sousední buňka zeď a zde ještě není pochodeň
-          if (nx >= 0 && nx < MAZE_SIZE && nz >= 0 && nz < MAZE_SIZE &&
-            maze[nx][nz] === 1 && !torchPositions[x][z]) {
-
+          if (
+            nx >= 0 &&
+            nx < MAZE_SIZE &&
+            nz >= 0 &&
+            nz < MAZE_SIZE &&
+            maze[nx][nz] === 1 &&
+            !torchPositions[x][z]
+          ) {
             // S určitou pravděpodobností umístíme pochodeň
-            if (rng() < 0.3) { // 30% šance na umístění pochodně
+            if (rng() < 0.3) {
+              // 30% šance na umístění pochodně
               const torch = new THREE.Mesh(torchGeometry, torchMaterial);
 
               torch.position.set(
-                (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.5,
-                (WALL_HEIGHT / 2) - 0.2,
+                (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
+                  dir.dx * CELL_SIZE * 0.5,
+                WALL_HEIGHT / 2 - 0.2,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
               );
 
@@ -2200,14 +2234,22 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
               scene.add(torch);
 
               const fire = createFireParticles(selectedColor.particles);
-              fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
+              fire.position
+                .copy(torch.position)
+                .add(new THREE.Vector3(0, 0.25, 0));
               scene.add(fire);
 
-              const light = new THREE.PointLight(selectedColor.light, 1.5, CELL_SIZE * 4);
+              const light = new THREE.PointLight(
+                selectedColor.light,
+                1.5,
+                CELL_SIZE * 4
+              );
               light.position.set(
-                (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dx * CELL_SIZE * 0.18,
-                (WALL_HEIGHT / 2) + 0.25,
-                (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.18
+                (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
+                  dir.dx * CELL_SIZE * 0.18,
+                WALL_HEIGHT / 2 + 0.25,
+                (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
+                  dir.dz * CELL_SIZE * 0.18
               );
 
               lightManager.addLight(light);
@@ -2221,7 +2263,6 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
     }
   }
 }
-
 
 export function createFireParticles(color) {
   const particleCount = 12;
@@ -2251,9 +2292,9 @@ export function createFireParticles(color) {
     sizes[i] = 0.1 + Math.random() * 0.1;
   }
 
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 
   const material = new THREE.PointsMaterial({
     size: 0.1,
@@ -2273,14 +2314,14 @@ function animateStaffRotation(deltaTime) {
   }
 }
 
-
 // Přidejte tuto funkci pro animaci ohně
 function animateFire(deltaTime) {
   torches.forEach(({ fire }) => {
     const positions = fire.geometry.attributes.position.array;
     for (let i = 0; i < positions.length; i += 3) {
       positions[i] += (Math.random() - 0.5) * 0.01 * (deltaTime * 50);
-      positions[i + 1] += 0.01 * (deltaTime * 50) + Math.random() * 0.02 * (deltaTime * 50);
+      positions[i + 1] +=
+        0.01 * (deltaTime * 50) + Math.random() * 0.02 * (deltaTime * 50);
       positions[i + 2] += (Math.random() - 0.5) * 0.01 * (deltaTime * 50);
 
       if (positions[i + 1] > 0.6) {
@@ -2297,13 +2338,13 @@ let floatingObjects = [];
 
 function addFloatingObjects() {
   // Nejprve odstraníme staré objekty, pokud existují
-  floatingObjects.forEach(obj => scene.remove(obj));
+  floatingObjects.forEach((obj) => scene.remove(obj));
   floatingObjects = [];
 
   const geometries = [
     new THREE.TetrahedronGeometry(0.5),
     new THREE.OctahedronGeometry(0.5),
-    new THREE.DodecahedronGeometry(0.5)
+    new THREE.DodecahedronGeometry(0.5),
   ];
 
   for (let i = 0; i < 100; i++) {
@@ -2311,7 +2352,7 @@ function addFloatingObjects() {
     const material = new THREE.MeshStandardMaterial({
       color: Math.random() * 0xffffff,
       metalness: 0.7,
-      roughness: 0.3
+      roughness: 0.3,
     });
     const object = new THREE.Mesh(geometry, material);
 
@@ -2321,12 +2362,16 @@ function addFloatingObjects() {
       (Math.random() - 0.5) * MAZE_SIZE * CELL_SIZE * 3
     );
 
-    object.rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
+    object.rotation.set(
+      Math.random() * 2 * Math.PI,
+      Math.random() * 2 * Math.PI,
+      Math.random() * 2 * Math.PI
+    );
 
     object.userData.rotationSpeed = {
       x: (Math.random() - 0.5) * 0.02,
       y: (Math.random() - 0.5) * 0.02,
-      z: (Math.random() - 0.5) * 0.02
+      z: (Math.random() - 0.5) * 0.02,
     };
 
     object.userData.floatSpeed = (Math.random() - 0.5) * 0.05;
@@ -2339,7 +2384,7 @@ function addNebula() {
   const geometry = new THREE.SphereGeometry(1500, 32, 32);
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      time: { value: 0 }
+      time: { value: 0 },
     },
     vertexShader: `
       varying vec3 vNormal;
@@ -2357,7 +2402,7 @@ function addNebula() {
       }
     `,
     side: THREE.BackSide,
-    transparent: true
+    transparent: true,
   });
   nebula = new THREE.Mesh(geometry, material);
   scene.add(nebula);
@@ -2369,8 +2414,8 @@ export function isHighWallArea(x, z) {
   if (highWallAreas.length === 0) {
     return false;
   }
-  const mazeX = Math.floor((x / CELL_SIZE) + (MAZE_SIZE / 2));
-  const mazeZ = Math.floor((z / CELL_SIZE) + (MAZE_SIZE / 2));
+  const mazeX = Math.floor(x / CELL_SIZE + MAZE_SIZE / 2);
+  const mazeZ = Math.floor(z / CELL_SIZE + MAZE_SIZE / 2);
 
   // Přidáme kontrolu platnosti indexů
   if (mazeX < 0 || mazeX >= MAZE_SIZE || mazeZ < 0 || mazeZ >= MAZE_SIZE) {
@@ -2380,18 +2425,23 @@ export function isHighWallArea(x, z) {
   return highWallAreas[mazeX][mazeZ];
 }
 
-
 // Přidejte tuto funkci
 function updateVisibleObjects() {
   const frustum = new THREE.Frustum();
-  const matrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  const matrix = new THREE.Matrix4().multiplyMatrices(
+    camera.projectionMatrix,
+    camera.matrixWorldInverse
+  );
   frustum.setFromProjectionMatrix(matrix);
 
   const visibilityDistance = 50; // Maximální vzdálenost viditelnosti
 
   // Aktualizace viditelnosti zdí
-  walls.forEach(wall => {
-    if (frustum.intersectsObject(wall) && wall.position.distanceTo(player.position) < visibilityDistance) {
+  walls.forEach((wall) => {
+    if (
+      frustum.intersectsObject(wall) &&
+      wall.position.distanceTo(player.position) < visibilityDistance
+    ) {
       if (wall.visible === false) {
         wall.visible = true;
       }
@@ -2402,8 +2452,11 @@ function updateVisibleObjects() {
     }
   });
 
-  torches.forEach(torches => {
-    if (frustum.intersectsObject(torches.torch) && torches.torch.position.distanceTo(player.position) < visibilityDistance) {
+  torches.forEach((torches) => {
+    if (
+      frustum.intersectsObject(torches.torch) &&
+      torches.torch.position.distanceTo(player.position) < visibilityDistance
+    ) {
       if (torches.torch.visible === false && torches.fire.visible === false) {
         torches.torch.visible = true;
         torches.fire.visible = true;
@@ -2415,9 +2468,7 @@ function updateVisibleObjects() {
       }
     }
   });
-
 }
-
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 function animate() {
@@ -2440,11 +2491,9 @@ function animate() {
   updateBosses(deltaTime);
   updateMagicBalls(deltaTime);
   regenerateMana(deltaTime);
-  regenerateHealth(deltaTime)
+  regenerateHealth(deltaTime);
   animateStaffRotation(deltaTime);
   updatePotionCooldowns(deltaTime);
-
-
 
   if (isMinimapVisible) {
     drawMinimap();
@@ -2456,10 +2505,8 @@ function animate() {
   resetStaffColor();
   updateStaffColor(deltaTime);
 
-
-
   // Animace létajících objektů
-  floatingObjects.forEach(obj => {
+  floatingObjects.forEach((obj) => {
     obj.rotation.x += obj.userData.rotationSpeed.x * (deltaTime * 30);
     obj.rotation.y += obj.userData.rotationSpeed.y * (deltaTime * 50);
     obj.rotation.z += obj.userData.rotationSpeed.z * (deltaTime * 30);
@@ -2473,7 +2520,7 @@ function animate() {
   });
 
   // Animace všech částicových efektů ve scéně
-  scene.children.forEach(child => {
+  scene.children.forEach((child) => {
     if (child.userData.animate) {
       child.userData.animate(deltaTime * 30);
     }
@@ -2503,19 +2550,20 @@ export function getCameraDirection() {
   return direction;
 }
 
-
 function showNameModal(playerName) {
   exitPointerLock();
   const nameModal = document.getElementById("nameModal");
   nameModal.innerHTML = `
     <div class="modal-content">
-      <h2>${getTranslation('enterName')}</h2>
-      <input type="text" id="playerNameInput" value="${playerName || ""}" placeholder="${getTranslation('playerName')}">
+      <h2>${getTranslation("enterName")}</h2>
+      <input type="text" id="playerNameInput" value="${
+        playerName || ""
+      }" placeholder="${getTranslation("playerName")}">
       <select id="languageSelect">
         <option value="en">English</option>
         <option value="cs">Čeština</option>
       </select>
-      <button id="submitName" disabled>${getTranslation('confirm')}</button>
+      <button id="submitName" disabled>${getTranslation("confirm")}</button>
     </div>
   `;
   nameModal.style.display = "block";
@@ -2550,7 +2598,6 @@ function showNameModal(playerName) {
   submitButton.disabled = input.value.trim() === "";
 }
 
-
 function hideNameModal() {
   exitPointerLock();
   document.getElementById("nameModal").style.display = "none";
@@ -2568,18 +2615,19 @@ function hideScoreModal() {
 
 async function submitScore(levelName, time) {
   try {
-    const { data, error } = await supabase
-      .from("maze_score")
-      .upsert([
+    const { data, error } = await supabase.from("maze_score").upsert(
+      [
         {
           playername: playerName,
           levelname: levelName,
           time_score: time,
           floor: selectedFloor,
-        }
-      ], {
-        onConflict: ['playername', 'levelname', 'floor']
-      });
+        },
+      ],
+      {
+        onConflict: ["playername", "levelname", "floor"],
+      }
+    );
 
     if (error) throw error;
     console.log("Skóre úspěšně uloženo");
@@ -2591,10 +2639,27 @@ async function submitScore(levelName, time) {
 function addExperienceForCompletion(floor) {
   const baseExperience = 2000;
   const exponent = 1.5;
-  const totalExperience = Math.round(baseExperience * Math.pow(floor, exponent));
+  let totalExperience = Math.round(baseExperience * Math.pow(floor, exponent));
+
+  // Získáme úroveň hráče
+  const playerLevel = getPlayerLevel();
+
+  // Upravíme zkušenosti na základě úrovně hráče a podlaží
+  let expMultiplier = 1;
+
+  if (floor === 1 && playerLevel > 7) {
+    expMultiplier = Math.max(0.1, 1 - (playerLevel - 7) * 0.15);
+  } else if (floor === 2 && playerLevel > 12) {
+    expMultiplier = Math.max(0.1, 1 - (playerLevel - 12) * 0.15);
+  } else if (floor === 3 && playerLevel > 16) {
+    expMultiplier = Math.max(0.1, 1 - (playerLevel - 16) * 0.15);
+  } else if (floor === 4 && playerLevel > 20) {
+    expMultiplier = Math.max(0.1, 1 - (playerLevel - 20) * 0.15);
+  }
+
+  totalExperience = Math.round(totalExperience * expMultiplier);
   addExperience(totalExperience);
 }
-
 
 async function displayScores(floor = null) {
   try {
@@ -2639,7 +2704,7 @@ async function displayScores(floor = null) {
 
 function groupAndSortScores(scores) {
   const groupedScores = {};
-  scores.forEach(score => {
+  scores.forEach((score) => {
     if (!groupedScores[score.levelname]) {
       groupedScores[score.levelname] = [];
     }
@@ -2647,13 +2712,12 @@ function groupAndSortScores(scores) {
   });
 
   // Seřadíme skóre v každé skupině
-  Object.values(groupedScores).forEach(group => {
+  Object.values(groupedScores).forEach((group) => {
     group.sort((a, b) => a.time_score - b.time_score);
   });
 
   return groupedScores;
 }
-
 
 function formatTime(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -2692,16 +2756,18 @@ function filterScores() {
 }
 
 function getUrlParameter(name) {
-  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
   var results = regex.exec(location.search);
-  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+  return results === null
+    ? ""
+    : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
 function setUrlParameter(name, value) {
   const url = new URL(window.location);
   url.searchParams.set(name, value);
-  window.history.pushState({}, '', url);
+  window.history.pushState({}, "", url);
 }
 
 function showHintModal() {
@@ -2717,31 +2783,37 @@ function hideHintModal() {
 
 function generateHintContent() {
   let content = `
-    <h3>${getTranslation('hintTitle')}</h3>
-    <p>${getTranslation('hintKeys', [totalKeys])}</p>
-    <p>${getTranslation('hintTeleports', [teleportPairsCount * 2])}</p>
-    <h3>${getTranslation('bosses', [bosses.length])}</h3>
+    <h3>${getTranslation("hintTitle")}</h3>
+    <p>${getTranslation("hintKeys", [totalKeys])}</p>
+    <p>${getTranslation("hintTeleports", [teleportPairsCount * 2])}</p>
+    <h3>${getTranslation("bosses", [bosses.length])}</h3>
   `;
 
   bosses.forEach((boss) => {
     content += `
       <div class="boss-info">
         <h4>${boss.type.name}</h4>
-        <p>${getTranslation('bossHealth', [boss.maxHealth])}</p>
-        <p>${getTranslation('specialAttacks')} ${getReadableAttackNames(boss.type.specialAttacks).map(name => `<span class="attack-name">${name}</span>`).join(', ')}</p>
-        <p class="tactic">${getTranslation('tactics')} ${getBossTactics(boss.type.specialAttacks)}</p>
+        <p>${getTranslation("bossHealth", [boss.maxHealth])}</p>
+        <p>${getTranslation("specialAttacks")} ${getReadableAttackNames(
+      boss.type.specialAttacks
+    )
+      .map((name) => `<span class="attack-name">${name}</span>`)
+      .join(", ")}</p>
+        <p class="tactic">${getTranslation("tactics")} ${getBossTactics(
+      boss.type.specialAttacks
+    )}</p>
       </div>
     `;
   });
 
   content += `
-    <h3>${getTranslation('hintTips')}</h3>
+    <h3>${getTranslation("hintTips")}</h3>
     <ul>
-      <li>${getTranslation('hintTip1')}</li>
-      <li>${getTranslation('hintTip2')}</li>
-      <li>${getTranslation('hintTip3')}</li>
-      <li>${getTranslation('hintTip4')}</li>
-      <li>${getTranslation('hintTip5')}</li>
+      <li>${getTranslation("hintTip1")}</li>
+      <li>${getTranslation("hintTip2")}</li>
+      <li>${getTranslation("hintTip3")}</li>
+      <li>${getTranslation("hintTip4")}</li>
+      <li>${getTranslation("hintTip5")}</li>
     </ul>
   `;
 
@@ -2750,40 +2822,39 @@ function generateHintContent() {
 
 function getReadableAttackNames(attacks) {
   const attackNames = {
-    'multiShot': getTranslation('multiShot'),
-    'aoeBlast': getTranslation('aoeBlast'),
-    'teleport': getTranslation('teleport'),
-    'frostbolt': getTranslation('frostbolt'),
-    'magicArrow': getTranslation('magicArrow')
+    multiShot: getTranslation("multiShot"),
+    aoeBlast: getTranslation("aoeBlast"),
+    teleport: getTranslation("teleport"),
+    frostbolt: getTranslation("frostbolt"),
+    magicArrow: getTranslation("magicArrow"),
   };
-  return attacks.map(attack => attackNames[attack] || attack);
+  return attacks.map((attack) => attackNames[attack] || attack);
 }
 function getBossTactics(specialAttacks) {
   let tactics = [];
-  specialAttacks.forEach(attack => {
+  specialAttacks.forEach((attack) => {
     switch (attack) {
-      case 'multiShot':
-        tactics.push(getTranslation('multiShotTactic'));
+      case "multiShot":
+        tactics.push(getTranslation("multiShotTactic"));
         break;
-      case 'aoeBlast':
-        tactics.push(getTranslation('aoeBlastTactic'));
+      case "aoeBlast":
+        tactics.push(getTranslation("aoeBlastTactic"));
         break;
-      case 'teleport':
-        tactics.push(getTranslation('teleportTactic'));
+      case "teleport":
+        tactics.push(getTranslation("teleportTactic"));
         break;
-      case 'frostbolt':
-        tactics.push(getTranslation('frostboltTactic'));
+      case "frostbolt":
+        tactics.push(getTranslation("frostboltTactic"));
         break;
-      case 'magicArrow':
-        tactics.push(getTranslation('magicArrowTactic'));
+      case "magicArrow":
+        tactics.push(getTranslation("magicArrowTactic"));
         break;
       default:
-        tactics.push(getTranslation('defaultTactic'));
+        tactics.push(getTranslation("defaultTactic"));
     }
   });
-  return tactics.join(' ');
+  return tactics.join(" ");
 }
-
 
 let showFPS = false;
 let fpsCounter;
@@ -2791,14 +2862,14 @@ let lastFrameTime = performance.now();
 let frameCount = 0;
 
 function initFPSCounter() {
-  fpsCounter = document.createElement('div');
-  fpsCounter.style.position = 'absolute';
-  fpsCounter.style.bottom = '50px';
-  fpsCounter.style.left = '10px';
-  fpsCounter.style.color = 'white';
-  fpsCounter.style.fontSize = '16px';
-  fpsCounter.style.fontFamily = 'Arial, sans-serif';
-  fpsCounter.style.display = 'none';
+  fpsCounter = document.createElement("div");
+  fpsCounter.style.position = "absolute";
+  fpsCounter.style.bottom = "50px";
+  fpsCounter.style.left = "10px";
+  fpsCounter.style.color = "white";
+  fpsCounter.style.fontSize = "16px";
+  fpsCounter.style.fontFamily = "Arial, sans-serif";
+  fpsCounter.style.display = "none";
   document.body.appendChild(fpsCounter);
 }
 
@@ -2824,7 +2895,8 @@ export function exitPointerLock() {
 // Upravte funkci showSettingsModal
 function showSettingsModal() {
   exitPointerLock();
-  document.getElementById("lightSettings").value = MAX_VISIBLE_LIGHTS.toString();
+  document.getElementById("lightSettings").value =
+    MAX_VISIBLE_LIGHTS.toString();
   document.getElementById("qualitySettings").value = qualityFactor.toString();
   document.getElementById("settingsModal").style.display = "block";
 }
@@ -2837,11 +2909,11 @@ function hideSettingsModal() {
 // Upravte funkci saveSettings
 function saveSettings() {
   MAX_VISIBLE_LIGHTS = parseInt(document.getElementById("lightSettings").value);
-  localStorage.setItem('maxVisibleLights', MAX_VISIBLE_LIGHTS.toString());
+  localStorage.setItem("maxVisibleLights", MAX_VISIBLE_LIGHTS.toString());
   lightManager.maxVisibleLights = MAX_VISIBLE_LIGHTS;
 
   qualityFactor = parseFloat(document.getElementById("qualitySettings").value);
-  localStorage.setItem('qualityFactor', qualityFactor.toString());
+  localStorage.setItem("qualityFactor", qualityFactor.toString());
   setQuality(qualityFactor);
 
   hideSettingsModal();
@@ -2868,19 +2940,18 @@ function setQuality(factor) {
   }
 }
 
-
 function toggleConsole() {
   const consoleElement = document.getElementById("gameConsole");
   isConsoleOpen = !isConsoleOpen;
 
   if (isConsoleOpen) {
-    consoleInput = '';
+    consoleInput = "";
     consoleElement.value = "";
     consoleElement.style.display = "block";
     consoleElement.focus();
   } else {
     consoleElement.style.display = "none";
-    consoleInput = ''; // Resetujeme vstup
+    consoleInput = ""; // Resetujeme vstup
     consoleElement.value = "";
   }
 }
@@ -2888,12 +2959,14 @@ function toggleConsole() {
 function generateNewMaze() {
   requestPointerLock();
   const inputText = document.getElementById("mazeInput").value;
-  setUrlParameter('seed', inputText);
-  setUrlParameter('floor', selectedFloor);
+  setUrlParameter("seed", inputText);
+  setUrlParameter("floor", selectedFloor);
   startGame();
 }
 
-document.querySelector("#settingsModal .close").addEventListener("click", hideSettingsModal);
+document
+  .querySelector("#settingsModal .close")
+  .addEventListener("click", hideSettingsModal);
 document.getElementById("saveSettings").addEventListener("click", saveSettings);
 
 document.getElementById("floorFilter").addEventListener("change", function () {
@@ -2901,21 +2974,20 @@ document.getElementById("floorFilter").addEventListener("change", function () {
   displayScores(selectedFloor);
 });
 
-document.addEventListener('keydown', (event) => {
-  if (event.key === ';') {
+document.addEventListener("keydown", (event) => {
+  if (event.key === ";") {
     toggleConsole();
   } else if (isConsoleOpen) {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       processConsoleCommand(consoleInput);
       toggleConsole();
-    } else if (event.key === 'Backspace') {
+    } else if (event.key === "Backspace") {
       consoleInput = consoleInput.slice(0, -1);
     } else {
       consoleInput += event.key;
     }
-  }
-  else if (document.activeElement === document.getElementById("mazeInput")) {
-    if (event.key === 'Enter') {
+  } else if (document.activeElement === document.getElementById("mazeInput")) {
+    if (event.key === "Enter") {
       document.activeElement.blur();
       generateNewMaze();
     }
@@ -2927,29 +2999,32 @@ document.getElementById("generateMaze").addEventListener("click", () => {
   generateNewMaze();
 });
 
-showFloorSelectBtn.addEventListener('click', () => {
+showFloorSelectBtn.addEventListener("click", () => {
   exitPointerLock();
-  floorSelectModal.style.display = 'block';
+  floorSelectModal.style.display = "block";
 });
 
 // Přidáme funkci pro zavření modálu
 function closeFloorSelectModal() {
   exitPointerLock();
-  floorSelectModal.style.display = 'none';
+  floorSelectModal.style.display = "none";
 }
 
 // Přidáme event listener pro zavření modálu křížkem
-document.querySelector('#floorSelectModal .close').addEventListener('click', closeFloorSelectModal);
+document
+  .querySelector("#floorSelectModal .close")
+  .addEventListener("click", closeFloorSelectModal);
 
-floorOptions.forEach(option => {
-  option.addEventListener('click', () => {
+floorOptions.forEach((option) => {
+  option.addEventListener("click", () => {
     const floor = parseInt(option.dataset.floor);
     if (canSelectFloor(floor)) {
       selectedFloor = floor;
       closeFloorSelectModal();
-      showFloorSelectBtn.textContent = floor === 999
-        ? getTranslation('floorCamp')
-        : `${getTranslation('floor')} ${selectedFloor}`;
+      showFloorSelectBtn.textContent =
+        floor === 999
+          ? getTranslation("floorCamp")
+          : `${getTranslation("floor")} ${selectedFloor}`;
       generateNewMaze(); // Volání funkce pro generování nového bludiště nebo tábora
     }
   });
@@ -2966,12 +3041,12 @@ function canSelectFloor(floor) {
 
 // Aktualizujte tuto funkci při změně úrovně hráče
 export function updateFloorOptions() {
-  floorOptions.forEach(option => {
+  floorOptions.forEach((option) => {
     const floor = parseInt(option.dataset.floor);
     if (canSelectFloor(floor)) {
-      option.classList.remove('locked');
+      option.classList.remove("locked");
     } else {
-      option.classList.add('locked');
+      option.classList.add("locked");
     }
   });
 }
@@ -2985,6 +3060,5 @@ export function playSound(soundBuffer, volume = 1) {
     sound.disconnect();
   };
 }
-
 
 init();

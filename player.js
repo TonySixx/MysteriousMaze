@@ -14,6 +14,7 @@ export let baseMaxHealth = 100;
 export let baseMaxMana = 100;
 export let baseAttackBonus = 0;
 
+export let playerLevel = 1;
 export let playerExp = 0;
 export let expToNextLevel = 100;
 export let skillPoints = 0;
@@ -67,6 +68,11 @@ export function setPlayerHealth(health) {
 export function setPlayerMana(mana) {
     playerMana = mana;
     updatePlayerManaBar();
+}
+
+
+export function getPlayerLevel() {
+    return playerLevel;
 }
 
 export function updatePlayerStats(initialCall = false) {
@@ -205,7 +211,7 @@ export function getGold() {
 function levelUp() {
     playerLevel++;
     playerExp -= expToNextLevel;
-    expToNextLevel = Math.floor(expToNextLevel * 1.5);
+    expToNextLevel = Math.floor(expToNextLevel * 1.2);
     addSkillPoint();
     updatePlayerLevelStats();
     updateFloorOptions(); // Přidáme toto volání
