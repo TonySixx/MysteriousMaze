@@ -49,6 +49,7 @@ import {
   getPlayerMana,
   getPlayerMaxMana,
   updatePlayerStats,
+  getPlayerLevel,
 } from "./player.js";
 import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
 import {
