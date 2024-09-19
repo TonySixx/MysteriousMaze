@@ -69,7 +69,7 @@ import {
   updateStaffVisibility,
 } from "./inventory.js";
 
-export const version = "1.2.3";
+export const version = "1.2.4";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
