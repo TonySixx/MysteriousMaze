@@ -14,7 +14,6 @@ export let baseMaxHealth = 100;
 export let baseMaxMana = 100;
 export let baseAttackBonus = 0;
 
-export let playerLevel = 1;
 export let playerExp = 0;
 export let expToNextLevel = 100;
 export let skillPoints = 0;

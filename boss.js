@@ -269,7 +269,7 @@ class Boss {
 
     loadModel() {
         const loader = new GLTFLoader();
-        loader.load('Dragon.glb', (gltf) => {
+        loader.load('models/Dragon.glb', (gltf) => {
             this.model = gltf.scene;
             this.model.position.copy(this.position);
             this.model.scale.set(0.5, 0.5, 0.5);

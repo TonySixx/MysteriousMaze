@@ -2018,7 +2018,7 @@ async function loadStaffModel() {
   return new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
     loader.load(
-      "Staff.glb",
+      "models/Staff.glb",
       (gltf) => {
         staffModel = gltf.scene;
 
@@ -2054,7 +2054,7 @@ function loadKeyModel() {
     console.log("Starting to load key model");
     const loader = new GLTFLoader();
     loader.load(
-      "Key.glb",
+      "models/Key.glb",
       (gltf) => {
         console.log("GLTF loaded successfully", gltf);
         keyModel = gltf.scene;
@@ -2078,7 +2078,7 @@ async function loadTreasureModel() {
     console.log("Starting to load treasure model");
     const loader = new GLTFLoader();
     loader.load(
-      "TreasureChest.glb",
+      "models/TreasureChest.glb",
       (gltf) => {
         console.log("Treasure model loaded successfully", gltf);
         treasureModel = gltf.scene;

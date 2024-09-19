@@ -167,7 +167,7 @@ function createTents() {
 function createMerchant() {
   const merchantPosition = { x: 0, y: 0, z: 2 };
   const gltfLoader = new GLTFLoader();
-  gltfLoader.load("merchant.glb", (gltf) => {
+  gltfLoader.load("models/merchant.glb", (gltf) => {
     const merchant = gltf.scene;
     merchant.position.set(
       merchantPosition.x,
@@ -286,7 +286,7 @@ function createMerchant() {
 function createArmorMerchant() {
   const armorMerchantPosition = { x: 5.5, y: 0, z: -5.5 }; // Pozice před jedním ze stanů
   const gltfLoader = new GLTFLoader();
-  gltfLoader.load("merchant.glb", (gltf) => {
+  gltfLoader.load("models/armor_npc.glb", (gltf) => {
     const armorMerchant = gltf.scene;
     armorMerchant.position.set(
       armorMerchantPosition.x,
@@ -311,7 +311,7 @@ function createArmorMerchant() {
     updateArmorMerchantAnimation();
 
     const armorIcon = createArmorIcon();
-    armorIcon.position.set(-0.1, 2.5, 0); // Umístění nad hlavou obchodníka
+    armorIcon.position.set(0, 2.5, 0); // Umístění nad hlavou obchodníka
     armorMerchant.add(armorIcon);
 
     // Animace "pohupování" a rotace
@@ -574,7 +574,7 @@ function createTorchOnCenterTower(x, z, towerHeight, dir) {
 
 function createTrees() {
   const gltfLoader = new GLTFLoader();
-  gltfLoader.load("Tree.glb", (gltf) => {
+  gltfLoader.load("models/Tree.glb", (gltf) => {
     const treeModel = gltf.scene;
     const treePositions = generateTreePositions();
 
@@ -731,13 +731,20 @@ export class Merchant {
     const itemElement = document.createElement("div");
     itemElement.className = `shop-item item-${item.rarity}`;
     itemElement.style.backgroundImage = `url(${item.icon})`;
-
+  
     itemElement.addEventListener("mouseover", (event) =>
       showTooltip(event, item)
     );
     itemElement.addEventListener("mouseout", hideTooltip);
     itemElement.addEventListener("click", () => this.buyItem(item));
-
+  
+    if (item.stackable && item.count > 1) {
+      const itemCount = document.createElement('div');
+      itemCount.className = 'item-count';
+      itemCount.textContent = item.count;
+      itemElement.appendChild(itemCount);
+    }
+  
     return itemElement;
   }
 
@@ -818,7 +825,9 @@ function createMerchantItem(itemKey, count = 1) {
 export function createMerchantItems() {
   return [
     createMerchantItem("healthPotion", 1),
+    createMerchantItem("healthPotion", 10),
     createMerchantItem("manaPotion", 1),
+    createMerchantItem("manaPotion", 10),
   ];
 }
 
@@ -831,6 +840,8 @@ export function createArmorMerchantItems() {
       armorMerchantItems.push(createMerchantItem(itemKey));
     }
   }
+
+  armorMerchantItems.sort((a, b) => a.requiredLevel - b.requiredLevel);
 
   return armorMerchantItems;
 }

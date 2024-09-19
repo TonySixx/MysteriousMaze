@@ -11,6 +11,9 @@
 }
 
 .inventory-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background-color: rgba(0,0,0,0.8);
   background-size: cover;
   background-repeat: no-repeat;
@@ -217,4 +220,16 @@
   padding: 2px 4px;
   font-size: 12px;
   border-radius: 3px;
+}
+
+#playerPreview {
+  width: 200px;
+  height: 300px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 2px solid #c8a97e;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }

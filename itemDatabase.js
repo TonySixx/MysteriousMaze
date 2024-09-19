@@ -116,7 +116,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/angels-grace-vestments.jpg',
     hpBonus: 150,
     mpBonus: 200,
-    description: "Blessed by celestial beings, these vestments grant divine protection and immense magical power."
+    description: "Blessed by celestial beings, these vestments grant divine protection and immense magical power.",
+    playerPreview: 'inventory/player/angels-grace-vestments-preview.jpg',
   },
   arcaneRunecloak: {
     name: "Arcane Runecloak",
@@ -130,7 +131,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/arcane-runecloak.jpg',
     hpBonus: 60,
     mpBonus: 80,
-    description: "Inscribed with ancient runes, this cloak enhances magical abilities and provides substantial protection."
+    description: "Inscribed with ancient runes, this cloak enhances magical abilities and provides substantial protection.",
+    playerPreview: 'inventory/player/arcane-runecloak-preview.jpg',
   },
   bloomShadeKimono: {
     name: "Bloom Shade Kimono",
@@ -144,7 +146,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/bloom-shade-kimono.jpg',
     hpBonus: 70,
     mpBonus: 90,
-    description: "A beautiful kimono that blends nature's beauty with shadowy protection."
+    description: "A beautiful kimono that blends nature's beauty with shadowy protection.",
+    playerPreview: 'inventory/player/bloom-shade-kimono-preview.jpg',
   },
   crimsonEmberCloak: {
     name: "Crimson Ember Cloak",
@@ -158,7 +161,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/crimson-ember-cloak.jpg',
     hpBonus: 50,
     mpBonus: 60,
-    description: "Imbued with the essence of fire, this cloak offers basic protection and slightly enhances fire-based spells."
+    description: "Imbued with the essence of fire, this cloak offers basic protection and slightly enhances fire-based spells.",
+    playerPreview: 'inventory/player/crimson-ember-cloak-preview.jpg',
   },
   emeraldSagesAttire: {
     name: "Emerald Sage's Attire",
@@ -172,7 +176,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/emerald-sages-attire.jpg',
     hpBonus: 90,
     mpBonus: 140,
-    description: "Worn by the wisest of nature mages, this attire grants deep connection to natural energies."
+    description: "Worn by the wisest of nature mages, this attire grants deep connection to natural energies.",
+    playerPreview: 'inventory/player/emerald-sages-attire-preview.jpg',
   },
   flamewreathedMantle: {
     name: "Flamewreathed Mantle",
@@ -186,7 +191,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/flamewreathed-mantle.jpg',
     hpBonus: 150,
     mpBonus: 180,
-    description: "A legendary mantle surrounded by magical flames, offering exceptional protection against fire and cold."
+    description: "A legendary mantle surrounded by magical flames, offering exceptional protection against fire and cold.",
+    playerPreview: 'inventory/player/flamewreathed-mantle-preview.jpg',
   },
   goldenDawnRobe: {
     name: "Golden Dawn Robe",
@@ -200,7 +206,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/golden-dawn-robe.jpg',
     hpBonus: 30,
     mpBonus: 40,
-    description: "A simple robe with a golden hue, providing basic protection and a slight boost to light-based magic."
+    description: "A simple robe with a golden hue, providing basic protection and a slight boost to light-based magic.",
+    playerPreview: 'inventory/player/golden-dawn-robe-preview.jpg',
   },
   infernalDragonhideRobe: {
     name: "Infernal Dragonhide Robe",
@@ -214,7 +221,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/infernal-dragonhide-robe.jpg',
     hpBonus: 180,
     mpBonus: 160,
-    description: "Crafted from the hide of an infernal dragon, this robe offers unparalleled protection and boosts fire magic."
+    description: "Crafted from the hide of an infernal dragon, this robe offers unparalleled protection and boosts fire magic.",
+    playerPreview: 'inventory/player/infernal-dragonhide-robe-preview.jpg',
   },
   novicesFrostedMantle: {
     name: "Novice's Frosted Mantle",
@@ -228,7 +236,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/novices-frosted-mantle.jpg',
     hpBonus: 20,
     mpBonus: 30,
-    description: "A simple mantle enchanted with frost magic, perfect for novice ice mages."
+    description: "A simple mantle enchanted with frost magic, perfect for novice ice mages.",
+    playerPreview: 'inventory/player/novices-frosted-mantle-preview.jpg',
   },
   phoenixFlameRobe: {
     name: "Phoenix Flame Robe",
@@ -242,7 +251,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/phoenix-flame-robe.jpg',
     hpBonus: 100,
     mpBonus: 120,
-    description: "Infused with the essence of a phoenix, this robe grants fire resistance and enhances resurrection spells."
+    description: "Infused with the essence of a phoenix, this robe grants fire resistance and enhances resurrection spells.",
+    playerPreview: 'inventory/player/phoenix-flame-robe-preview.jpg',
   },
   starlightSurgeRobe: {
     name: "Starlight Surge Robe",
@@ -256,7 +266,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/starlight-surge-robe.jpg',
     hpBonus: 180,
     mpBonus: 220,
-    description: "Imbued with celestial energy, this mythical robe greatly enhances astral and light-based spells."
+    description: "Imbued with celestial energy, this mythical robe greatly enhances astral and light-based spells.",
+    playerPreview: 'inventory/player/starlight-surge-robe-preview.jpg',
   },
   stormcallersAegis: {
     name: "Stormcaller's Aegis",
@@ -270,7 +281,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/stormcallers-aegis.jpg',
     hpBonus: 140,
     mpBonus: 150,
-    description: "Worn by master storm mages, this aegis grants control over lightning and provides excellent magical defense."
+    description: "Worn by master storm mages, this aegis grants control over lightning and provides excellent magical defense.",
+    playerPreview: 'inventory/player/stormcallers-aegis-preview.jpg',
   },
   voidwalkersShroud: {
     name: "Voidwalker's Shroud",
@@ -284,7 +296,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/voidwalkers-shroud.jpg',
     hpBonus: 200,
     mpBonus: 250,
-    description: "A mysterious shroud that allows the wearer to tap into the power of the void, granting immense magical abilities."
+    description: "A mysterious shroud that allows the wearer to tap into the power of the void, granting immense magical abilities.",
+    playerPreview: 'inventory/player/voidwalkers-shroud-preview.jpg',
   },
   scarletRunecLoak: {
     name: "Scarlet RunecLoak",
@@ -298,7 +311,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/scarlet-runecLoak.jpg',
     hpBonus: 40,
     mpBonus: 50,
-    description: "A cloak inscribed with basic runes, slightly enhancing fire-based spells and providing moderate protection."
+    description: "A cloak inscribed with basic runes, slightly enhancing fire-based spells and providing moderate protection.",
+    playerPreview: 'inventory/player/scarlet-runecLoak-preview.jpg',
   },
   cloudweaversMantle: {
     name: "Cloudweaver's Mantle",
@@ -312,7 +326,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/cloudweavers-mantle.jpg',
     hpBonus: 100,
     mpBonus: 120,
-    description: "A mantle woven from clouds, granting the wearer agility and enhanced air-based magic."
+    description: "A mantle woven from clouds, granting the wearer agility and enhanced air-based magic.",
+    playerPreview: 'inventory/player/cloudweavers-mantle-preview.jpg',
   },
   obsidianGlyphcloak: {
     name: "Obsidian Glyphcloak",
@@ -326,7 +341,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/obsidian-glyphcloak.jpg',
     hpBonus: 70,
     mpBonus: 80,
-    description: "A cloak adorned with obsidian glyphs, providing good protection and slightly boosting dark magic."
+    description: "A cloak adorned with obsidian glyphs, providing good protection and slightly boosting dark magic.",
+    playerPreview: 'inventory/player/obsidian-glyphcloak-preview.jpg',
   },
   guardiansSkyshroud: {
     name: "Guardian's Skyshroud",
@@ -340,7 +356,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/guardians-skyshroud.jpg',
     hpBonus: 90,
     mpBonus: 100,
-    description: "A shroud worn by the guardians of the sky, offering good protection and slightly enhancing wind-based magic."
+    description: "A shroud worn by the guardians of the sky, offering good protection and slightly enhancing wind-based magic.",
+    playerPreview: 'inventory/player/guardians-skyshroud-preview.jpg',
   },
   sunflareRobe: {
     name: "Sunflare Robe",
@@ -354,7 +371,8 @@ export const itemDatabase = {
     icon: 'inventory/armor/sunflare-robe.jpg',
     hpBonus: 80,
     mpBonus: 100,
-    description: "A robe that radiates with the power of the sun, granting enhanced magical abilities and protection."
+    description: "A robe that radiates with the power of the sun, granting enhanced magical abilities and protection.",
+    playerPreview: 'inventory/player/sunflare-robe-preview.jpg',
   },
   angelsFeatherOfGrace: {
     name: "Angel's Feather of Grace",
@@ -498,3 +516,7 @@ export const itemDatabase = {
     description: "A staff topped with a venomous skull, perfect for casting poison and curse spells."
   }
 };
+
+export function getDefaultPlayerPreview() {
+  return 'inventory/player/default-preview.jpg';
+}

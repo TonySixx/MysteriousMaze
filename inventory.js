@@ -2,7 +2,7 @@ import { addGold, getGold, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana } from './player.js';
 import { coinSoundBuffer, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, staffModel } from './main.js';
-import { getItemName, itemDatabase } from './itemDatabase.js';
+import { getItemName, itemDatabase, getDefaultPlayerPreview } from './itemDatabase.js';
 
 let inventory = [];
 let equipment = {
@@ -94,12 +94,25 @@ function renderInventory() {
   const inventoryGrid = document.getElementById('inventoryGrid');
   inventoryGrid.innerHTML = '';
 
-  // Přidáme křížek pro zavření
-  const closeButton = document.createElement('span');
-  closeButton.className = 'close-button';
-  closeButton.innerHTML = '&times;';
-  closeButton.onclick = closeInventory;
-  document.querySelector('.inventory-content').appendChild(closeButton);
+    // Přidáme křížek pro zavření
+    const closeButton = document.createElement('span');
+    closeButton.className = 'close-button';
+    closeButton.innerHTML = '&times;';
+    closeButton.onclick = closeInventory;
+    document.querySelector('.inventory-content').appendChild(closeButton);
+
+  // Nejprve odstraníme existující playerPreview, pokud existuje
+  const existingPlayerPreview = document.getElementById('playerPreview');
+  if (existingPlayerPreview) {
+    existingPlayerPreview.remove();
+  }
+
+  // Přidáme zobrazení hráčovy postavy
+  const equipmentContainer = document.querySelector('.equipment');
+  const playerPreview = document.createElement('div');
+  playerPreview.id = 'playerPreview';
+  playerPreview.style.backgroundImage = `url('${getPlayerPreviewImage()}')`;
+  document.querySelector('.inventory-content').insertBefore(playerPreview, equipmentContainer);
 
   // Přidáme nebo aktualizujeme zobrazení goldů
   let goldDisplay = document.querySelector('.gold-display');
@@ -423,6 +436,10 @@ function equipItem(itemId, slot) {
   console.log(`Equipped ${item.name} in ${slot} slot`);
   console.log("Updated equipment:", equipment);
 
+  if (slot === 'armor') {
+    updatePlayerPreview();
+  }
+
   updateStaffVisibility();
   saveInventoryToLocalStorage();
   updatePlayerStats(); // Přidáme volání této funkce
@@ -483,6 +500,10 @@ function removeItemFromEquipment(slot) {
       equipment[slot] = null;
       console.log(`Removed ${item.name} from ${slot} slot`);
       console.log("Updated equipment:", equipment);
+
+      if (slot === 'armor') {
+        updatePlayerPreview();
+      }
 
       updateStaffVisibility();
       renderInventory();
@@ -652,6 +673,18 @@ function updateStaffVisibility() {
 function saveInventoryToLocalStorage() {
   localStorage.setItem('inventory', JSON.stringify(inventory));
   localStorage.setItem('equipment', JSON.stringify(equipment));
+}
+
+function getPlayerPreviewImage() {
+  const equippedArmor = equipment.armor;
+  return equippedArmor ? equippedArmor.playerPreview : getDefaultPlayerPreview();
+}
+
+function updatePlayerPreview() {
+  const playerPreview = document.getElementById('playerPreview');
+  if (playerPreview) {
+    playerPreview.style.backgroundImage = `url('${getPlayerPreviewImage()}')`;
+  }
 }
 
 export { inventory, equipment, addItemToInventory, updateStaffVisibility };
