@@ -1778,11 +1778,12 @@ async function startGame() {
 }
 
 async function getBestTime(levelName) {
+  var _playerName = localStorage.getItem("playerName");
   try {
     const { data, error } = await supabase
       .from("maze_score")
       .select("time_score")
-      .eq("playername", playerName)
+      .eq("playername", _playerName ? _playerName : "Unknown")
       .eq("levelname", levelName)
       .eq("floor", selectedFloor)
       .order("time_score", { ascending: true })
@@ -2589,6 +2590,7 @@ function showNameModal(playerName) {
       playerName = name;
       localStorage.setItem("playerName", playerName);
       document.getElementById("playerName").textContent = playerName;
+      getBestTime();
       hideNameModal();
       updateTranslations();
       updateUITexts();
@@ -2616,10 +2618,11 @@ function hideScoreModal() {
 
 async function submitScore(levelName, time) {
   try {
+    var _playerName = localStorage.getItem("playerName");
     const { data, error } = await supabase.from("maze_score").upsert(
       [
         {
-          playername: playerName,
+          playername: _playerName ? _playerName : "Unknown",
           levelname: levelName,
           time_score: time,
           floor: selectedFloor,
