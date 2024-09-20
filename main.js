@@ -69,6 +69,7 @@ import {
   updatePotionCooldowns,
   updateStaffVisibility,
 } from "./inventory.js";
+import { staffModelsDefinitons } from "./staffModels.js";
 
 export const version = "1.2.4";
 
@@ -576,8 +577,8 @@ function toggleFlyMode() {
 
 function attachStaffToCamera() {
   if (staffModel) {
-    staffModel.position.set(0.3, -0.2, -0.5);
-    staffModel.rotation.set(0, Math.PI / 2, 0);
+    staffModel.position.set(staffModelsDefinitons.apprenticeShardStaff.positionX, staffModelsDefinitons.apprenticeShardStaff.positionY, staffModelsDefinitons.apprenticeShardStaff.positionZ);
+    staffModel.rotation.set(staffModelsDefinitons.apprenticeShardStaff.rotationX, staffModelsDefinitons.apprenticeShardStaff.rotationY, staffModelsDefinitons.apprenticeShardStaff.rotationZ);
     staffModel.traverse((child) => {
       if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
         child.material = new THREE.MeshStandardMaterial({
@@ -2020,7 +2021,7 @@ async function loadStaffModel() {
   return new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
     loader.load(
-      "models/Staff.glb",
+      staffModelsDefinitons.apprenticeShardStaff.modelPath,
       (gltf) => {
         staffModel = gltf.scene;
 
@@ -2036,7 +2037,7 @@ async function loadStaffModel() {
           }
         });
 
-        staffModel.scale.set(0.1, 0.1, 0.1);
+        staffModel.scale.set(staffModelsDefinitons.apprenticeShardStaff.scaleX, staffModelsDefinitons.apprenticeShardStaff.scaleY, staffModelsDefinitons.apprenticeShardStaff.scaleZ);
         resolve(staffModel);
       },
       (xhr) => {
