@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, staffModel, createCastEffect, getCameraDirection, isHighWallArea, maze, chainLightningSoundBuffer, camera, playSound, selectedFloor } from './main.js';
+import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, createCastEffect, getCameraDirection, isHighWallArea, maze, chainLightningSoundBuffer, camera, playSound, selectedFloor } from './main.js';
 import { player } from "./player.js"
 import { createExplosion, changeStaffColor, fireballSoundBuffer, frostBoltSoundBuffer, magicMissileSoundBuffer } from "./main.js"
 import frostboltIcon from './public/spells/frostbolt-icon.png';
@@ -1073,10 +1073,21 @@ export function updateSkillbar() {
   });
 }
 
-let originalStaffRotation;
+
+
+export let originalStaffRotation;
+export let isInspectingStaff = false;
+export let isSwingingStaff = false;
+
+
+export function setOriginalStaffRotation() {
+  originalStaffRotation = staffModel.rotation.clone();
+}
 
 function animateStaffSwing() {
   if (!staffModel) return;
+
+  isSwingingStaff = true;
 
   // Uložíme původní rotaci, pokud ještě není uložena
   if (!originalStaffRotation) {
@@ -1091,14 +1102,54 @@ function animateStaffSwing() {
   const animate = (progress) => {
     if (progress <= 1) {
       const currentAngle = Math.sin(progress * Math.PI) * swingAngle;
-      staffModel.rotation.z = originalStaffRotation.z + currentAngle;
+      staffModel.rotation.x = originalStaffRotation.x + currentAngle;
       requestAnimationFrame(() => animate(progress + 0.045));
     } else {
       staffModel.rotation.z = originalStaffRotation.z;
+      isSwingingStaff = false;
     }
   };
 
   animate(0);
+}
+
+export function inspectStaff() {
+  if (!staffModel || isInspectingStaff || isSwingingStaff) return;
+
+  isInspectingStaff = true;
+
+  const duration = 2500; // Doba trvání animace v milisekundách
+  const startRotation = staffModel.rotation.clone();
+  const maxRotationY = Math.PI / 2; // 90 stupňů pro osu Y
+  const maxRotationX = Math.PI / 24; // 7.5 stupňů pro osu X (pro vytvoření oblouku)
+
+  const startTime = Date.now();
+
+  function animate() {
+      const now = Date.now();
+      const progress = Math.min((now - startTime) / duration, 1);
+
+      if (progress < 1) {
+          // Hlavní rotace kolem osy Y
+          const rotationOffsetY = Math.sin(progress * Math.PI * 2) * maxRotationY;
+          
+          // Jemný oblouk pomocí rotace kolem osy X
+          const rotationOffsetX = Math.sin(progress * Math.PI) * maxRotationX;
+
+          staffModel.rotation.set(
+              startRotation.x - rotationOffsetX,
+              startRotation.y + rotationOffsetY,
+              startRotation.z
+          );
+          requestAnimationFrame(animate);
+      } else {
+          // Zajistíme, že hůlka se vrátí přesně do původní rotace
+          staffModel.rotation.copy(startRotation);
+          isInspectingStaff = false;
+      }
+  }
+
+  animate();
 }
 
 export { spells, Spell, castFireball, castFrostbolt, castArcaneMissile, updateFireballs, updateFrostbolts, updateArcaneMissiles };

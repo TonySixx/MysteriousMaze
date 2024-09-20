@@ -1,3 +1,6 @@
+import { staffModelsDefinitons } from './staffModels.js';
+
+
 // Konstanty pro typy předmětů
 export const ITEM_TYPES = {
     WEAPON: 'weapon',
@@ -24,6 +27,7 @@ export const ITEM_TYPES = {
       }
       return null;  // Pokud nenajde žádnou shodu
     }
+
 
 export const itemDatabase = {
   healthPotion: {
@@ -387,7 +391,8 @@ export const itemDatabase = {
     attackBonus: 150,
     hpBonus: 100,
     mpBonus: 200,
-    description: "A staff created from an archangel's feather, granting its wielder divine power and grace."
+    description: "A staff created from an archangel's feather, granting its wielder divine power and grace.",
+    modelInfo: staffModelsDefinitons.angelsFeatherOfGrace
   },
   apprenticeShardStaff: {
     name: "Apprentice Shard Staff",
@@ -399,7 +404,8 @@ export const itemDatabase = {
     buyPrice: 30,
     stackable: false,
     icon: 'inventory/staff/apprentice-shard-staff.jpg',
-    description: "A simple staff for novice mages, crafted from a magical crystal shard."
+    description: "A simple staff for novice mages, crafted from a magical crystal shard.",
+    modelInfo: staffModelsDefinitons.apprenticeShardStaff
   },
   celestialLightbringer: {
     name: "Celestial Lightbringer",
@@ -413,7 +419,8 @@ export const itemDatabase = {
     icon: 'inventory/staff/celestial-lightbringer.jpg',
     attackBonus: 100,
     mpBonus: 150,
-    description: "A staff imbued with the power of celestial bodies, illuminating the path and empowering light magic."
+    description: "A staff imbued with the power of celestial bodies, illuminating the path and empowering light magic.",
+    modelInfo: staffModelsDefinitons.apprenticeShardStaff
   },
   darkshadeStaff: {
     name: "Darkshade Staff",
@@ -427,7 +434,8 @@ export const itemDatabase = {
     icon: 'inventory/staff/darkshade-scepter.jpg',
     attackBonus: 70,
     mpBonus: 80,
-    description: "A staff that harnesses the power of shadows, ideal for practitioners of dark magic."
+    description: "A staff that harnesses the power of shadows, ideal for practitioners of dark magic.",
+    modelInfo: staffModelsDefinitons.apprenticeShardStaff
   },
   druidsWhisperwood: {
     name: "Druid's Whisperwood",
@@ -442,7 +450,8 @@ export const itemDatabase = {
     attackBonus: 60,
     hpBonus: 50,
     mpBonus: 50,
-    description: "A staff carved from ancient whisperwood, resonating with nature's power."
+    description: "A staff carved from ancient whisperwood, resonating with nature's power.",
+    modelInfo: staffModelsDefinitons.druidsWhisperwood
   },
   emeraldVineStaff: {
     name: "Emerald Vine Staff",
@@ -456,7 +465,8 @@ export const itemDatabase = {
     icon: 'inventory/staff/emerald-vine-staff.jpg',
     attackBonus: 30,
     hpBonus: 30,
-    description: "A staff entwined with living emerald vines, channeling the essence of growth and vitality."
+    description: "A staff entwined with living emerald vines, channeling the essence of growth and vitality.",
+    modelInfo: staffModelsDefinitons.apprenticeShardStaff
   },
   flamebindersWrath: {
     name: "Flamebinder's Wrath",
@@ -470,7 +480,8 @@ export const itemDatabase = {
     icon: 'inventory/staff/flamebinders-wrath.jpg',
     attackBonus: 120,
     mpBonus: 100,
-    description: "A staff that burns with the fury of ancient fire elementals, devastating in combat."
+    description: "A staff that burns with the fury of ancient fire elementals, devastating in combat.",
+    modelInfo: staffModelsDefinitons.apprenticeShardStaff
   },
   frostbaneCorruption: {
     name: "Frostbane Corruption",
@@ -484,7 +495,8 @@ export const itemDatabase = {
     icon: 'inventory/staff/frostbane-corruption.jpg',
     attackBonus: 90,
     mpBonus: 120,
-    description: "A staff tainted by frost magic gone awry, powerful but with a hint of corruption."
+    description: "A staff tainted by frost magic gone awry, powerful but with a hint of corruption.",
+    modelInfo: staffModelsDefinitons.apprenticeShardStaff
   },
   infernalDragonflare: {
     name: "Infernal Dragonflare",
@@ -499,7 +511,8 @@ export const itemDatabase = {
     attackBonus: 180,
     hpBonus: 150,
     mpBonus: 150,
-    description: "A staff forged in dragon fire, containing the essence of an ancient infernal wyrm."
+    description: "A staff forged in dragon fire, containing the essence of an ancient infernal wyrm.",
+    modelInfo: staffModelsDefinitons.infernalDragonflare
   },
   venomskullStaff: {
     name: "Venomskull Staff",
@@ -513,7 +526,8 @@ export const itemDatabase = {
     icon: 'inventory/staff/venomskull-staff.jpg',
     attackBonus: 80,
     mpBonus: 90,
-    description: "A staff topped with a venomous skull, perfect for casting poison and curse spells."
+    description: "A staff topped with a venomous skull, perfect for casting poison and curse spells.",
+    modelInfo: staffModelsDefinitons.venomskullStaff  
   }
 };
 

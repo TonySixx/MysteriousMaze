@@ -65,7 +65,9 @@ import {
   closeInventory,
   createItem,
   equipment,
+  initWeaponModel,
   openInventory,
+  originalStaffColor,
   updatePotionCooldowns,
   updateStaffVisibility,
 } from "./inventory.js";
@@ -218,7 +220,6 @@ export var keyModel;
 let treasureModel;
 // Přidejte globální proměnné
 const BLOCKING_WALL = 2;
-export var staffModel;
 export var staffTopPart;
 export let magicBalls = [];
 
@@ -227,9 +228,9 @@ let consoleInput = "";
 export let canWalkThroughWalls = false;
 export let isFlying = false;
 
-let currentStaffColor = new THREE.Color(0xd8fcfd);
-let targetStaffColor = new THREE.Color(0xff4500);
-let colorTransitionSpeed = 5; // Rychlost přechodu barev
+let currentStaffColor = new THREE.Color();
+let targetStaffColor = new THREE.Color();
+const colorTransitionSpeed = 5;
 
 let isMinimapVisible = false;
 let minimapTimeMultiplier = 1;
@@ -369,6 +370,7 @@ async function init() {
   });
 
   loadPlayerProgress();
+  initWeaponModel();
   const floorParam = getUrlParameter("floor");
   if (floorParam) {
     let selectedFloorInt = parseInt(floorParam);
@@ -383,7 +385,6 @@ async function init() {
   try {
     await loadKeyModel();
     await loadTreasureModel();
-    await loadStaffModel();
     updateStaffVisibility();
 
     // Use the seed from URL or input to create the maze
@@ -394,7 +395,7 @@ async function init() {
     createSkillbar();
     initSkillTree();
     updatePlayerStats(true);
-    attachStaffToCamera();
+    //attachStaffToCamera();
     startTimer();
     const crosshair = createCrosshair();
     camera.add(crosshair);
@@ -575,23 +576,6 @@ function toggleFlyMode() {
   }
 }
 
-function attachStaffToCamera() {
-  if (staffModel) {
-    staffModel.position.set(staffModelsDefinitons.apprenticeShardStaff.positionX, staffModelsDefinitons.apprenticeShardStaff.positionY, staffModelsDefinitons.apprenticeShardStaff.positionZ);
-    staffModel.rotation.set(staffModelsDefinitons.apprenticeShardStaff.rotationX, staffModelsDefinitons.apprenticeShardStaff.rotationY, staffModelsDefinitons.apprenticeShardStaff.rotationZ);
-    staffModel.traverse((child) => {
-      if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
-        child.material = new THREE.MeshStandardMaterial({
-          emissive: currentStaffColor,
-          emissiveIntensity: 2,
-          metalness: 1,
-          roughness: 0.5,
-        });
-      }
-    });
-    camera.add(staffModel);
-  }
-}
 
 function onMouseDown(event) {
   if (player.isFrozen) return;
@@ -790,7 +774,8 @@ export function createCastEffect(position, color = 0xffa500) {
   castEffectGroup.add(particles);
 
   castEffectGroup.position.copy(position);
-  castEffectGroup.position.y += 0.3;
+  const modelInfo = equipment.weapon.modelInfo;
+  castEffectGroup.position.y += modelInfo.castEffectOffsetY || 0.3;
   scene.add(castEffectGroup);
 
   castEffectGroup.userData.animate = function () {
@@ -1839,9 +1824,8 @@ function updateTimer() {
   const totalSeconds = Math.floor(cumulativeTime / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  document.getElementById("timeCount").textContent = `${minutes}:${
-    seconds < 10 ? "0" : ""
-  }${seconds}`;
+  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""
+    }${seconds}`;
 }
 
 function hideTeleportPrompt() {
@@ -2008,48 +1992,19 @@ export function changeStaffColor(color) {
 function updateStaffColor(deltaTime) {
   currentStaffColor.lerp(targetStaffColor, colorTransitionSpeed * deltaTime);
   if (staffModel) {
-    staffModel.traverse((child) => {
-      if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
-        child.material.emissive.copy(currentStaffColor);
-      }
-    });
+    const modelInfo = equipment.weapon.modelInfo;
+    if (modelInfo.emissivePartName) {
+      staffModel.getObjectByName(modelInfo.emissivePartName).material.emissive.copy(currentStaffColor);
+    } else {
+      staffModel.traverse((child) => {
+        if (child.isMesh && child.material.emissive) {
+          child.material.emissive.copy(currentStaffColor);
+        }
+      });
+    }
   }
 }
 
-// Funkce pro načtení modelu kouzelné hole
-async function loadStaffModel() {
-  return new Promise((resolve, reject) => {
-    const loader = new GLTFLoader();
-    loader.load(
-      staffModelsDefinitons.apprenticeShardStaff.modelPath,
-      (gltf) => {
-        staffModel = gltf.scene;
-
-        // Přidání emisivního materiálu k hůlce
-        staffModel.traverse((child) => {
-          if (child.isMesh && child.name == "Staff_04_Circle011-Mesh_2") {
-            child.material = new THREE.MeshStandardMaterial({
-              color: currentStaffColor,
-              emissive: currentStaffColor, // Emisivní oranžová barva
-              emissiveIntensity: 1, // Intenzita emisivní barvy
-            });
-            staffTopPart = child; // Uložíme vrchní část hůlky
-          }
-        });
-
-        staffModel.scale.set(staffModelsDefinitons.apprenticeShardStaff.scaleX, staffModelsDefinitons.apprenticeShardStaff.scaleY, staffModelsDefinitons.apprenticeShardStaff.scaleZ);
-        resolve(staffModel);
-      },
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-      },
-      (error) => {
-        console.error("Error loading staff model:", error);
-        reject(error);
-      }
-    );
-  });
-}
 
 // Funkce pro načtení modelu klíče
 function loadKeyModel() {
@@ -2117,8 +2072,12 @@ function rotateTeleports(deltaTime) {
 
 function resetStaffColor() {
   if (Date.now() - lastSpellCastTime > 500) {
-    changeStaffColor(0xd8fcfd);
-    //changeStaffColor(0xff4500); // Obnovení výchozí oranžové barvy
+    if (originalStaffColor) {
+      changeStaffColor(originalStaffColor.getHex());
+    } else {
+      // Pokud z nějakého důvodu nemáme originální barvu, použijeme výchozí
+      changeStaffColor(0xd8fcfd);
+    }
   }
 }
 
@@ -2226,7 +2185,7 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
 
               torch.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                  dir.dx * CELL_SIZE * 0.5,
+                dir.dx * CELL_SIZE * 0.5,
                 WALL_HEIGHT / 2 - 0.2,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
               );
@@ -2249,10 +2208,10 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
               );
               light.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                  dir.dx * CELL_SIZE * 0.18,
+                dir.dx * CELL_SIZE * 0.18,
                 WALL_HEIGHT / 2 + 0.25,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                  dir.dz * CELL_SIZE * 0.18
+                dir.dz * CELL_SIZE * 0.18
               );
 
               lightManager.addLight(light);
@@ -2542,7 +2501,9 @@ function animate() {
   }
 
   camera.children[camera.children.length - 1].renderOrder = 999;
-  camera.children[camera.children.length - 1].material.depthTest = false;
+  if (camera.children[camera.children.length - 1].material?.depthTest) {
+    camera.children[camera.children.length - 1].material.depthTest = false;
+  }
 
   composer.render();
 }
@@ -2559,9 +2520,8 @@ function showNameModal(playerName) {
   nameModal.innerHTML = `
     <div class="modal-content">
       <h2>${getTranslation("enterName")}</h2>
-      <input type="text" id="playerNameInput" value="${
-        playerName || ""
-      }" placeholder="${getTranslation("playerName")}">
+      <input type="text" id="playerNameInput" value="${playerName || ""
+    }" placeholder="${getTranslation("playerName")}">
       <select id="languageSelect">
         <option value="en">English</option>
         <option value="cs">Čeština</option>
@@ -2802,11 +2762,11 @@ function generateHintContent() {
         <p>${getTranslation("specialAttacks")} ${getReadableAttackNames(
       boss.type.specialAttacks
     )
-      .map((name) => `<span class="attack-name">${name}</span>`)
-      .join(", ")}</p>
+        .map((name) => `<span class="attack-name">${name}</span>`)
+        .join(", ")}</p>
         <p class="tactic">${getTranslation("tactics")} ${getBossTactics(
-      boss.type.specialAttacks
-    )}</p>
+          boss.type.specialAttacks
+        )}</p>
       </div>
     `;
   });

@@ -6,3 +6,6 @@ window.lightManager = undefined;
 
 window.playerLevel = 1;
 window.playerGold = 0;
+
+window.staffModel = undefined;
+

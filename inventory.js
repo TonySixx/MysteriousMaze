@@ -1,8 +1,10 @@
 import { addGold, expToNextLevel, getGold, getPlayerLevel, playerExp, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
-import { coinSoundBuffer, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, staffModel } from './main.js';
+import { camera, changeStaffColor, coinSoundBuffer, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock } from './main.js';
 import { getItemName, itemDatabase, getDefaultPlayerPreview } from './itemDatabase.js';
+import { GLTFLoader } from 'three/examples/jsm/Addons.js';
+import { setOriginalStaffRotation } from './spells.js';
 
 let inventory = [];
 let equipment = {
@@ -48,7 +50,7 @@ export function initInventory() {
     equipItem(staff.id, 'weapon');
     addItemToInventory(createItem(getItemName(itemDatabase.healthPotion), 5));
     addItemToInventory(createItem(getItemName(itemDatabase.manaPotion), 5));
-    //addItemsForTesting();
+    addItemsForTesting();
   }
 
   console.log("Inventory initialized:", inventory);
@@ -463,6 +465,10 @@ function equipItem(itemId, slot) {
     updatePlayerPreview();
   }
 
+  if (slot === 'weapon') {
+    updateWeaponModel();
+  }
+
   updateStaffVisibility();
   saveInventoryToLocalStorage();
   updatePlayerStats(); // Přidáme volání této funkce
@@ -526,6 +532,10 @@ function removeItemFromEquipment(slot) {
 
       if (slot === 'armor') {
         updatePlayerPreview();
+      }
+
+      if (slot === 'weapon') {
+        updateWeaponModel();
       }
 
       updateStaffVisibility();
@@ -625,11 +635,12 @@ function addItemsForTesting() {
   addItemToInventory(createItem(getItemName(itemDatabase.ultimateManaPotion)));
 
   addItemToInventory(createItem(getItemName(itemDatabase.angelsGraceVestments)));
-  addItemToInventory(createItem(getItemName(itemDatabase.angelsGraceVestments)));
+  addItemToInventory(createItem(getItemName(itemDatabase.angelsFeatherOfGrace)));
   addItemToInventory(createItem(getItemName(itemDatabase.bloomShadeKimono)));
   addItemToInventory(createItem(getItemName(itemDatabase.infernalDragonhideRobe)));
   addItemToInventory(createItem(getItemName(itemDatabase.emeraldVineStaff)));
   addItemToInventory(createItem(getItemName(itemDatabase.frostbaneCorruption)));
+  addItemToInventory(createItem(getItemName(itemDatabase.venomskullStaff)));
 
 
 }
@@ -707,6 +718,72 @@ function updatePlayerPreview() {
   const playerPreview = document.getElementById('playerPreview');
   if (playerPreview) {
     playerPreview.style.backgroundImage = `url('${getPlayerPreviewImage()}')`;
+  }
+}
+
+export var originalStaffColor;
+
+function updateWeaponModel() {
+  if (equipment.weapon && equipment.weapon.modelInfo) {
+    const modelInfo = equipment.weapon.modelInfo;
+
+    // Odstraníme starý model, pokud existuje
+    if (staffModel) {
+      camera.remove(staffModel);
+    }
+
+    // Načteme nový model
+    const loader = new GLTFLoader();
+    loader.load(modelInfo.modelPath, (gltf) => {
+
+      if (staffModel) {
+        camera.remove(staffModel);
+      }
+
+      staffModel = gltf.scene;
+      // Nastavíme parametry modelu
+      staffModel.scale.set(modelInfo.scaleX, modelInfo.scaleY, modelInfo.scaleZ);
+      staffModel.position.set(modelInfo.positionX, modelInfo.positionY, modelInfo.positionZ);
+      staffModel.rotation.set(modelInfo.rotationX, modelInfo.rotationY, modelInfo.rotationZ);
+
+      // Aktualizace transformační matice
+      staffModel.updateMatrix();
+
+
+      if (modelInfo.emissivePartName) {
+        originalStaffColor = staffModel.getObjectByName(modelInfo.emissivePartName).material.emissive.clone();
+      } else {
+        // Projdeme všechny meshe v modelu
+        staffModel.traverse((child) => {
+          if (child.isMesh && child.material) {
+            // Uložíme originální emissive barvu
+            if (child.material.emissive) {
+              originalStaffColor = child.material.emissive.clone();
+            }
+
+          }
+        });
+      }
+      setOriginalStaffRotation()
+      // Přidáme model ke kameře
+      camera.add(staffModel);
+
+      // Nastavíme počáteční barvu hůlky
+      changeStaffColor(originalStaffColor.getHex());
+    });
+  } else {
+    // Pokud není vybavena žádná zbraň, odstraníme model
+    if (staffModel) {
+      camera.remove(staffModel);
+      staffModel = null;
+    }
+    originalStaffColor = null;
+  }
+}
+
+export function initWeaponModel() {
+  if (equipment.weapon) {
+    updateWeaponModel();
   }
 }
 

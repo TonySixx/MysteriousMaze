@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { camera, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
-import { getActiveSpells, spells } from "./spells.js";
+import { getActiveSpells, inspectStaff, isInspectingStaff, isSwingingStaff, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 import { equipment, initInventory, usePotion } from "./inventory.js";
 import { calculateSpellDamage, skillTree } from "./skillTree.js";
@@ -76,13 +76,13 @@ export function getPlayerLevel() {
 
 export function getPlayerName() {
     return localStorage.getItem('playerName') || 'Unnamed';
-  }
-  
-  export function calculatePlayerDamage() {
-    const baseDamage = 0; 
+}
+
+export function calculatePlayerDamage() {
+    const baseDamage = 0;
     const weaponDamage = equipment.weapon ? equipment.weapon.attackBonus || 0 : 0;
     return baseDamage + weaponDamage;
-  }
+}
 
 export function updatePlayerStats(initialCall = false) {
     let totalHpBonus = 0;
@@ -571,6 +571,11 @@ export function onKeyDown(event) {
             break;
         case "KeyV":
             toggleMinimap();
+            break;
+        case "KeyG":
+            if (!isInspectingStaff && !isSwingingStaff) {
+                inspectStaff();
+            }
             break;
         case "Space":
             if (!isJumping && !isFlying) {
