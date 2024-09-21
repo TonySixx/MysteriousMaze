@@ -11,7 +11,7 @@ import frostAuraIcon from './public/spells/frost-aura-icon.png';
 import explosiveCoreIcon from './public/spells/explosive-core-icon.png';
 import { spells, updateSkillbar, updateSpellUpgrades } from './spells.js';
 import { getSkillPoints } from './player.js';
-import { exitPointerLock, requestPointerLock } from './main.js';
+import { activateSoundBuffer, exitPointerLock, playSound, requestPointerLock } from './main.js';
 import { getTranslation } from './langUtils.js';
 
 let skillTreeModal = null;
@@ -373,6 +373,7 @@ function createUpgradeElement(spellKey, upgrade) {
 
 function unlockUpgrade(spellKey, upgrade, button, icon) {
     if (useSkillPoint(upgrade.cost)) {
+        playSound(activateSoundBuffer);
         upgrade.unlocked = true;
         button.textContent = getTranslation('unlocked');
         button.disabled = true;
@@ -393,6 +394,7 @@ function unlockSpell(spellKey, button) {
     const spell = skillTree[spellKey];
     if (playerLevel >= spell.requiredLevel && useSkillPoint(spell.cost)) {
         spell.level = 1;
+        playSound(activateSoundBuffer);
         if (spell.level < spell.maxLevel) {
             button.innerHTML = getTranslation('upgrade')+"<span class='cost-badge'>1</span>";
             button.disabled = getSkillPoints() < 1;
@@ -422,6 +424,7 @@ function upgradeSpell(spellKey, button) {
     const spell = skillTree[spellKey];
     if (spell.level < spell.maxLevel && useSkillPoint(spell.cost)) {
         spell.level++;
+        playSound(activateSoundBuffer);
 
         if (spell.level === spell.maxLevel) {
             button.textContent = getTranslation('maxLevel');

@@ -257,6 +257,7 @@ export var itemSoundBuffer;
 export var errorSoundBuffer;
 export var breakSoundBuffer;
 export var successSoundBuffer;
+export var activateSoundBuffer;
 
 
 export var bossSoundBuffer;
@@ -379,6 +380,11 @@ async function init() {
   audioLoader.load("snd_break.mp3", function (buffer) {
     breakSoundBuffer = buffer;
   });
+
+  audioLoader.load("snd_activate.mp3", function (buffer) {
+    activateSoundBuffer = buffer;
+  });
+
 
   loadPlayerProgress();
   initWeaponModel();

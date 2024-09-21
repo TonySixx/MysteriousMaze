@@ -1,7 +1,7 @@
 import { addGold, expToNextLevel, getGold, getPlayerLevel, playerExp, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
-import { breakSoundBuffer, camera, changeStaffColor, coinSoundBuffer, createEnchantEffect, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
+import { activateSoundBuffer, breakSoundBuffer, camera, changeStaffColor, coinSoundBuffer, createEnchantEffect, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
 import { getItemName, itemDatabase, getDefaultPlayerPreview, ITEM_TYPES } from './itemDatabase.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { setOriginalStaffRotation } from './spells.js';
@@ -112,9 +112,11 @@ function openEnchantWindow() {
       <div id="itemEnchantSlot" class="enchant-slot" data-type="item"></div>
       <div id="lapisiaEnchantSlot" class="enchant-slot" data-type="lapisia"></div>
     </div>
-    <p id="enchantChance"></p>
+    <p style="font-weight: bold; color:#e9b266" id="enchantChance"></p>
+    <div style="display: flex; justify-content: center">
     <button id="performEnchant" disabled>${getTranslation('performEnchant')}</button>
     <button id="closeEnchant">${getTranslation('close')}</button>
+    </div>
   `;
 
   document.querySelector('.inventory-content').appendChild(enchantWindow);
@@ -146,7 +148,7 @@ function updateEnchantChance() {
   if (itemToEnchant) {
     const currentEnchantLevel = itemToEnchant.enchantLevel || 0;
     const chance = calculateEnchantSuccessChance(currentEnchantLevel);
-    chanceElement.textContent = `${getTranslation('enchantChance')}: ${(chance * 100).toFixed(2)}%`;
+    chanceElement.textContent = `${getTranslation('enchantChance')}: ${(chance * 100).toFixed(0)}%`;
   } else {
     if (chanceElement)
       chanceElement.textContent = '';
@@ -247,6 +249,7 @@ function performEnchant() {
 
   const currentEnchantLevel = itemToEnchant.enchantLevel || 0;
   if (currentEnchantLevel >= 20) {
+    playSound(errorSoundBuffer);
     showMessage(getTranslation('maxEnchantLevelReached'));
     return;
   }
@@ -263,7 +266,7 @@ function performEnchant() {
     } else if (itemToEnchant.type === ITEM_TYPES.ARMOR) {
       itemToEnchant.hpBonus = (itemToEnchant.hpBonus || 0) + 5;
     }
-    playSound(successSoundBuffer);
+    playSound(activateSoundBuffer);
     showMessage(getTranslation('enchantSuccess'));
     itemSlot.classList.add('green-glow');
     setTimeout(() => {
