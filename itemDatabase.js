@@ -420,7 +420,7 @@ export const itemDatabase = {
     attackBonus: 100,
     mpBonus: 150,
     description: "A staff imbued with the power of celestial bodies, illuminating the path and empowering light magic.",
-    modelInfo: staffModelsDefinitons.apprenticeShardStaff
+    modelInfo: staffModelsDefinitons.celestialLightbringer
   },
   darkshadeStaff: {
     name: "Darkshade Staff",
@@ -435,7 +435,7 @@ export const itemDatabase = {
     attackBonus: 70,
     mpBonus: 80,
     description: "A staff that harnesses the power of shadows, ideal for practitioners of dark magic.",
-    modelInfo: staffModelsDefinitons.apprenticeShardStaff
+    modelInfo: staffModelsDefinitons.darkshadeStaff
   },
   druidsWhisperwood: {
     name: "Druid's Whisperwood",
@@ -466,7 +466,7 @@ export const itemDatabase = {
     attackBonus: 30,
     hpBonus: 30,
     description: "A staff entwined with living emerald vines, channeling the essence of growth and vitality.",
-    modelInfo: staffModelsDefinitons.apprenticeShardStaff
+    modelInfo: staffModelsDefinitons.emeraldVineStaff
   },
   flamebindersWrath: {
     name: "Flamebinder's Wrath",
@@ -481,7 +481,7 @@ export const itemDatabase = {
     attackBonus: 120,
     mpBonus: 100,
     description: "A staff that burns with the fury of ancient fire elementals, devastating in combat.",
-    modelInfo: staffModelsDefinitons.apprenticeShardStaff
+    modelInfo: staffModelsDefinitons.flamebindersWrath
   },
   frostbaneCorruption: {
     name: "Frostbane Corruption",
@@ -496,7 +496,7 @@ export const itemDatabase = {
     attackBonus: 90,
     mpBonus: 120,
     description: "A staff tainted by frost magic gone awry, powerful but with a hint of corruption.",
-    modelInfo: staffModelsDefinitons.apprenticeShardStaff
+    modelInfo: staffModelsDefinitons.frostbaneCorruption
   },
   infernalDragonflare: {
     name: "Infernal Dragonflare",

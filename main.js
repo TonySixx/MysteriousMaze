@@ -73,7 +73,7 @@ import {
 } from "./inventory.js";
 import { staffModelsDefinitons } from "./staffModels.js";
 
-export const version = "1.2.4";
+export const version = "1.2.5";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";

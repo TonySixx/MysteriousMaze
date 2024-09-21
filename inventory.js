@@ -641,6 +641,12 @@ function addItemsForTesting() {
   addItemToInventory(createItem(getItemName(itemDatabase.emeraldVineStaff)));
   addItemToInventory(createItem(getItemName(itemDatabase.frostbaneCorruption)));
   addItemToInventory(createItem(getItemName(itemDatabase.venomskullStaff)));
+  addItemToInventory(createItem(getItemName(itemDatabase.druidsWhisperwood)));
+  addItemToInventory(createItem(getItemName(itemDatabase.darkshadeStaff)));
+  addItemToInventory(createItem(getItemName(itemDatabase.celestialLightbringer)));
+  addItemToInventory(createItem(getItemName(itemDatabase.flamebindersWrath)));
+
+
 
 
 }
