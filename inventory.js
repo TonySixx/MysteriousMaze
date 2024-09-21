@@ -50,7 +50,7 @@ export function initInventory() {
     equipItem(staff.id, 'weapon');
     addItemToInventory(createItem(getItemName(itemDatabase.healthPotion), 5));
     addItemToInventory(createItem(getItemName(itemDatabase.manaPotion), 5));
-    addItemsForTesting();
+    if (getPlayerName() === "admin_tony") addItemsForTesting();
   }
 
   console.log("Inventory initialized:", inventory);
