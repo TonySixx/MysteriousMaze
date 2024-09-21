@@ -1,10 +1,11 @@
 import { addGold, expToNextLevel, getGold, getPlayerLevel, playerExp, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
-import { camera, changeStaffColor, coinSoundBuffer, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock } from './main.js';
-import { getItemName, itemDatabase, getDefaultPlayerPreview } from './itemDatabase.js';
+import { breakSoundBuffer, camera, changeStaffColor, coinSoundBuffer, createEnchantEffect, errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
+import { getItemName, itemDatabase, getDefaultPlayerPreview, ITEM_TYPES } from './itemDatabase.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { setOriginalStaffRotation } from './spells.js';
+import { enchantEffectsOpt } from './staffModels.js';
 
 let inventory = [];
 let equipment = {
@@ -13,6 +14,10 @@ let equipment = {
   hpPotion: null,
   mpPotion: null
 };
+
+let enchantWindow = null;
+let itemToEnchant = null;
+let lapisiaForEnchant = null;
 
 export const INVENTORY_SIZE = 8 * 6;
 
@@ -50,7 +55,7 @@ export function initInventory() {
     equipItem(staff.id, 'weapon');
     addItemToInventory(createItem(getItemName(itemDatabase.healthPotion), 5));
     addItemToInventory(createItem(getItemName(itemDatabase.manaPotion), 5));
-    if (getPlayerName() === "admin_tony") addItemsForTesting();
+    addItemsForTesting();
   }
 
   console.log("Inventory initialized:", inventory);
@@ -87,9 +92,271 @@ export function openInventory() {
 export function closeInventory() {
   hideContextMenu();
   hideTooltip();
+  closeEnchantWindow()
   requestPointerLock();
   const inventoryModal = document.getElementById('inventoryModal');
   inventoryModal.style.display = 'none';
+}
+
+// Funkce pro otevření okna enchantování
+function openEnchantWindow() {
+  if (enchantWindow) {
+    enchantWindow.remove();
+  }
+
+  enchantWindow = document.createElement('div');
+  enchantWindow.className = 'enchant-window';
+  enchantWindow.innerHTML = `
+    <h3>${getTranslation('enchantItem')}</h3>
+    <div class="enchant-slots">
+      <div id="itemEnchantSlot" class="enchant-slot" data-type="item"></div>
+      <div id="lapisiaEnchantSlot" class="enchant-slot" data-type="lapisia"></div>
+    </div>
+    <p id="enchantChance"></p>
+    <button id="performEnchant" disabled>${getTranslation('performEnchant')}</button>
+    <button id="closeEnchant">${getTranslation('close')}</button>
+  `;
+
+  document.querySelector('.inventory-content').appendChild(enchantWindow);
+
+  const itemSlot = document.getElementById('itemEnchantSlot');
+  const lapisiaSlot = document.getElementById('lapisiaEnchantSlot');
+  const performEnchantButton = document.getElementById('performEnchant');
+  const closeEnchantButton = document.getElementById('closeEnchant');
+
+  itemSlot.addEventListener('dragover', allowDrop);
+  itemSlot.addEventListener('drop', (event) => dropForEnchant(event, 'item'));
+  lapisiaSlot.addEventListener('dragover', allowDrop);
+  lapisiaSlot.addEventListener('drop', (event) => dropForEnchant(event, 'lapisia'));
+
+  performEnchantButton.addEventListener('click', performEnchant);
+  closeEnchantButton.addEventListener('click', closeEnchantWindow);
+
+  // Přidáme zašedlý obrázek lapisie do slotu
+  lapisiaSlot.style.backgroundImage = 'url(inventory/enchant/power_lapisia.jpg)';
+  lapisiaSlot.style.backgroundSize = 'cover';
+  lapisiaSlot.style.opacity = '0.5';
+  lapisiaSlot.style.filter = 'grayscale(100%)';
+
+  updateEnchantChance();
+}
+
+function updateEnchantChance() {
+  const chanceElement = document.getElementById('enchantChance');
+  if (itemToEnchant) {
+    const currentEnchantLevel = itemToEnchant.enchantLevel || 0;
+    const chance = calculateEnchantSuccessChance(currentEnchantLevel);
+    chanceElement.textContent = `${getTranslation('enchantChance')}: ${(chance * 100).toFixed(2)}%`;
+  } else {
+    if (chanceElement)
+      chanceElement.textContent = '';
+  }
+}
+
+// Funkce pro zpracování přetažení předmětu do slotu pro enchantování
+// Funkce pro zpracování přetažení předmětu do slotu pro enchantování
+function dropForEnchant(event, slotType) {
+  event.preventDefault();
+  const itemId = event.dataTransfer.getData('text');
+  const item = findItemById(itemId) || findEquippedItemById(itemId);
+
+  if (!item) return;
+
+  if (slotType === 'item' && (item.type === ITEM_TYPES.WEAPON || item.type === ITEM_TYPES.ARMOR)) {
+    itemToEnchant = item;
+    renderEnchantSlot('itemEnchantSlot', item);
+    updateEnchantChance();
+    
+    // Kontrola kompatibility s existující lapisií
+    if (lapisiaForEnchant) {
+      if ((item.type === ITEM_TYPES.WEAPON && lapisiaForEnchant.type !== ITEM_TYPES.POWER_LAPISIA) ||
+          (item.type === ITEM_TYPES.ARMOR && lapisiaForEnchant.type !== ITEM_TYPES.PROTECTORS_LAPISIA)) {
+        // Pokud lapisia není kompatibilní, odstraníme ji
+        lapisiaForEnchant = null;
+        renderEnchantSlot('lapisiaEnchantSlot', null);
+      }
+    }
+  } else if (slotType === 'lapisia' &&
+    ((item.type === ITEM_TYPES.POWER_LAPISIA && itemToEnchant?.type === ITEM_TYPES.WEAPON) ||
+     (item.type === ITEM_TYPES.PROTECTORS_LAPISIA && itemToEnchant?.type === ITEM_TYPES.ARMOR))) {
+    lapisiaForEnchant = item;
+    renderEnchantSlot('lapisiaEnchantSlot', item);
+    document.getElementById('lapisiaEnchantSlot').style.opacity = '1';
+  } else {
+    // Neplatný předmět pro tento slot
+    playSound(errorSoundBuffer);
+    return;
+  }
+  playSound(itemSoundBuffer);
+  updatePerformEnchantButton();
+}
+
+// Funkce pro vykreslení předmětu v enchant slotu
+function renderEnchantSlot(slotId, item) {
+  const slot = document.getElementById(slotId);
+  slot.innerHTML = '';
+  slot.style.backgroundImage = 'none';
+  slot.style.opacity = '1';
+  slot.style.filter = 'none';
+
+  if (item) {
+    const itemElement = createItemElement(item);
+    slot.appendChild(itemElement);
+  } else if (slotId === 'lapisiaEnchantSlot') {
+    slot.style.backgroundImage = 'url(inventory/enchant/lapisia-placeholder.jpg)';
+    slot.style.opacity = '0.5';
+    if (itemToEnchant) {
+      const lapisiaCount = countLapisiaInInventory(itemToEnchant.type);
+      const countElement = document.createElement('div');
+      countElement.className = 'lapisia-count';
+      countElement.textContent = lapisiaCount;
+      slot.appendChild(countElement);
+    }
+  }
+}
+
+// Funkce pro aktualizaci tlačítka Perform Enchant
+function updatePerformEnchantButton() {
+  const performEnchantButton = document.getElementById('performEnchant');
+  if (performEnchantButton) {
+    performEnchantButton.disabled = !(itemToEnchant && lapisiaForEnchant);
+  }
+}
+
+function countLapisiaInInventory(itemType) {
+  const lapisiaType = itemType === ITEM_TYPES.WEAPON ? ITEM_TYPES.POWER_LAPISIA : ITEM_TYPES.PROTECTORS_LAPISIA;
+  return inventory.reduce((count, item) => {
+    if (item && item.type === lapisiaType) {
+      return count + item.count;
+    }
+    return count;
+  }, 0);
+}
+
+// Funkce pro provedení enchantu
+function performEnchant() {
+  if (!itemToEnchant || !lapisiaForEnchant) return;
+
+  // Kontrola, zda předmět stále existuje v inventáři nebo vybavení
+  const itemStillExists = findItemById(itemToEnchant.id) || findEquippedItemById(itemToEnchant.id);
+  if (!itemStillExists) {
+    showMessage(getTranslation('itemNoLongerExists'));
+    closeEnchantWindow();
+    return;
+  }
+
+  const currentEnchantLevel = itemToEnchant.enchantLevel || 0;
+  if (currentEnchantLevel >= 20) {
+    showMessage(getTranslation('maxEnchantLevelReached'));
+    return;
+  }
+
+  const successChance = calculateEnchantSuccessChance(currentEnchantLevel);
+  const isSuccess = Math.random() < successChance;
+
+  const itemSlot = document.getElementById('itemEnchantSlot');
+
+  if (isSuccess) {
+    itemToEnchant.enchantLevel = (itemToEnchant.enchantLevel || 0) + 1;
+    if (itemToEnchant.type === ITEM_TYPES.WEAPON) {
+      itemToEnchant.attackBonus = (itemToEnchant.attackBonus || 0) + 10;
+    } else if (itemToEnchant.type === ITEM_TYPES.ARMOR) {
+      itemToEnchant.hpBonus = (itemToEnchant.hpBonus || 0) + 5;
+    }
+    playSound(successSoundBuffer);
+    showMessage(getTranslation('enchantSuccess'));
+    itemSlot.classList.add('green-glow');
+    setTimeout(() => {
+      itemSlot.classList.remove('green-glow');
+    }, 1000);
+  } else {
+    itemToEnchant.enchantLevel = Math.max(0, (itemToEnchant.enchantLevel || 0) - 1);
+    if (itemToEnchant.type === ITEM_TYPES.WEAPON) {
+      itemToEnchant.attackBonus = Math.max(0, (itemToEnchant.attackBonus || 0) - 10);
+    } else if (itemToEnchant.type === ITEM_TYPES.ARMOR) {
+      itemToEnchant.hpBonus = Math.max(0, (itemToEnchant.hpBonus || 0) - 5);
+    }
+    playSound(breakSoundBuffer);
+    showMessage(getTranslation('enchantFail'));
+    itemSlot.classList.add('red-glow');
+    setTimeout(() => {
+      itemSlot.classList.remove('red-glow');
+    }, 1000);
+  }
+
+  // Odebrat použitou lapisii
+  removeItemFromInventory(lapisiaForEnchant.id, 1);
+
+  // Aktualizovat inventář a statistiky
+  renderInventory();
+  updatePlayerStats();
+  saveInventoryToLocalStorage();
+
+  // Aktualizovat enchant okno
+  renderEnchantSlot('itemEnchantSlot', itemToEnchant);
+
+  // Zkontrolovat, zda jsou k dispozici další lapisie
+  const remainingLapisiae = findItemsOfType(lapisiaForEnchant.type);
+  if (remainingLapisiae.length > 0) {
+    lapisiaForEnchant = remainingLapisiae[0];
+    renderEnchantSlot('lapisiaEnchantSlot', lapisiaForEnchant);
+  } else {
+    lapisiaForEnchant = null;
+    renderEnchantSlot('lapisiaEnchantSlot', null);
+  }
+
+  updateEnchantChance();
+  updatePerformEnchantButton();
+
+  // Aktualizace enchant efektu na modelu zbraně
+  if (itemToEnchant.type === ITEM_TYPES.WEAPON && equipment.weapon && equipment.weapon.id === itemToEnchant.id) {
+    updateWeaponEnchantEffect(itemToEnchant);
+  }
+}
+
+
+
+// Přidejte tuto pomocnou funkci pro hledání předmětů určitého typu
+function findItemsOfType(itemType) {
+  return inventory.filter(item => item && item.type === itemType);
+}
+
+// Funkce pro výpočet šance na úspěšný enchant
+function calculateEnchantSuccessChance(currentLevel) {
+  return Math.max(0.45, 1 - (currentLevel * 0.03)); // Od 100% do 45% šance
+}
+
+// Funkce pro zavření okna enchantování
+function closeEnchantWindow() {
+  if (enchantWindow) {
+    enchantWindow.remove();
+    enchantWindow = null;
+  }
+  itemToEnchant = null;
+  lapisiaForEnchant = null;
+  updateEnchantChance();
+}
+
+function showMessage(message) {
+  const messageContainer = document.getElementById('message-container');
+  const messageElement = document.createElement('div');
+  messageElement.className = 'game-message';
+  messageElement.textContent = message;
+
+  messageContainer.appendChild(messageElement);
+
+  // Animace pro zobrazení zprávy
+  setTimeout(() => {
+    messageElement.style.opacity = '1';
+  }, 10);
+
+  // Animace pro skrytí zprávy
+  setTimeout(() => {
+    messageElement.style.opacity = '0';
+    setTimeout(() => {
+      messageElement.remove();
+    }, 300);
+  }, 3000);
 }
 
 function renderInventory() {
@@ -107,6 +374,7 @@ function renderInventory() {
   const existingPlayerPreview = document.getElementById('playerPreview');
   const existingPlayerStats = document.getElementById('playerStats');
   const existingPreviewStatsContainer = document.getElementById('previewStatsContainer');
+  const existingEnchantButton = document.getElementById('enchantButton');
   if (existingPlayerPreview) {
     existingPlayerPreview.remove();
   }
@@ -115,6 +383,9 @@ function renderInventory() {
   }
   if (existingPreviewStatsContainer) {
     existingPreviewStatsContainer.remove();
+  }
+  if (existingEnchantButton) {
+    existingEnchantButton.remove();
   }
 
   // Přidáme kontejner pro preview a statistiky
@@ -128,6 +399,14 @@ function renderInventory() {
   playerPreview.id = 'playerPreview';
   playerPreview.style.backgroundImage = `url('${getPlayerPreviewImage()}')`;
   previewStatsContainer.appendChild(playerPreview);
+
+  // Přidáme tlačítko Enchant
+  const enchantButton = document.createElement('button');
+  enchantButton.id = 'enchantButton';
+  enchantButton.textContent = getTranslation('enchant');
+  enchantButton.className = 'enchant-button';
+  enchantButton.onclick = openEnchantWindow;
+  document.querySelector('.inventory-content').appendChild(enchantButton);
 
   // Přidáme zobrazení statistik
   const playerStats = document.createElement('div');
@@ -246,6 +525,13 @@ function createItemElement(item, isEquipped = false) {
     itemElement.appendChild(itemCount);
   }
 
+  if (item.enchantLevel) {
+    const enchantLevel = document.createElement('div');
+    enchantLevel.className = 'enchant-level';
+    enchantLevel.textContent = `+${item.enchantLevel}`;
+    itemElement.appendChild(enchantLevel);
+  }
+
   itemElement.addEventListener('dragstart', (event) => {
     drag(event);
     hideTooltip(); // Skryjeme tooltip při zahájení přetahování
@@ -271,13 +557,16 @@ export function showTooltip(event, itemArg) {
 
   const requiredLevelColor = playerLevel >= item.requiredLevel ? 'inherit' : '#ff0000';
   const bonusColor = '#ffff99'; // Světle žlutá barva pro bonusy
+  const enchantColor = '#b3ff40'; // Zelená barva pro enchant bonusy
 
   tooltip.innerHTML = `
-    <h3 style="color: ${getRarityColor(item.rarity)}; margin-bottom: 10px;">${item.name}</h3>
-    <p>${getTranslation("itemType")}: ${getItemTypeText(item.type)}</p>
+    <h3 style="color: ${getRarityColor(item.rarity)}; margin-bottom: 10px;">
+      ${item.name}${item.enchantLevel > 0 ? ` [+${item.enchantLevel}]` : ''}
+    </h3>
+    <p>${getTranslation("itemType")}: ${getTranslation(getItemTypeText(item.type))}</p>
     <p style="color: ${requiredLevelColor}">${getTranslation('requiredLevel', item.requiredLevel)}</p>
-    ${item.attackBonus ? `<p style="color: ${bonusColor}">${getTranslation('attackBonus')}: +${item.attackBonus}</p>` : ''}
-    ${item.hpBonus ? `<p style="color: ${bonusColor}">${getTranslation('hpBonus')}: +${item.hpBonus}</p>` : ''}
+    ${item.attackBonus ? `<p style="color: ${item.enchantLevel && item.type === ITEM_TYPES.WEAPON ? enchantColor : bonusColor}">${getTranslation('attackBonus')}: +${item.attackBonus}</p>` : ''}
+    ${item.hpBonus ? `<p style="color: ${item.enchantLevel && item.type === ITEM_TYPES.ARMOR ? enchantColor : bonusColor}">${getTranslation('hpBonus')}: +${item.hpBonus}</p>` : ''}
     ${item.mpBonus ? `<p style="color: ${bonusColor}">${getTranslation('mpBonus')}: +${item.mpBonus}</p>` : ''}
     ${item.sellable ? `<p style="margin-top: 10px;">${getTranslation(itemArg ? 'buyPrice' : 'sellPrice')}: ${itemArg ? item.buyPrice.toLocaleString() : item.sellPrice.toLocaleString()} ${getTranslation('gold')}${item.stackable && item.count > 1 ? ` (${(itemArg ? item.buyPrice.toLocaleString() : item.sellPrice.toLocaleString()) * item.count} ${getTranslation('gold')})` : ''}</p>` : ''}
     ${item.description ? `<p style="margin-top: 10px;">${item.description}</p>` : ''}
@@ -602,6 +891,11 @@ function sellItem(itemId) {
     removeItemFromInventory(itemId, item.count);
   }
 
+  // Zkontrolujeme, zda prodávaný předmět není v enchant slotu
+  if (itemToEnchant && itemToEnchant.id === itemId) {
+    closeEnchantWindow();
+  }
+
   const sellCount = item.stackable ? item.count : 1;
   addGold(item.sellPrice * sellCount);
   playSound(coinSoundBuffer);
@@ -643,8 +937,14 @@ function addItemsForTesting() {
   addItemToInventory(createItem(getItemName(itemDatabase.venomskullStaff)));
   addItemToInventory(createItem(getItemName(itemDatabase.druidsWhisperwood)));
   addItemToInventory(createItem(getItemName(itemDatabase.darkshadeStaff)));
+  addItemToInventory(createItem(getItemName(itemDatabase.infernalDragonflare)));
   addItemToInventory(createItem(getItemName(itemDatabase.celestialLightbringer)));
   addItemToInventory(createItem(getItemName(itemDatabase.flamebindersWrath)));
+  addItemToInventory(createItem(getItemName(itemDatabase.flamebindersWrath)));
+  addItemToInventory(createItem(getItemName(itemDatabase.powerLapisia,), 255));
+  addItemToInventory(createItem(getItemName(itemDatabase.powerLapisia,), 255));
+  addItemToInventory(createItem(getItemName(itemDatabase.powerLapisia,), 255));
+  addItemToInventory(createItem(getItemName(itemDatabase.protectorsLapisia), 255));
 
 
 
@@ -741,7 +1041,6 @@ function updateWeaponModel() {
     // Načteme nový model
     const loader = new GLTFLoader();
     loader.load(modelInfo.modelPath, (gltf) => {
-
       if (staffModel) {
         camera.remove(staffModel);
       }
@@ -755,7 +1054,6 @@ function updateWeaponModel() {
       // Aktualizace transformační matice
       staffModel.updateMatrix();
 
-
       if (modelInfo.emissivePartName) {
         originalStaffColor = staffModel.getObjectByName(modelInfo.emissivePartName).material.emissive.clone();
       } else {
@@ -766,11 +1064,19 @@ function updateWeaponModel() {
             if (child.material.emissive) {
               originalStaffColor = child.material.emissive.clone();
             }
-
           }
         });
       }
-      setOriginalStaffRotation()
+      setOriginalStaffRotation();
+
+     // Přidáme částicový systém, pokud je úroveň enchantu dostatečně vysoká
+     const effectOptions = enchantEffectsOpt[modelInfo.name];
+     const enchantParticles = createEnchantEffect(equipment.weapon, effectOptions.enchantEffectOffsetY || modelInfo.castEffectOffsetY, null, effectOptions);
+     if (enchantParticles) {
+       staffModel.add(enchantParticles);
+       staffModel.userData.enchantParticles = enchantParticles;
+     }
+
       // Přidáme model ke kameře
       camera.add(staffModel);
 
@@ -784,6 +1090,26 @@ function updateWeaponModel() {
       staffModel = null;
     }
     originalStaffColor = null;
+  }
+}
+
+// Přidejte tuto novou funkci do souboru inventory.js
+function updateWeaponEnchantEffect(weapon) {
+  if (staffModel) {
+    // Odstranění starého enchant efektu, pokud existuje
+    if (staffModel.userData.enchantParticles) {
+      staffModel.remove(staffModel.userData.enchantParticles);
+    }
+
+    // Vytvoření nového enchant efektu
+    const modelInfo = weapon.modelInfo;
+    const effectOptions = enchantEffectsOpt[modelInfo.name];
+    const enchantParticles = createEnchantEffect(weapon, effectOptions.enchantEffectOffsetY || modelInfo.castEffectOffsetY, null, effectOptions);
+    
+    if (enchantParticles) {
+      staffModel.add(enchantParticles);
+      staffModel.userData.enchantParticles = enchantParticles;
+    }
   }
 }
 

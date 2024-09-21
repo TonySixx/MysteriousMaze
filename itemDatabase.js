@@ -3,11 +3,13 @@ import { staffModelsDefinitons } from './staffModels.js';
 
 // Konstanty pro typy předmětů
 export const ITEM_TYPES = {
-    WEAPON: 'weapon',
-    ARMOR: 'armor',
-    HP_POTION: 'hpPotion',
-    MP_POTION: 'mpPotion'
-  };
+  WEAPON: 'weapon',
+  ARMOR: 'armor',
+  HP_POTION: 'hpPotion',
+  MP_POTION: 'mpPotion',
+  POWER_LAPISIA: 'powerLapisia',
+  PROTECTORS_LAPISIA: 'protectorsLapisia'
+};
   
   // Konstanty pro vzácnosti předmětů
   export const ITEM_RARITIES = {
@@ -30,6 +32,30 @@ export const ITEM_TYPES = {
 
 
 export const itemDatabase = {
+  powerLapisia: {
+    name: "Power Lapisia",
+    type: ITEM_TYPES.POWER_LAPISIA,
+    rarity: ITEM_RARITIES.RARE,
+    requiredLevel: 1,
+    sellable: true,
+    sellPrice: 100,
+    buyPrice: 300,
+    stackable: true,
+    icon: 'inventory/enchant/power_lapisia.jpg',
+    description: "Used to enchant weapons, increasing their power."
+  },
+  protectorsLapisia: {
+    name: "Protector's Lapisia",
+    type: ITEM_TYPES.PROTECTORS_LAPISIA,
+    rarity: ITEM_RARITIES.RARE,
+    requiredLevel: 1,
+    sellable: true,
+    sellPrice: 100,
+    buyPrice: 300,
+    stackable: true,
+    icon: 'inventory/enchant/protectors_lapisia.jpg',
+    description: "Used to enchant armor, increasing its protective power."
+  },
   healthPotion: {
     name: "Health Potion",
     type: ITEM_TYPES.HP_POTION,
