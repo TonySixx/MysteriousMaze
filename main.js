@@ -72,6 +72,7 @@ import {
   updateStaffVisibility,
 } from "./inventory.js";
 import { staffModelsDefinitons } from "./staffModels.js";
+import { createMainMenu } from "./mainMenu.js";
 
 export const version = "1.2.5";
 
@@ -285,7 +286,7 @@ function loadSettings() {
   setQuality(qualityFactor);
 }
 
-async function init() {
+export async function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
     75,
@@ -313,7 +314,7 @@ async function init() {
     footstepsSound.setVolume(0.5); // Upravte hlasitost podle potřeby
   });
 
-  audioLoader.load("audio_bg.mp3", function (buffer) {
+  audioLoader.load("music/msc_lost.mp3", function (buffer) {
     backgroundMusic = new THREE.Audio(new THREE.AudioListener());
     backgroundMusic.setBuffer(buffer);
     backgroundMusic.setLoop(true);
@@ -397,6 +398,10 @@ async function init() {
       selectedFloor = 1;
       setUrlParameter("floor", selectedFloor);
     }
+  }
+  else{
+    selectedFloor = 999;
+    setUrlParameter("floor", selectedFloor);
   }
 
   try {
@@ -3233,4 +3238,6 @@ export function playSound(soundBuffer, volume = 1) {
   };
 }
 
-init();
+window.addEventListener("load", () => {
+  createMainMenu();
+});
