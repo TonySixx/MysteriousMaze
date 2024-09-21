@@ -74,7 +74,7 @@ import {
 import { staffModelsDefinitons } from "./staffModels.js";
 import { createMainMenu } from "./mainMenu.js";
 
-export const version = "1.2.5";
+export const version = "1.3.0";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
