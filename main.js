@@ -174,7 +174,7 @@ const floorSelectModal = document.getElementById("floorSelectModal");
 const floorOptions = document.querySelectorAll(".floor-option");
 export let selectedFloor = 1;
 
-const audioLoader = new AudioLoader();
+var audioLoader = new AudioLoader();
 
 export function setTotalKeys(value) {
   totalKeys = value;
@@ -187,6 +187,44 @@ function loadSettings() {
 }
 
 export async function init() {
+  // Create LoadingManager
+  const manager = new THREE.LoadingManager();
+
+  manager.onStart = function (url, itemsLoaded, itemsTotal) {
+    console.log(
+      "Started loading file: " +
+        url +
+        ".\nLoaded " +
+        itemsLoaded +
+        " of " +
+        itemsTotal +
+        " files."
+    );
+    showLoadingScreen();
+  };
+
+  manager.onLoad = function () {
+    console.log("Loading complete!");
+    hideLoadingScreen();
+  };
+
+  manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+    console.log(
+      "Loading file: " +
+        url +
+        ".\nLoaded " +
+        itemsLoaded +
+        " of " +
+        itemsTotal +
+        " files."
+    );
+    updateLoadingProgress(itemsLoaded / itemsTotal);
+  };
+
+  manager.onError = function (url) {
+    console.log("There was an error loading " + url);
+  };
+
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
     75,
@@ -197,7 +235,7 @@ export async function init() {
   renderer = new THREE.WebGLRenderer({ alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
-  // Načtení nastavení z local storage
+  // Load settings from local storage
   loadSettings();
   document.body.appendChild(renderer.domElement);
 
@@ -207,18 +245,21 @@ export async function init() {
     document.getElementById("mazeInput").value = seedFromUrl;
   }
 
+  // Create audioLoader with manager
+  audioLoader = new THREE.AudioLoader(manager);
+
   audioLoader.load("footstep.mp3", function (buffer) {
     footstepsSound = new THREE.Audio(new THREE.AudioListener());
     footstepsSound.setBuffer(buffer);
     footstepsSound.setLoop(true);
-    footstepsSound.setVolume(0.5); // Upravte hlasitost podle potřeby
+    footstepsSound.setVolume(0.5); // Adjust volume as needed
   });
 
   audioLoader.load("music/msc_lost.mp3", function (buffer) {
     backgroundMusic = new THREE.Audio(new THREE.AudioListener());
     backgroundMusic.setBuffer(buffer);
     backgroundMusic.setLoop(true);
-    backgroundMusic.setVolume(0.25); // Nastavte hlasitost podle potřeby
+    backgroundMusic.setVolume(0.25); // Adjust volume as needed
     backgroundMusic.play();
   });
 
@@ -286,7 +327,6 @@ export async function init() {
     activateSoundBuffer = buffer;
   });
 
-
   loadPlayerProgress();
   initWeaponModel();
   const floorParam = getUrlParameter("floor");
@@ -298,26 +338,24 @@ export async function init() {
       selectedFloor = 1;
       setUrlParameter("floor", selectedFloor);
     }
-  }
-  else {
+  } else {
     selectedFloor = 999;
     setUrlParameter("floor", selectedFloor);
   }
 
   try {
-    await loadKeyModel();
-    await loadTreasureModel();
+    await loadKeyModel(manager);
+    await loadTreasureModel(manager);
     updateStaffVisibility();
 
     // Use the seed from URL or input to create the maze
     const _inputText = document.getElementById("mazeInput").value;
     await getBestTime(_inputText);
-    createMaze(_inputText, selectedFloor);
+    createMaze(_inputText, selectedFloor, manager);
     createPlayer();
     createSkillbar();
     initSkillTree();
     updatePlayerStats(true);
-    //attachStaffToCamera();
     startTimer();
     const crosshair = createCrosshair();
     camera.add(crosshair);
@@ -330,7 +368,7 @@ export async function init() {
     updateFloorOptions();
     updateSpellUpgrades(skillTree);
 
-    // Načtení jména hráče z local storage
+    // Load player name from local storage
     playerName = localStorage.getItem("playerName");
     if (!playerName) {
       showNameModal();
@@ -346,67 +384,67 @@ export async function init() {
     window.addEventListener("resize", onWindowResize);
 
     document
-      .getElementById("mazeSearchInput")
-      .addEventListener("input", filterScores);
+    .getElementById("mazeSearchInput")
+    .addEventListener("input", filterScores);
 
-    document
-      .querySelector("#scoreModal .close")
-      .addEventListener("click", hideScoreModal);
+  document
+    .querySelector("#scoreModal .close")
+    .addEventListener("click", hideScoreModal);
 
-    document.addEventListener("keydown", (event) => {
-      // Zkontrolujeme, zda aktivní element není input nebo textarea
-      const activeElement = document.activeElement;
-      const isInput =
-        activeElement.tagName === "INPUT" ||
-        activeElement.tagName === "TEXTAREA";
-      if (event.key === "c" || event.key === "C") {
-        if (!isInput) {
-          if (document.getElementById("scoreModal").style.display === "block") {
-            hideScoreModal();
-          } else {
-            showScoreModal();
-            displayScores(null);
-          }
-        }
-      } else if (event.key === "h" || event.key === "H") {
-        if (!isInput) {
-          if (document.getElementById("hintModal").style.display === "block") {
-            hideHintModal();
-          } else {
-            showHintModal();
-          }
-        }
-      } else if (event.key === "p" || event.key === "P") {
-        if (!isInput) {
-          showFPS = !showFPS;
-          fpsCounter.style.display = showFPS ? "block" : "none";
-        }
-      } else if (event.key === "o" || event.key === "O") {
-        if (!isInput) {
-          showSettingsModal();
-        }
-      } else if (event.key === "b" || event.key === "B") {
-        if (!isInput) {
-          toggleBackgroundMusic();
-        }
-      } else if (event.key === "i" || event.key === "I") {
-        if (!isInput) {
-          if (
-            document.getElementById("inventoryModal").style.display === "block"
-          ) {
-            closeInventory();
-          } else {
-            openInventory();
-          }
+  document.addEventListener("keydown", (event) => {
+    // Zkontrolujeme, zda aktivní element není input nebo textarea
+    const activeElement = document.activeElement;
+    const isInput =
+      activeElement.tagName === "INPUT" ||
+      activeElement.tagName === "TEXTAREA";
+    if (event.key === "c" || event.key === "C") {
+      if (!isInput) {
+        if (document.getElementById("scoreModal").style.display === "block") {
+          hideScoreModal();
+        } else {
+          showScoreModal();
+          displayScores(null);
         }
       }
-    });
+    } else if (event.key === "h" || event.key === "H") {
+      if (!isInput) {
+        if (document.getElementById("hintModal").style.display === "block") {
+          hideHintModal();
+        } else {
+          showHintModal();
+        }
+      }
+    } else if (event.key === "p" || event.key === "P") {
+      if (!isInput) {
+        showFPS = !showFPS;
+        fpsCounter.style.display = showFPS ? "block" : "none";
+      }
+    } else if (event.key === "o" || event.key === "O") {
+      if (!isInput) {
+        showSettingsModal();
+      }
+    } else if (event.key === "b" || event.key === "B") {
+      if (!isInput) {
+        toggleBackgroundMusic();
+      }
+    } else if (event.key === "i" || event.key === "I") {
+      if (!isInput) {
+        if (
+          document.getElementById("inventoryModal").style.display === "block"
+        ) {
+          closeInventory();
+        } else {
+          openInventory();
+        }
+      }
+    }
+  });
 
-    document
-      .querySelector("#hintModal .close")
-      .addEventListener("click", hideHintModal);
+  document
+    .querySelector("#hintModal .close")
+    .addEventListener("click", hideHintModal);
 
-    // Nastavení post-processingu
+    // Set up post-processing
     composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
@@ -617,7 +655,8 @@ function clearScene() {
     element.replaceWith(element.cloneNode(true));
   });
 }
-function createMaze(inputText = "", selectedFloor = 1) {
+
+function createMaze(inputText = "", selectedFloor = 1, manager) {
   if (selectedFloor === 999) {
     clearScene();
     createCamp(lightManager);
@@ -628,11 +667,11 @@ function createMaze(inputText = "", selectedFloor = 1) {
 
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
 
-  // Nastavení seed pro generátor náhodných čísel
+  // Set seed for random number generator
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
 
-  // Upravíme výběr textureSets podle podlaží
+  // Adjust textureSets selection based on the floor
   let availableTextureSets;
   switch (selectedFloor) {
     case 1:
@@ -651,7 +690,7 @@ function createMaze(inputText = "", selectedFloor = 1) {
   const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
   const selectedTextureSet = availableTextureSets[textureSetIndex];
 
-  const loader = new THREE.TextureLoader();
+  const loader = new THREE.TextureLoader(manager);
   const floorTexture = loader.load(selectedTextureSet.floorTexture);
   floorTexture.colorSpace = THREE.SRGBColorSpace;
 
@@ -660,8 +699,8 @@ function createMaze(inputText = "", selectedFloor = 1) {
   brickTexture.colorSpace = THREE.SRGBColorSpace;
   ceilingTexture.colorSpace = THREE.SRGBColorSpace;
 
-  const specialTextures = selectedTextureSet.specialTextures.map(
-    (textureName) => loader.load(textureName)
+  const specialTextures = selectedTextureSet.specialTextures.map((textureName) =>
+    loader.load(textureName)
   );
   specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
@@ -1552,10 +1591,10 @@ function updateStaffColor(deltaTime) {
 
 
 // Funkce pro načtení modelu klíče
-function loadKeyModel() {
+function loadKeyModel(manager) {
   return new Promise((resolve, reject) => {
     console.log("Starting to load key model");
-    const loader = new GLTFLoader();
+    const loader = new GLTFLoader(manager);
     loader.load(
       "models/Key.glb",
       (gltf) => {
@@ -1565,9 +1604,7 @@ function loadKeyModel() {
         console.log("Key model processed");
         resolve(keyModel);
       },
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-      },
+      undefined,
       (error) => {
         console.error("Error loading model:", error);
         reject(error);
@@ -1576,10 +1613,11 @@ function loadKeyModel() {
   });
 }
 
-async function loadTreasureModel() {
+
+function loadTreasureModel(manager) {
   return new Promise((resolve, reject) => {
     console.log("Starting to load treasure model");
-    const loader = new GLTFLoader();
+    const loader = new GLTFLoader(manager);
     loader.load(
       "models/TreasureChest.glb",
       (gltf) => {
@@ -1589,9 +1627,7 @@ async function loadTreasureModel() {
         console.log("Treasure model processed");
         resolve(treasureModel);
       },
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-      },
+      undefined,
       (error) => {
         console.error("Error loading treasure model:", error);
         reject(error);
@@ -1599,6 +1635,7 @@ async function loadTreasureModel() {
     );
   });
 }
+
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -2194,6 +2231,31 @@ export function playSound(soundBuffer, volume = 1) {
     sound.disconnect();
   };
 }
+
+function showLoadingScreen() {
+  // Display the loading screen
+  const loadingScreen = document.getElementById("loadingScreen");
+  if (loadingScreen) {
+    loadingScreen.style.display = "block";
+  }
+}
+
+function hideLoadingScreen() {
+  // Hide the loading screen
+  const loadingScreen = document.getElementById("loadingScreen");
+  if (loadingScreen) {
+    loadingScreen.style.display = "none";
+  }
+}
+
+function updateLoadingProgress(progress) {
+  // Update the progress bar
+  const progressBar = document.getElementById("loadingProgressBar");
+  if (progressBar) {
+    progressBar.style.width = progress * 100 + "%";
+  }
+}
+
 
 window.addEventListener("load", () => {
   createMainMenu();

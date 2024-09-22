@@ -166,7 +166,8 @@
     "enchant": "Enchant",
     "itemNoLongerExists": "The item no longer exists in the inventory.",
     "protectorsLapisia": "Protector's Lapisia",
-    "powerLapisia": "Power Lapisia"
+    "powerLapisia": "Power Lapisia",
+    "loading": "Loading..."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -335,6 +336,7 @@
     "enchant": "Enchant",
     "itemNoLongerExists": "Předmět již neexistuje v inventáři.",
     "protectorsLapisia": "Lapísia Ochrany",
-    "powerLapisia": "Lapísia Síly"
+    "powerLapisia": "Lapísia Síly",
+    "loading": "Načítání..."
   }
 }
