@@ -18,8 +18,7 @@ function playMainTheme() {
 
 // Funkce pro vytvoření a zobrazení hlavního menu
 function createMainMenu() {
-    const menuContainer = document.createElement('div');
-    menuContainer.id = 'main-menu';
+    const menuContainer = document.getElementById('main-menu');
     
     const title = document.createElement('h1');
     title.textContent = 'Mysterious Maze';
