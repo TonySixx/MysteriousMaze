@@ -985,10 +985,11 @@ class Boss {
     }
 
 
-    checkCollisionOnMove(position,collisionOffset = 1) {
+    checkCollisionOnMove(position, margin = 1) {
         for (let wall of walls) {
-            const distance = position.distanceTo(wall.position);
-            if (distance < CELL_SIZE / 2 + collisionOffset) { // Přidáme větší odstup pro bosse
+            const dx = position.x - wall.position.x;
+            const dz = position.z - wall.position.z;
+            if (Math.abs(dx) < CELL_SIZE / 2 + margin && Math.abs(dz) < CELL_SIZE / 2 + margin) {
                 return true;
             }
         }

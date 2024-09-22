@@ -2028,6 +2028,7 @@ function updateVisibleObjects() {
 
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
+let frameCountForAnimation = 0;
 function animate() {
   const currentTime = performance.now();
   const deltaTime = (currentTime - previousTime) / 1000; // Delta time v sekundách
@@ -2036,7 +2037,6 @@ function animate() {
   requestAnimationFrame(animate);
   updateFreezeEffect();
   updatePlayerPosition(deltaTime);
-  checkObjectInteractions();
   animateKeys(deltaTime);
   animateGoal(deltaTime);
   rotateTeleports(deltaTime);
@@ -2078,7 +2078,12 @@ function animate() {
     nebulaMaterial.material.uniforms.time.value += deltaTime * 1;
   }
 
-  lightManager.update(player.position, camera); // Aktualizace světel s hráčovou pozicí a kamerou
+  if (frameCountForAnimation % 2 === 0) {
+    checkObjectInteractions();
+    lightManager.update(player.position, camera); // Aktualizace světel každý druhý snímek
+  }
+  frameCountForAnimation = (frameCountForAnimation + 1) % 2
+  
 
   updateVisibleObjects();
 

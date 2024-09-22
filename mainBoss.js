@@ -9,7 +9,7 @@ import { textureSets } from "./globals.js";
 const _type = {
     name: "Hlavní Boss",
     translationKey: "mainBoss",
-    dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xFF0000, roughness: 0.1, metalness: 0.5 }),
+    //dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0xFF0000, roughness: 0.1, metalness: 0.5 }),
     eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
     eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xFFFF00, emissive: 0xFFFF00, emissiveIntensity: 2 }),
     attackColor: new THREE.Color(0xFF0000),
@@ -29,16 +29,22 @@ export class MainBoss extends Boss {
 
     loadMainBossModel() {
         const loader = new GLTFLoader();
-        loader.load('models/Dragon.glb', (gltf) => {
+        loader.load('models/GhostSkull.glb', (gltf) => {
             this.model = gltf.scene;
             this.model.position.copy(this.position);
-            this.model.scale.set(0.5, 0.5, 0.5);
-            this.model.traverse((child) => {
-                if (child.isMesh) {
-                    child.material = this.type.dragonMainMaterial;
-                }
-            });
+            this.model.scale.set(1, 1, 1);
+            // this.model.traverse((child) => {
+            //     if (child.isMesh) {
+            //         child.material = this.type.dragonMainMaterial;
+            //     }
+            // });
             scene.add(this.model);
+
+            this.animations = gltf.animations;
+            this.mixer = new THREE.AnimationMixer(this.model);
+            this.idleAction = this.mixer.clipAction(this.animations.find(clip => clip.name === 'CharacterArmature|Flying_Idle'));
+            this.attackAction = this.mixer.clipAction(this.animations.find(clip => clip.name === 'CharacterArmature|Punch'));
+            this.idleAction.play();
 
             this.createHealthBar();
         });
@@ -68,7 +74,7 @@ export class MainBoss extends Boss {
         if (canSeePlayer(this.position, player.position)) {
             this.attack();
         } else {
-            this.move(deltaTime, 2);
+            this.move(deltaTime, 3);
         }
     }
 
