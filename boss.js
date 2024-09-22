@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold, getPlayerLevel } from "./player.js"
-import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, magicBalls, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer } from './main.js';
+import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer } from './main.js';
 import { getTranslation } from "./langUtils.js";
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů

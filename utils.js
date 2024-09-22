@@ -1,6 +1,8 @@
 import { Vector3 } from "three";
-import { selectedFloor, supabase } from "./main";
-import { addExperience, getPlayerLevel } from "./player";
+import { CELL_SIZE, frostBoltHitSoundBuffer, playerDeath, playSound, selectedFloor, supabase } from "./main";
+import { addExperience, getPlayerLevel, player, playerHealth, setPlayerHealth, updatePlayerHealthBar } from "./player";
+import * as THREE from 'three';
+import { equipment } from "./inventory";
 
 export function createEnchantEffect(weapon, offsetY = 0, effectColor = 0x999999, options = {}) {
     if (!weapon || !weapon.enchantLevel || weapon.enchantLevel < 5) return null;
@@ -256,3 +258,258 @@ export function createEnchantEffect(weapon, offsetY = 0, effectColor = 0x999999,
     window.history.pushState({}, "", url);
   }
   
+
+  export function createCastEffect(position, color = 0xffa500) {
+    const castEffectGroup = new THREE.Group();
+  
+    const particleCount = 30;
+    const particles = new THREE.Points(
+      new THREE.BufferGeometry(),
+      new THREE.PointsMaterial({
+        color: color,
+        size: 0.02,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+      })
+    );
+  
+    const positions = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 0.2;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 0.2;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+    }
+  
+    particles.geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3)
+    );
+    castEffectGroup.add(particles);
+  
+    castEffectGroup.position.copy(position);
+    const modelInfo = equipment.weapon.modelInfo;
+    castEffectGroup.position.y += modelInfo.castEffectOffsetY || 0.3;
+    scene.add(castEffectGroup);
+  
+    castEffectGroup.userData.animate = function () {
+      const positions = particles.geometry.attributes.position.array;
+      for (let i = 0; i < positions.length; i += 3) {
+        positions[i] += (Math.random() - 0.5) * 0.01;
+        positions[i + 1] += (Math.random() - 0.5) * 0.01;
+        positions[i + 2] += (Math.random() - 0.5) * 0.01;
+      }
+      particles.geometry.attributes.position.needsUpdate = true;
+    };
+  
+    setTimeout(() => {
+      scene.remove(castEffectGroup);
+    }, 500);
+  
+    return castEffectGroup;
+  }
+  
+  export function createExplosion(position, color = 0xff8f45) {
+    const explosionGroup = new THREE.Group();
+  
+    const particleCount = 100;
+    const particles = new THREE.Points(
+      new THREE.BufferGeometry(),
+      new THREE.PointsMaterial({
+        color: color,
+        size: 0.1,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        vertexColors: true,
+      })
+    );
+  
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const sizes = new Float32Array(particleCount);
+  
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 0.5;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+  
+      velocities[i * 3] = (Math.random() - 0.5) * 0.2;
+      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.2;
+      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+  
+      const particleColor = new THREE.Color(color);
+      colors[i * 3] = particleColor.r;
+      colors[i * 3 + 1] = particleColor.g;
+      colors[i * 3 + 2] = particleColor.b;
+  
+      sizes[i] = Math.random() * 0.2 + 0.05;
+    }
+  
+    particles.geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3)
+    );
+    particles.geometry.setAttribute(
+      "velocity",
+      new THREE.BufferAttribute(velocities, 3)
+    );
+    particles.geometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(colors, 3)
+    );
+    particles.geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+  
+    explosionGroup.position.copy(position);
+    scene.add(explosionGroup);
+  
+    explosionGroup.add(particles);
+  
+    const startTime = performance.now();
+    const duration = 1000; // Doba trvání exploze v milisekundách
+  
+    function animateExplosion() {
+      const currentTime = performance.now();
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+  
+      const positions = particles.geometry.attributes.position.array;
+      const velocities = particles.geometry.attributes.velocity.array;
+      const colors = particles.geometry.attributes.color.array;
+      const sizes = particles.geometry.attributes.size.array;
+  
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] += velocities[i * 3];
+        positions[i * 3 + 1] += velocities[i * 3 + 1];
+        positions[i * 3 + 2] += velocities[i * 3 + 2];
+  
+        colors[i * 3 + 3] = 1 - progress; // Plynulé mizení
+        sizes[i] *= 0.99; // Postupné zmenšování částic
+      }
+  
+      particles.geometry.attributes.position.needsUpdate = true;
+      particles.geometry.attributes.color.needsUpdate = true;
+      particles.geometry.attributes.size.needsUpdate = true;
+  
+      if (progress < 1) {
+        requestAnimationFrame(animateExplosion);
+      } else {
+        scene.remove(explosionGroup);
+      }
+    }
+  
+    animateExplosion();
+  
+    return explosionGroup;
+  }
+
+  export function updateMagicBalls(deltaTime) {
+    for (let i = magicBalls.length - 1; i >= 0; i--) {
+      const magicBall = magicBalls[i];
+      magicBall.position.add(
+        magicBall.velocity.clone().multiplyScalar(deltaTime * 40)
+      );
+  
+      var player_position_for_collision = { ...player.position };
+      player_position_for_collision.y = 1;
+      if (magicBall.position.distanceTo(player_position_for_collision) < 0.5) {
+        if (magicBall.isFrostbolt) {
+          freezePlayer();
+        } else {
+          setPlayerHealth(playerHealth - 20);
+          updatePlayerHealthBar();
+          if (playerHealth <= 0) {
+            playerDeath();
+          }
+        }
+        createExplosion(magicBall.position, magicBall.material.color.getHex());
+        scene.remove(magicBall);
+        magicBalls.splice(i, 1);
+      }
+  
+      for (let j = 0; j < walls.length; j++) {
+        const wall = walls[j];
+        if (magicBall.position.distanceTo(wall.position) < CELL_SIZE / 2) {
+          createExplosion(magicBall.position, magicBall.material.color.getHex()); // Vytvoření exploze s barvou střely
+          scene.remove(magicBall);
+          magicBalls.splice(i, 1);
+          break;
+        }
+      }
+  
+      // Časový limit - pokud střela existuje déle než 5 sekund, odstranit ji
+      magicBall.userData.lifeTime =
+        (magicBall.userData.lifeTime || 0) + deltaTime;
+      if (magicBall.userData.lifeTime > 5) {
+        scene.remove(magicBall);
+        magicBalls.splice(i, 1);
+      }
+    }
+  }
+
+let freezeEndTime = 0;
+  function freezePlayer() {
+    const currentTime = Date.now();
+    const freezeDuration = 2000; // 2 sekundy
+  
+    // Aktualizujeme čas konce zmrazení
+    freezeEndTime = Math.max(freezeEndTime, currentTime + freezeDuration);
+  
+    player.isFrozen = true;
+  
+    // Vytvoření nebo aktualizace ledového efektu
+    if (!player.iceEffect) {
+      const iceGeometry = new THREE.BoxGeometry(2, 2, 0.1);
+      const iceMaterial = new THREE.MeshPhongMaterial({
+        color: 0xadd8e6,
+        transparent: true,
+        opacity: 0.4,
+        shininess: 100,
+        side: THREE.DoubleSide,
+      });
+      player.iceEffect = new THREE.Mesh(iceGeometry, iceMaterial);
+      player.iceEffect.position.set(0, 0, -0.5);
+      camera.add(player.iceEffect);
+    }
+  
+    // Přidání zvukového efektu zmrazení
+    playSound(frostBoltHitSoundBuffer, 0.7);
+  }
+  
+export function removeFreezeEffect() {
+    if (player.iceEffect) {
+      camera.remove(player.iceEffect);
+      player.iceEffect.geometry.dispose();
+      player.iceEffect.material.dispose();
+      player.iceEffect = null;
+    }
+    // Odstraňte vizuální efekt zamrznutí z ikon kouzel
+    document.querySelectorAll(".spell-icon").forEach((icon) => {
+      icon.classList.remove("frozen");
+    });
+    player.isFrozen = false;
+    freezeEndTime = 0;
+  }
+  
+  export function updateFreezeEffect() {
+    const currentTime = Date.now();
+  
+    if (currentTime < freezeEndTime) {
+      player.isFrozen = true;
+      if (player.iceEffect) {
+        player.iceEffect.visible = true;
+      }
+      // Přidejte vizuální efekt zamrznutí na ikony kouzel
+      document.querySelectorAll(".spell-icon").forEach((icon) => {
+        icon.classList.add("frozen");
+      });
+    } else {
+      player.isFrozen = false;
+      if (player.iceEffect) {
+        player.iceEffect.visible = false;
+      }
+      // Odstraňte vizuální efekt zamrznutí z ikon kouzel
+      document.querySelectorAll(".spell-icon").forEach((icon) => {
+        icon.classList.remove("frozen");
+      });
+    }
+  }

@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, createCastEffect, isHighWallArea, chainLightningSoundBuffer, playSound, selectedFloor } from './main.js';
+import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, isHighWallArea, chainLightningSoundBuffer, playSound, selectedFloor } from './main.js';
 import { player } from "./player.js"
-import { createExplosion, changeStaffColor, fireballSoundBuffer, frostBoltSoundBuffer, magicMissileSoundBuffer } from "./main.js"
+import { changeStaffColor, fireballSoundBuffer, frostBoltSoundBuffer, magicMissileSoundBuffer } from "./main.js"
 import frostboltIcon from './public/spells/frostbolt-icon.png';
 import arcaneMissileIcon from './public/spells/arcane-missile-icon.png';
 import fireballIcon from './public/spells/fireball-icon.png';
@@ -9,7 +9,7 @@ import chainLightningIcon from './public/spells/chain-lightning-icon.png';
 import { setPlayerMana, updatePlayerManaBar, playerMana } from "./player.js"
 import { bosses } from "./boss.js";
 import { calculateSpellDamage, isSpellUnlocked } from "./skillTree.js";
-import { getCameraDirection } from "./utils.js";
+import { createCastEffect, createExplosion, getCameraDirection } from "./utils.js";
 
 export let fireBalls = [];
 export let frostBalls = [];

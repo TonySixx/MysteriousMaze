@@ -17,6 +17,8 @@ window.composer = undefined;
 
 window.bestTime = Infinity;
 
+window.magicBalls = [];
+
 
 
 window.staffModel = undefined;
