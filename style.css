@@ -49,6 +49,9 @@ canvas {
   border-radius: 10px;
   padding: 8px;
 }
+#bossHealthContainer:not(:has(div)) {
+  display: none !important;
+}
 
 .boss-health {
   font-family: Arial, sans-serif;

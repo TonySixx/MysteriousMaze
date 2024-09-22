@@ -71,7 +71,7 @@ import { textureSets } from "./globals.js";
 import { displayScores, filterScores, hideHintModal, hideScoreModal, hideSettingsModal, saveSettings, setQuality, showHintModal, showNameModal, showScoreModal, showSettingsModal } from "./modals.js";
 import { addExperienceForCompletion, drawMinimap, getBestTime, getUrlParameter, removeFreezeEffect, setUrlParameter, submitScore, updateFreezeEffect, updateMagicBalls } from "./utils.js";
 
-export const version = "1.3.0";
+export const version = "1.3.1";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
