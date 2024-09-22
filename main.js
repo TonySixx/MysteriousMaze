@@ -29,8 +29,6 @@ import {
   regenerateHealth,
   setPlayerHealth,
   setPlayerMana,
-  maxMana,
-  playerHealth,
   player,
   moveBackward,
   moveForward,
@@ -46,14 +44,11 @@ import {
   isAnyModalOpen,
   addGold,
   getPlayerMaxHealth,
-  getPlayerMana,
   getPlayerMaxMana,
   updatePlayerStats,
-  getPlayerLevel,
 } from "./player.js";
-import { initSkillTree, isSpellUnlocked, skillTree } from "./skillTree.js";
+import { initSkillTree, skillTree } from "./skillTree.js";
 import {
-  currentLanguage,
   getTranslation,
   setLanguage,
   updateTranslations,
@@ -71,11 +66,10 @@ import {
   updatePotionCooldowns,
   updateStaffVisibility,
 } from "./inventory.js";
-import { staffModelsDefinitons } from "./staffModels.js";
 import { createMainMenu } from "./mainMenu.js";
 import { textureSets } from "./globals.js";
 import { displayScores, filterScores, hideHintModal, hideScoreModal, hideSettingsModal, saveSettings, setQuality, showHintModal, showNameModal, showScoreModal, showSettingsModal } from "./modals.js";
-import { addExperienceForCompletion, getBestTime, getUrlParameter, removeFreezeEffect, setUrlParameter, submitScore, updateFreezeEffect, updateMagicBalls } from "./utils.js";
+import { addExperienceForCompletion, drawMinimap, getBestTime, getUrlParameter, removeFreezeEffect, setUrlParameter, submitScore, updateFreezeEffect, updateMagicBalls } from "./utils.js";
 
 export const version = "1.3.0";
 
@@ -113,7 +107,7 @@ document.addEventListener("keyup", (event) => {
 
 let startTime, timerInterval;
 let moveCount = 0,
-  keyCount = 0;
+keyCount = 0;
 export var MAZE_SIZE = 20;
 export var totalKeys = 3; // Přidání deklarace proměnné totalKeys
 export const WALL_HEIGHT = 3.1;
@@ -125,11 +119,9 @@ const teleportCooldown = 1000;
 export var nearTeleport = null;
 
 
-
 export var keyModel;
 let treasureModel;
-// Přidejte globální proměnné
-const BLOCKING_WALL = 2;
+export const BLOCKING_WALL = 2;
 export var staffTopPart;
 export let magicBalls = [];
 
@@ -188,7 +180,6 @@ export function setTotalKeys(value) {
   totalKeys = value;
 }
 
-// Přidejte tuto funkci do init() nebo tam, kde načítáte ostatní nastavení
 function loadSettings() {
   MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem("maxVisibleLights")) || 10;
   qualityFactor = parseFloat(localStorage.getItem("qualityFactor")) || 1;
@@ -1509,19 +1500,6 @@ function hideTeleportPrompt() {
   }
 }
 
-function drawArrow(ctx, x, y, angle, size) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angle);
-  ctx.beginPath();
-  ctx.moveTo(-size / 2, -size / 2);
-  ctx.lineTo(size / 2, 0);
-  ctx.lineTo(-size / 2, size / 2);
-  ctx.lineTo(0, 0); // Dlouhá strana šipky směřující dopředu
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
 
 // Přidejte novou funkci pro přepínání minimapy
 export function toggleMinimap() {
@@ -1550,113 +1528,6 @@ export function toggleMinimap() {
   if (isMinimapVisible) {
     drawMinimap();
   }
-}
-function drawMinimap() {
-  const minimap = document.getElementById("minimap");
-  const ctx = minimap.getContext("2d");
-  const scale = minimap.width / (MAZE_SIZE * CELL_SIZE);
-
-  // Vymazání canvasu
-  ctx.clearRect(0, 0, minimap.width, minimap.height);
-
-  // Vykreslení pozadí
-  ctx.fillStyle = "#55535e";
-  ctx.fillRect(0, 0, minimap.width, minimap.height);
-
-  // Vykreslení zdí
-  for (let i = 0; i < MAZE_SIZE; i++) {
-    for (let j = 0; j < MAZE_SIZE; j++) {
-      if (maze[i][j] === 1) {
-        ctx.fillStyle = "#282633";
-        ctx.fillRect(
-          i * CELL_SIZE * scale,
-          j * CELL_SIZE * scale,
-          CELL_SIZE * scale,
-          CELL_SIZE * scale
-        );
-      } else if (maze[i][j] === BLOCKING_WALL) {
-        ctx.fillStyle = "#cc7e54";
-        ctx.fillRect(
-          i * CELL_SIZE * scale,
-          j * CELL_SIZE * scale,
-          CELL_SIZE * scale,
-          CELL_SIZE * scale
-        );
-      }
-    }
-  }
-
-  // Vykreslení teleportů
-  scene.children.forEach((child) => {
-    if (child.userData.isTeleport) {
-      ctx.fillStyle = child.material.color.getStyle();
-      ctx.beginPath();
-      ctx.arc(
-        (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (CELL_SIZE * scale) / 3,
-        0,
-        2 * Math.PI
-      );
-      ctx.fill();
-    }
-  });
-
-  // Vykreslení klíčů
-  scene.children.forEach((child) => {
-    if (child.userData.isKey) {
-      ctx.fillStyle = "#fffc4d";
-      ctx.beginPath();
-      ctx.arc(
-        (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (CELL_SIZE * scale) / 4,
-        0,
-        2 * Math.PI
-      );
-      ctx.fill();
-    }
-  });
-
-  // Vykreslení cíle
-  scene.children.forEach((child) => {
-    if (child.userData.isGoal) {
-      ctx.fillStyle = "#5fd0f5";
-      ctx.beginPath();
-      ctx.arc(
-        (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (CELL_SIZE * scale) / 2,
-        0,
-        2 * Math.PI
-      );
-      ctx.fill();
-    }
-  });
-
-  // Vykreslení bossů jako bílý křížek
-  bosses.forEach((boss) => {
-    const bossX = (boss.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
-    const bossZ = (boss.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
-
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-
-    // Vykreslení křížku
-    ctx.beginPath();
-    ctx.moveTo(bossX - 5, bossZ - 5);
-    ctx.lineTo(bossX + 5, bossZ + 5);
-    ctx.moveTo(bossX + 5, bossZ - 5);
-    ctx.lineTo(bossX - 5, bossZ + 5);
-    ctx.stroke();
-  });
-
-  // Vykreslení pozice hráče jako šipky
-  ctx.fillStyle = "#9ec0ff";
-  const playerX = (player.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
-  const playerZ = (player.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
-  const playerAngle = -player.rotation.y - Math.PI / 2; // Úprava úhlu rotace
-  drawArrow(ctx, playerX, playerZ, playerAngle, CELL_SIZE * scale);
 }
 
 export function changeStaffColor(color) {
