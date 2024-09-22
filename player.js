@@ -307,6 +307,11 @@ function createPlayer() {
         return;
     }
 
+    if (selectedFloor % 10 === 0) { //Boss floor
+        player.position.set(0, 0, 10 - (CELL_SIZE / 2));
+        return;
+    }
+
     const seed = getHash(document.getElementById("mazeInput").value);
     let rng = new seedrandom(seed);
     // Najděme volnou buňku v bludišti pro umístění hráče

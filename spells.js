@@ -521,8 +521,8 @@ function updateFireballs(deltaTime) {
     }
 
     // Detekce kolize s podlahou a stropem
-    const isInCamp = selectedFloor === 999;
-    const ceilingHeight = isInCamp ? WALL_HEIGHT * 5 : isHighWallArea(fireball.position.x, fireball.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+    const noFloorCheck = (selectedFloor === 999 || selectedFloor % 10 === 0);
+    const ceilingHeight = noFloorCheck ? WALL_HEIGHT * 5 : isHighWallArea(fireball.position.x, fireball.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
     if (fireball.position.y <= 0 || fireball.position.y >= ceilingHeight) {
       // Vytvoření výbuchu při kolizi
       createExplosion(fireball.position);
@@ -584,8 +584,8 @@ function updateFrostbolts(deltaTime) {
       }
     }
 
-    const isInCamp = selectedFloor === 999;
-    const ceilingHeight = isInCamp ? WALL_HEIGHT * 5 : isHighWallArea(frostbolt.position.x, frostbolt.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+    const noFloorCheck = (selectedFloor === 999 || selectedFloor % 10 === 0);
+    const ceilingHeight = noFloorCheck ? WALL_HEIGHT * 5 : isHighWallArea(frostbolt.position.x, frostbolt.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
     if (frostbolt.position.y <= 0 || frostbolt.position.y >= ceilingHeight) {
       createExplosion(frostbolt.position, 0xa6d9ff);
       scene.remove(frostbolt);
@@ -626,8 +626,8 @@ function updateArcaneMissiles(deltaTime) {
       }
     }
 
-    const isInCamp = selectedFloor === 999;
-    const ceilingHeight = isInCamp ? WALL_HEIGHT * 5 : isHighWallArea(arcaneMissile.position.x, arcaneMissile.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+    const noFloorCheck = (selectedFloor === 999 || selectedFloor % 10 === 0);
+    const ceilingHeight = noFloorCheck ? WALL_HEIGHT * 5 : isHighWallArea(arcaneMissile.position.x, arcaneMissile.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
     if (arcaneMissile.position.y <= 0 || arcaneMissile.position.y >= ceilingHeight) {
       createExplosion(arcaneMissile.position, 0xf7c6bfa);
       scene.remove(arcaneMissile);
@@ -764,8 +764,8 @@ export function updateChainLightnings(deltaTime) {
     }
 
     // Detekce kolize s podlahou a stropem
-    const isInCamp = selectedFloor === 999;
-    const ceilingHeight = isInCamp ? WALL_HEIGHT * 5 : isHighWallArea(lightning.position.x, lightning.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+    const noFloorCheck = (selectedFloor === 999 || selectedFloor % 10 === 0);
+    const ceilingHeight = noFloorCheck ? WALL_HEIGHT * 5 : isHighWallArea(lightning.position.x, lightning.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
     if (lightning.position.y <= 0 || lightning.position.y >= ceilingHeight) {
       // Vytvoření výbuchu při kolizi
       createExplosion(lightning.position, 0xbac5ff);

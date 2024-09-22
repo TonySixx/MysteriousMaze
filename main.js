@@ -7,7 +7,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { AudioLoader } from "three";
 
-import { setBossCounter, setBosses, spawnBossInMaze, bosses } from "./boss.js";
+import { setBossCounter, setBosses, spawnBossInMaze, bosses, bossCounter, Boss, BOSS_TYPES } from "./boss.js";
 import {
   spells,
   updateFireballs,
@@ -70,6 +70,7 @@ import { createMainMenu } from "./mainMenu.js";
 import { textureSets } from "./globals.js";
 import { displayScores, filterScores, hideHintModal, hideScoreModal, hideSettingsModal, saveSettings, setQuality, showHintModal, showNameModal, showScoreModal, showSettingsModal } from "./modals.js";
 import { addExperienceForCompletion, drawMinimap, getBestTime, getUrlParameter, removeFreezeEffect, setUrlParameter, submitScore, updateFreezeEffect, updateMagicBalls } from "./utils.js";
+import { createMainBossRoom, MainBoss } from "./mainBoss.js";
 
 export const version = "1.3.1";
 
@@ -107,7 +108,7 @@ document.addEventListener("keyup", (event) => {
 
 let startTime, timerInterval;
 let moveCount = 0,
-keyCount = 0;
+  keyCount = 0;
 export var MAZE_SIZE = 20;
 export var totalKeys = 3; // Přidání deklarace proměnné totalKeys
 export const WALL_HEIGHT = 3.1;
@@ -180,25 +181,29 @@ export function setTotalKeys(value) {
   totalKeys = value;
 }
 
+export function setMazeSize(value) {
+  MAZE_SIZE = value;
+}
+
 function loadSettings() {
   MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem("maxVisibleLights")) || 10;
   qualityFactor = parseFloat(localStorage.getItem("qualityFactor")) || 1;
   setQuality(qualityFactor);
 }
-
+export var manager;
 export async function init() {
   // Create LoadingManager
-  const manager = new THREE.LoadingManager();
+  manager = new THREE.LoadingManager();
 
   manager.onStart = function (url, itemsLoaded, itemsTotal) {
     console.log(
       "Started loading file: " +
-        url +
-        ".\nLoaded " +
-        itemsLoaded +
-        " of " +
-        itemsTotal +
-        " files."
+      url +
+      ".\nLoaded " +
+      itemsLoaded +
+      " of " +
+      itemsTotal +
+      " files."
     );
     showLoadingScreen();
   };
@@ -211,12 +216,12 @@ export async function init() {
   manager.onProgress = function (url, itemsLoaded, itemsTotal) {
     console.log(
       "Loading file: " +
-        url +
-        ".\nLoaded " +
-        itemsLoaded +
-        " of " +
-        itemsTotal +
-        " files."
+      url +
+      ".\nLoaded " +
+      itemsLoaded +
+      " of " +
+      itemsTotal +
+      " files."
     );
     updateLoadingProgress(itemsLoaded / itemsTotal);
   };
@@ -384,65 +389,65 @@ export async function init() {
     window.addEventListener("resize", onWindowResize);
 
     document
-    .getElementById("mazeSearchInput")
-    .addEventListener("input", filterScores);
+      .getElementById("mazeSearchInput")
+      .addEventListener("input", filterScores);
 
-  document
-    .querySelector("#scoreModal .close")
-    .addEventListener("click", hideScoreModal);
+    document
+      .querySelector("#scoreModal .close")
+      .addEventListener("click", hideScoreModal);
 
-  document.addEventListener("keydown", (event) => {
-    // Zkontrolujeme, zda aktivní element není input nebo textarea
-    const activeElement = document.activeElement;
-    const isInput =
-      activeElement.tagName === "INPUT" ||
-      activeElement.tagName === "TEXTAREA";
-    if (event.key === "c" || event.key === "C") {
-      if (!isInput) {
-        if (document.getElementById("scoreModal").style.display === "block") {
-          hideScoreModal();
-        } else {
-          showScoreModal();
-          displayScores(null);
+    document.addEventListener("keydown", (event) => {
+      // Zkontrolujeme, zda aktivní element není input nebo textarea
+      const activeElement = document.activeElement;
+      const isInput =
+        activeElement.tagName === "INPUT" ||
+        activeElement.tagName === "TEXTAREA";
+      if (event.key === "c" || event.key === "C") {
+        if (!isInput) {
+          if (document.getElementById("scoreModal").style.display === "block") {
+            hideScoreModal();
+          } else {
+            showScoreModal();
+            displayScores(null);
+          }
+        }
+      } else if (event.key === "h" || event.key === "H") {
+        if (!isInput) {
+          if (document.getElementById("hintModal").style.display === "block") {
+            hideHintModal();
+          } else {
+            showHintModal();
+          }
+        }
+      } else if (event.key === "p" || event.key === "P") {
+        if (!isInput) {
+          showFPS = !showFPS;
+          fpsCounter.style.display = showFPS ? "block" : "none";
+        }
+      } else if (event.key === "o" || event.key === "O") {
+        if (!isInput) {
+          showSettingsModal();
+        }
+      } else if (event.key === "b" || event.key === "B") {
+        if (!isInput) {
+          toggleBackgroundMusic();
+        }
+      } else if (event.key === "i" || event.key === "I") {
+        if (!isInput) {
+          if (
+            document.getElementById("inventoryModal").style.display === "block"
+          ) {
+            closeInventory();
+          } else {
+            openInventory();
+          }
         }
       }
-    } else if (event.key === "h" || event.key === "H") {
-      if (!isInput) {
-        if (document.getElementById("hintModal").style.display === "block") {
-          hideHintModal();
-        } else {
-          showHintModal();
-        }
-      }
-    } else if (event.key === "p" || event.key === "P") {
-      if (!isInput) {
-        showFPS = !showFPS;
-        fpsCounter.style.display = showFPS ? "block" : "none";
-      }
-    } else if (event.key === "o" || event.key === "O") {
-      if (!isInput) {
-        showSettingsModal();
-      }
-    } else if (event.key === "b" || event.key === "B") {
-      if (!isInput) {
-        toggleBackgroundMusic();
-      }
-    } else if (event.key === "i" || event.key === "I") {
-      if (!isInput) {
-        if (
-          document.getElementById("inventoryModal").style.display === "block"
-        ) {
-          closeInventory();
-        } else {
-          openInventory();
-        }
-      }
-    }
-  });
+    });
 
-  document
-    .querySelector("#hintModal .close")
-    .addEventListener("click", hideHintModal);
+    document
+      .querySelector("#hintModal .close")
+      .addEventListener("click", hideHintModal);
 
     // Set up post-processing
     composer = new EffectComposer(renderer);
@@ -671,224 +676,239 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
 
-  // Adjust textureSets selection based on the floor
-  let availableTextureSets;
-  switch (selectedFloor) {
-    case 1:
-      availableTextureSets = textureSets.slice(0, 2);
-      break;
-    case 2:
-      availableTextureSets = textureSets.slice(2, 4);
-      break;
-    case 3:
-      availableTextureSets = textureSets.slice(4, 6);
-      break;
-    case 4:
-      availableTextureSets = textureSets.slice(6, 8);
-      break;
+  if (selectedFloor % 10 === 0 && selectedFloor <= 40) {
+    // Vytvoření místnosti s hlavním bossem pro každé desáté podlaží
+    const mainBossRoom = createMainBossRoom();
+    scene.add(mainBossRoom);
+
+    const mainBossPosition = new THREE.Vector3(0, 0.5, 0);
+    const mainBoss = new MainBoss(mainBossPosition, bossCounter, rng, selectedFloor);
+    bosses.push(mainBoss);
+    setBossCounter(bossCounter + 1);
+
+
   }
-  const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
-  const selectedTextureSet = availableTextureSets[textureSetIndex];
+  else {
 
-  const loader = new THREE.TextureLoader(manager);
-  const floorTexture = loader.load(selectedTextureSet.floorTexture);
-  floorTexture.colorSpace = THREE.SRGBColorSpace;
+    // Adjust textureSets selection based on the floor
+    let availableTextureSets;
+    switch (selectedFloor) {
+      case 1:
+        availableTextureSets = textureSets.slice(0, 2);
+        break;
+      case 2:
+        availableTextureSets = textureSets.slice(2, 4);
+        break;
+      case 3:
+        availableTextureSets = textureSets.slice(4, 6);
+        break;
+      case 4:
+        availableTextureSets = textureSets.slice(6, 8);
+        break;
+    }
+    const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
+    const selectedTextureSet = availableTextureSets[textureSetIndex];
 
-  const brickTexture = loader.load(selectedTextureSet.wallTexture);
-  const ceilingTexture = loader.load(selectedTextureSet.ceilingTexture);
-  brickTexture.colorSpace = THREE.SRGBColorSpace;
-  ceilingTexture.colorSpace = THREE.SRGBColorSpace;
+    const loader = new THREE.TextureLoader(manager);
+    const floorTexture = loader.load(selectedTextureSet.floorTexture);
+    floorTexture.colorSpace = THREE.SRGBColorSpace;
 
-  const specialTextures = selectedTextureSet.specialTextures.map((textureName) =>
-    loader.load(textureName)
-  );
-  specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
+    const brickTexture = loader.load(selectedTextureSet.wallTexture);
+    const ceilingTexture = loader.load(selectedTextureSet.ceilingTexture);
+    brickTexture.colorSpace = THREE.SRGBColorSpace;
+    ceilingTexture.colorSpace = THREE.SRGBColorSpace;
 
-  let minSize, maxSize;
-  switch (selectedFloor) {
-    case 1:
-      minSize = 20;
-      maxSize = 25;
-      break;
-    case 2:
-      minSize = 25;
-      maxSize = 35;
-      break;
-    case 3:
-      minSize = 30;
-      maxSize = 50;
-      break;
-    case 4:
-      minSize = 20;
-      maxSize = 30;
-      break;
-  }
-  MAZE_SIZE = Math.floor(rng() * (maxSize - minSize + 1)) + minSize;
-  totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
+    const specialTextures = selectedTextureSet.specialTextures.map((textureName) =>
+      loader.load(textureName)
+    );
+    specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
-  teleportPairsCount = Math.max(1, Math.min(3, 1 + Math.floor(rng() * 3)));
+    let minSize, maxSize;
+    switch (selectedFloor) {
+      case 1:
+        minSize = 20;
+        maxSize = 25;
+        break;
+      case 2:
+        minSize = 25;
+        maxSize = 35;
+        break;
+      case 3:
+        minSize = 30;
+        maxSize = 50;
+        break;
+      case 4:
+        minSize = 20;
+        maxSize = 30;
+        break;
+    }
+    MAZE_SIZE = Math.floor(rng() * (maxSize - minSize + 1)) + minSize;
+    totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
 
-  const floorGeometry = new THREE.PlaneGeometry(
-    MAZE_SIZE * CELL_SIZE,
-    MAZE_SIZE * CELL_SIZE
-  );
-  const floorMaterial = new THREE.MeshStandardMaterial({
-    map: floorTexture,
-  });
-  floorTexture.wrapS = THREE.RepeatWrapping;
-  floorTexture.wrapT = THREE.RepeatWrapping;
-  floorTexture.repeat.set(MAZE_SIZE, MAZE_SIZE);
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.rotation.x = -Math.PI / 2;
-  scene.add(floor);
+    teleportPairsCount = Math.max(1, Math.min(3, 1 + Math.floor(rng() * 3)));
 
-  maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed, selectedFloor);
+    const floorGeometry = new THREE.PlaneGeometry(
+      MAZE_SIZE * CELL_SIZE,
+      MAZE_SIZE * CELL_SIZE
+    );
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      map: floorTexture,
+    });
+    floorTexture.wrapS = THREE.RepeatWrapping;
+    floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set(MAZE_SIZE, MAZE_SIZE);
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
 
-  const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
-  const wallMaterial = new THREE.MeshStandardMaterial({ map: brickTexture });
+    maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed, selectedFloor);
 
-  const ceilingGeometry = new THREE.BoxGeometry(
-    CELL_SIZE,
-    WALL_HEIGHT,
-    CELL_SIZE
-  );
-  const ceilingMaterial = new THREE.MeshStandardMaterial({
-    map: ceilingTexture,
-  });
-  const ceilingMaterialHigh = new THREE.MeshStandardMaterial({
-    map: ceilingTexture,
-    color: 0x918b88,
-  });
+    const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+    const wallMaterial = new THREE.MeshStandardMaterial({ map: brickTexture });
 
-  // Determine high wall areas
-  highWallAreas = Array(MAZE_SIZE)
-    .fill()
-    .map(() => Array(MAZE_SIZE).fill(false));
-  for (let i = 0; i < MAZE_SIZE; i++) {
-    for (let j = 0; j < MAZE_SIZE; j++) {
-      if (maze[i][j] === 0 && rng() < 0.1) {
-        highWallAreas[i][j] = true;
-        // Zajistíme, že okolní buňky budou také vysoké
-        for (let di = -1; di <= 1; di++) {
-          for (let dj = -1; dj <= 1; dj++) {
-            if (
-              i + di >= 0 &&
-              i + di < MAZE_SIZE &&
-              j + dj >= 0 &&
-              j + dj < MAZE_SIZE
-            ) {
-              highWallAreas[i + di][j + dj] = true;
+    const ceilingGeometry = new THREE.BoxGeometry(
+      CELL_SIZE,
+      WALL_HEIGHT,
+      CELL_SIZE
+    );
+    const ceilingMaterial = new THREE.MeshStandardMaterial({
+      map: ceilingTexture,
+    });
+    const ceilingMaterialHigh = new THREE.MeshStandardMaterial({
+      map: ceilingTexture,
+      color: 0x918b88,
+    });
+
+    // Determine high wall areas
+    highWallAreas = Array(MAZE_SIZE)
+      .fill()
+      .map(() => Array(MAZE_SIZE).fill(false));
+    for (let i = 0; i < MAZE_SIZE; i++) {
+      for (let j = 0; j < MAZE_SIZE; j++) {
+        if (maze[i][j] === 0 && rng() < 0.1) {
+          highWallAreas[i][j] = true;
+          // Zajistíme, že okolní buňky budou také vysoké
+          for (let di = -1; di <= 1; di++) {
+            for (let dj = -1; dj <= 1; dj++) {
+              if (
+                i + di >= 0 &&
+                i + di < MAZE_SIZE &&
+                j + dj >= 0 &&
+                j + dj < MAZE_SIZE
+              ) {
+                highWallAreas[i + di][j + dj] = true;
+              }
             }
           }
         }
       }
     }
-  }
 
-  for (let i = 0; i < MAZE_SIZE; i++) {
-    for (let j = 0; j < MAZE_SIZE; j++) {
-      const isHighWallArea = highWallAreas[i][j];
-      const wallHeight = isHighWallArea ? WALL_HEIGHT * 2 : WALL_HEIGHT;
+    for (let i = 0; i < MAZE_SIZE; i++) {
+      for (let j = 0; j < MAZE_SIZE; j++) {
+        const isHighWallArea = highWallAreas[i][j];
+        const wallHeight = isHighWallArea ? WALL_HEIGHT * 2 : WALL_HEIGHT;
 
-      if (maze[i][j] === 1) {
-        // Základní zeď
-        const wall = new THREE.Mesh(wallGeometry, wallMaterial);
-        wall.position.set(
-          (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
-          WALL_HEIGHT / 2,
-          (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
-        );
-        scene.add(wall);
-        walls.push(wall);
-
-        // Přidáme druhou zeď pro vysoké oblasti
-        if (isHighWallArea) {
-          const upperWall = new THREE.Mesh(wallGeometry, wallMaterial);
-          upperWall.position.set(
+        if (maze[i][j] === 1) {
+          // Základní zeď
+          const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+          wall.position.set(
             (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
-            WALL_HEIGHT * 1.5,
+            WALL_HEIGHT / 2,
             (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
           );
-          scene.add(upperWall);
-          walls.push(upperWall);
+          scene.add(wall);
+          walls.push(wall);
+
+          // Přidáme druhou zeď pro vysoké oblasti
+          if (isHighWallArea) {
+            const upperWall = new THREE.Mesh(wallGeometry, wallMaterial);
+            upperWall.position.set(
+              (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
+              WALL_HEIGHT * 1.5,
+              (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
+            );
+            scene.add(upperWall);
+            walls.push(upperWall);
+          }
         }
-      }
 
-      // Strop pro každou buňku
-      const ceiling = new THREE.Mesh(
-        ceilingGeometry,
-        isHighWallArea ? ceilingMaterialHigh : ceilingMaterial
-      );
-      ceiling.position.set(
-        (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
-        wallHeight + WALL_HEIGHT / 2,
-        (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
-      );
-      scene.add(ceiling);
-    }
-  }
-
-  // Add special walls
-  addSpecialWalls(rng, specialTextures);
-
-  // Add blocking walls
-  const blockingWallCount = Math.floor(MAZE_SIZE * MAZE_SIZE * 0.02);
-  for (let i = 0; i < blockingWallCount; i++) {
-    let x, z;
-    do {
-      x = Math.floor(rng() * MAZE_SIZE);
-      z = Math.floor(rng() * MAZE_SIZE);
-    } while (maze[x][z] !== 0);
-    maze[x][z] = BLOCKING_WALL;
-  }
-
-  // Create blocking walls
-  for (let i = 0; i < MAZE_SIZE; i++) {
-    for (let j = 0; j < MAZE_SIZE; j++) {
-      if (maze[i][j] === BLOCKING_WALL) {
-        const blockingWall = createBlockingWall(brickTexture);
-        blockingWall.position.set(
+        // Strop pro každou buňku
+        const ceiling = new THREE.Mesh(
+          ceilingGeometry,
+          isHighWallArea ? ceilingMaterialHigh : ceilingMaterial
+        );
+        ceiling.position.set(
           (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
-          WALL_HEIGHT / 2,
+          wallHeight + WALL_HEIGHT / 2,
           (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
         );
-        scene.add(blockingWall);
-        walls.push(blockingWall);
+        scene.add(ceiling);
       }
     }
+
+    // Add special walls
+    addSpecialWalls(rng, specialTextures);
+
+    // Add blocking walls
+    const blockingWallCount = Math.floor(MAZE_SIZE * MAZE_SIZE * 0.02);
+    for (let i = 0; i < blockingWallCount; i++) {
+      let x, z;
+      do {
+        x = Math.floor(rng() * MAZE_SIZE);
+        z = Math.floor(rng() * MAZE_SIZE);
+      } while (maze[x][z] !== 0);
+      maze[x][z] = BLOCKING_WALL;
+    }
+
+    // Create blocking walls
+    for (let i = 0; i < MAZE_SIZE; i++) {
+      for (let j = 0; j < MAZE_SIZE; j++) {
+        if (maze[i][j] === BLOCKING_WALL) {
+          const blockingWall = createBlockingWall(brickTexture);
+          blockingWall.position.set(
+            (i - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
+            WALL_HEIGHT / 2,
+            (j - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
+          );
+          scene.add(blockingWall);
+          walls.push(blockingWall);
+        }
+      }
+    }
+
+    const teleportColors = [
+      0xff8080, 0x99ff99, 0x8080ff, 0xff66ff, 0xffff80, 0xb3ffff,
+    ];
+    for (let i = 0; i < teleportPairsCount; i++) {
+      const teleport1 = createTeleportModel(teleportColors[i]);
+      teleport1.userData.isTeleport = true;
+      teleport1.userData.pairIndex = i;
+      placeObjectInFreeCell(teleport1, rng);
+      scene.add(teleport1);
+
+      const teleport2 = createTeleportModel(teleportColors[i]);
+      teleport2.userData.isTeleport = true;
+      teleport2.userData.pairIndex = i;
+      placeObjectInFreeCell(teleport2, rng);
+      scene.add(teleport2);
+    }
+
+    createKeys(rng);
+    createTorches(
+      walls,
+      maze,
+      CELL_SIZE,
+      MAZE_SIZE,
+      selectedTextureSet.torchColor
+    );
+
+    // Použijeme model truhly jako cíl
+    const goal = treasureModel.clone();
+    goal.userData.isGoal = true;
+    placeObjectInFreeCell(goal, rng);
+    scene.add(goal);
   }
-
-  const teleportColors = [
-    0xff8080, 0x99ff99, 0x8080ff, 0xff66ff, 0xffff80, 0xb3ffff,
-  ];
-  for (let i = 0; i < teleportPairsCount; i++) {
-    const teleport1 = createTeleportModel(teleportColors[i]);
-    teleport1.userData.isTeleport = true;
-    teleport1.userData.pairIndex = i;
-    placeObjectInFreeCell(teleport1, rng);
-    scene.add(teleport1);
-
-    const teleport2 = createTeleportModel(teleportColors[i]);
-    teleport2.userData.isTeleport = true;
-    teleport2.userData.pairIndex = i;
-    placeObjectInFreeCell(teleport2, rng);
-    scene.add(teleport2);
-  }
-
-  createKeys(rng);
-  createTorches(
-    walls,
-    maze,
-    CELL_SIZE,
-    MAZE_SIZE,
-    selectedTextureSet.torchColor
-  );
-
-  // Použijeme model truhly jako cíl
-  const goal = treasureModel.clone();
-  goal.userData.isGoal = true;
-  placeObjectInFreeCell(goal, rng);
-  scene.add(goal);
 
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
   scene.add(ambientLight);
@@ -2207,19 +2227,37 @@ function canSelectFloor(floor) {
   if (floor === 2 && playerLevel >= 7) return true;
   if (floor === 3 && playerLevel >= 12) return true;
   if (floor === 4 && playerLevel >= 16) return true;
+  if (floor === 10 && playerLevel >= 1) return true;
+  if (floor === 20 && playerLevel >= 20) return true;
+  if (floor === 30 && playerLevel >= 30) return true;
+  if (floor === 40 && playerLevel >= 40) return true;
   return false;
 }
 
+
+
 // Aktualizujte tuto funkci při změně úrovně hráče
 export function updateFloorOptions() {
+  const floorOptions = document.querySelectorAll('.floor-option');
   floorOptions.forEach((option) => {
     const floor = parseInt(option.dataset.floor);
     if (canSelectFloor(floor)) {
-      option.classList.remove("locked");
+      option.classList.remove('locked');
     } else {
-      option.classList.add("locked");
+      option.classList.add('locked');
     }
   });
+
+  // // Přidáme možnosti pro podlaží s bossy
+  // const bossFloorOptions = document.querySelectorAll('.boss-floor-option');
+  // bossFloorOptions.forEach((option) => {
+  //     const floor = parseInt(option.dataset.floor);
+  //     if (canSelectBossFloor(floor)) {
+  //         option.classList.remove('locked');
+  //     } else {
+  //         option.classList.add('locked');
+  //     }
+  // });
 }
 
 export function playSound(soundBuffer, volume = 1) {

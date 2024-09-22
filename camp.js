@@ -455,7 +455,7 @@ function createTorchOnTower(x, z, towerHeight) {
   torches.push({ torch, fire, light });
 }
 
-function createTorchOnWall(x, z, dir) {
+export function createTorchOnWall(x, z, dir) {
   const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
   const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
   const torch = new THREE.Mesh(torchGeometry, torchMaterial);
@@ -534,7 +534,7 @@ function createCenterTower() {
   });
 }
 
-function createTorchOnCenterTower(x, z, towerHeight, dir) {
+export function createTorchOnCenterTower(x, z, towerHeight, dir) {
   const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
   const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
   const torch = new THREE.Mesh(torchGeometry, torchMaterial);

@@ -15,7 +15,7 @@ export function setBossCounter(value) {
     bossCounter = value;
 }
 
-const BOSS_TYPES = [
+export const BOSS_TYPES = [
     // První podlaží
     {
         name: "Ohnivý drak",
@@ -175,18 +175,12 @@ const BOSS_TYPES = [
 
 
 class Boss {
-    constructor(position, id, rng, floor) {
+    constructor(position, id, rng, floor,isMainBoss= false,type=null) {
+        this.isMainBoss = isMainBoss;
         this.id = id;
         this.floor = floor;
-        this.type = this.selectBossType(floor, rng);
-        this.maxHealth = this.generateHealth(rng);
-        this.health = this.maxHealth;
         this.position = position;
-        this.attackCooldown = this.type.attackCooldown;
-        this.teleportCooldown = 2000; // 2 sekundy cooldown
-        this.lastTeleportTime = 0;
-        this.originalMaterial = null;
-        this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
+        this.rng = rng;
         this.isFrozen = false;
         this.isBurning = false;
         this.burningTimer = 0;
@@ -201,12 +195,23 @@ class Boss {
         this.clock = new THREE.Clock();
         this.lastAttackTime = 0;
         this.moveDirection = new THREE.Vector3();
-        this.slowEffect = 1; // 1 znamená normální rychlost
+        this.slowEffect = 1;
         this.slowEndTime = 0;
         this.slowParticles = null;
+        this.type = type || this.selectBossType(floor, rng);
 
-        this.rng = rng;
-        this.loadModel();
+
+        if (!this.isMainBoss) {
+            this.maxHealth = this.generateHealth(rng);
+            this.health = this.maxHealth;
+            this.attackCooldown = this.type.attackCooldown;
+            this.teleportCooldown = 2000;
+            this.lastTeleportTime = 0;
+            this.originalMaterial = null;
+            this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
+            this.loadModel();
+        }
+
         this.changeDirection();
         this.createHealthUI();
     }
@@ -952,7 +957,7 @@ class Boss {
         this.moveDirection.set(Math.cos(randomAngle), 0, Math.sin(randomAngle));
     }
 
-    move(deltaTime) {
+    move(deltaTime,collisionOffset = 1) {
         if (!this.model || !this.position) {
             return;
         }
@@ -980,10 +985,10 @@ class Boss {
     }
 
 
-    checkCollisionOnMove(position) {
+    checkCollisionOnMove(position,collisionOffset = 1) {
         for (let wall of walls) {
             const distance = position.distanceTo(wall.position);
-            if (distance < CELL_SIZE / 2 + 1) { // Přidáme větší odstup pro bosse
+            if (distance < CELL_SIZE / 2 + collisionOffset) { // Přidáme větší odstup pro bosse
                 return true;
             }
         }
@@ -1153,7 +1158,7 @@ function spawnBossInMaze(maze, rng, selectedFloor) {
     }
 }
 
-function canSeePlayer(bossPosition, playerPosition) {
+export function canSeePlayer(bossPosition, playerPosition) {
 
     if (bossPosition.distanceTo(playerPosition) > 25) {
         return false;
