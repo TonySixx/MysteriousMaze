@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { camera, CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, maze, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
+import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
 import { getActiveSpells, inspectStaff, isInspectingStaff, isSwingingStaff, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 import { equipment, initInventory, usePotion } from "./inventory.js";

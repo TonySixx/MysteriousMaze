@@ -11,13 +11,12 @@ import {
   itemSoundBuffer,
   keys,
   LightManager,
-  MAX_VISIBLE_LIGHTS,
   playSound,
   requestPointerLock,
-  textureSets,
   WALL_HEIGHT,
 } from "./main.js";
 import { ITEM_RARITIES, ITEM_TYPES, itemDatabase } from "./itemDatabase.js";
+import { textureSets } from "./globals.js";
 
 export function createCamp() {
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);

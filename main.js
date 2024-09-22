@@ -73,6 +73,9 @@ import {
 } from "./inventory.js";
 import { staffModelsDefinitons } from "./staffModels.js";
 import { createMainMenu } from "./mainMenu.js";
+import { textureSets } from "./globals.js";
+import { displayScores, filterScores, hideHintModal, hideScoreModal, hideSettingsModal, saveSettings, setQuality, showHintModal, showNameModal, showScoreModal, showSettingsModal } from "./modals.js";
+import { addExperienceForCompletion, getBestTime, getUrlParameter, setUrlParameter, submitScore } from "./utils.js";
 
 export const version = "1.3.0";
 
@@ -80,7 +83,7 @@ export const version = "1.3.0";
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
 const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9saGd1dGRvemhkdm5pZWZtbHR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI4NzYwNTgsImV4cCI6MjAzODQ1MjA1OH0.RmahBsbb4QnO0xpTH-Bpe8f9vJFypcq6z5--e4s0MJI";
-const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const savedLanguage = localStorage.getItem("language");
 if (savedLanguage) {
@@ -89,7 +92,6 @@ if (savedLanguage) {
 
 // Add these variables
 let playerName = "";
-let bestTime = Infinity;
 
 export const keys = {
   f: false,
@@ -107,98 +109,8 @@ document.addEventListener("keyup", (event) => {
   }
 });
 
-export const textureSets = [
-  {
-    wallTexture: "textures/wall.jpg",
-    ceilingTexture: "textures/wall.jpg",
-    floorTexture: "textures/floor.jpg",
-    specialTextures: [
-      "textures/wall.jpg",
-      "textures/wall.jpg",
-      "textures/wall.jpg",
-    ],
-    torchColor: { light: 0x00bfff, particles: 0x1e90ff }, // Magical blue
-  },
-  {
-    wallTexture: "textures/wall-egypt.jpg",
-    ceilingTexture: "textures/wall-egypt.jpg",
-    floorTexture: "textures/floor-egypt.jpg",
-    specialTextures: [
-      "textures/wall-egypt-sign-1.jpg",
-      "textures/wall-egypt-sign-2.jpg",
-      "textures/wall-egypt-sign-3.jpg",
-    ],
-    torchColor: { light: 0xffa500, particles: 0xff4500 }, // Original orange color
-  },
-  {
-    wallTexture: "textures/wall-jungle.jpg",
-    ceilingTexture: "textures/wall-jungle.jpg",
-    floorTexture: "textures/floor-jungle.jpg",
-    specialTextures: [
-      "textures/wall-jungle-sign-1.jpg",
-      "textures/wall-jungle-sign-2.jpg",
-      "textures/wall-jungle-sign-3.jpg",
-    ],
-    torchColor: { light: 0x00ff7f, particles: 0x2ecc71 }, // Emerald green
-  },
-  {
-    wallTexture: "textures/wall-mythical.jpg",
-    ceilingTexture: "textures/wall-mythical.jpg",
-    floorTexture: "textures/floor.jpg",
-    specialTextures: [
-      "textures/wall-mythical-sign-1.jpg",
-      "textures/wall-mythical-sign-2.jpg",
-      "textures/wall-mythical-sign-3.jpg",
-    ],
-    torchColor: { light: 0xa35ee8, particles: 0xa35ee8 }, // Amethyst purple
-  },
-  {
-    wallTexture: "textures/wall-obsidian.jpg",
-    floorTexture: "textures/floor.jpg",
-    ceilingTexture: "textures/wall-obsidian.jpg",
-    specialTextures: [
-      "textures/wall-obsidian-sign-1.jpg",
-      "textures/wall-obsidian-sign-2.jpg",
-      "textures/wall-obsidian-sign-3.jpg",
-    ],
-    torchColor: { light: 0x9896ff, particles: 0x9896ff },
-  },
-  {
-    wallTexture: "textures/wall-obsidian.jpg",
-    floorTexture: "textures/floor.jpg",
-    ceilingTexture: "textures/wall-obsidian.jpg",
-    specialTextures: [
-      "textures/wall-obsidian-sign-1.jpg",
-      "textures/wall-obsidian-sign-2.jpg",
-      "textures/wall-obsidian-sign-3.jpg",
-    ],
-    torchColor: { light: 0xfdff6b, particles: 0xfdff6b },
-  },
-  {
-    wallTexture: "textures/wall-abyss.jpg",
-    floorTexture: "textures/floor.jpg",
-    ceilingTexture: "textures/wall-abyss.jpg",
-    specialTextures: [
-      "textures/wall-abyss.jpg",
-      "textures/wall-abyss.jpg",
-      "textures/wall-abyss.jpg",
-    ],
-    torchColor: { light: 0x69ffb9, particles: 0x69ffb9 },
-  },
-  {
-    wallTexture: "textures/wall-abyss.jpg",
-    floorTexture: "textures/floor.jpg",
-    ceilingTexture: "textures/wall-abyss.jpg",
-    specialTextures: [
-      "textures/wall-abyss.jpg",
-      "textures/wall-abyss.jpg",
-      "textures/wall-abyss.jpg",
-    ],
-    torchColor: { light: 0xd6fffc, particles: 0xd6fffc },
-  },
-];
 
-export let camera, renderer, maze;
+
 let startTime, timerInterval;
 let moveCount = 0,
   keyCount = 0;
@@ -212,10 +124,7 @@ let lastTeleportTime = 0;
 const teleportCooldown = 1000;
 export var nearTeleport = null;
 
-export let composer;
 
-export let MAX_VISIBLE_LIGHTS = 10; // Default value
-let qualityFactor = 1;
 
 export var keyModel;
 let treasureModel;
@@ -240,7 +149,7 @@ let lastUpdateTime;
 let canOpenMinimap = true;
 let minimapCooldownTimer = null;
 
-let teleportPairsCount = 0;
+export let teleportPairsCount = 0;
 
 let nebula, nebulaMaterial;
 
@@ -399,7 +308,7 @@ export async function init() {
       setUrlParameter("floor", selectedFloor);
     }
   }
-  else{
+  else {
     selectedFloor = 999;
     setUrlParameter("floor", selectedFloor);
   }
@@ -1806,30 +1715,6 @@ async function startGame() {
   startTimer(); // Spuštění nového časovače
 }
 
-async function getBestTime(levelName) {
-  var _playerName = localStorage.getItem("playerName");
-  try {
-    const { data, error } = await supabase
-      .from("maze_score")
-      .select("time_score")
-      .eq("playername", _playerName ? _playerName : "Unknown")
-      .eq("levelname", levelName)
-      .eq("floor", selectedFloor)
-      .order("time_score", { ascending: true })
-      .limit(1);
-
-    if (error) throw error;
-
-    if (data.length > 0) {
-      bestTime = data[0].time_score;
-    } else {
-      bestTime = Infinity;
-    }
-  } catch (error) {
-    console.error("Error fetching best time:", error.message);
-    bestTime = Infinity;
-  }
-}
 
 function updateKeyCount() {
   document.getElementById("keyCount").textContent = `${keyCount}/${totalKeys}`;
@@ -2373,7 +2258,7 @@ function addStarsToNebula() {
   floatingObjects.push(stars);
 
   // Odstraníme animaci třpytu, protože hvězdy jsou nyní černé a nesvítí
-  stars.userData.animate = () => {};
+  stars.userData.animate = () => { };
 }
 
 function addNebula() {
@@ -2468,169 +2353,6 @@ function updateVisibleObjects() {
 
 
 
-
-
-export function createEnchantEffect(weapon, offsetY = 0, effectColor = 0x999999, options = {}) {
-  if (!weapon || !weapon.enchantLevel || weapon.enchantLevel < 5) return null;
-
-  const enchantLevel = weapon.enchantLevel;
-  const {
-    glowIntensity = 0.5,       // Zářivost efektu
-    opacity = 1.0,             // Průhlednost
-    spread = { x: 0.1, y: 0.1, z: 0.1 }, // Rozptyl pro osy X, Y, Z
-    startColor = effectColor,  // Startovní barva
-    endColor = effectColor,    // Cílová barva
-    lifeTimeMin = 1.5,         // Minimální životnost částic
-    lifeTimeMax = 2.5,         // Maximální životnost částic
-    speedMin = 0.01,           // Minimální rychlost částic
-    speedMax = 0.03,           // Maximální rychlost částic
-    minSize = 5,               // Minimální velikost částic
-    maxSize = 15,              // Maximální velikost částic
-    horizontalDamping = 0.9,    // Tlumení horizontální rychlosti
-    particleCountPerlevel= 10
-  } = options;
-
-
-  const maxParticleCount = 500;
-  const particleCount = Math.min(maxParticleCount, enchantLevel * particleCountPerlevel);
-  const group = new THREE.Group();
-
-  const vertexShader = `
-    uniform float time;
-
-    attribute float size;
-    attribute vec3 velocity;
-    attribute float startTime;
-    attribute float lifeTime;
-
-    varying float vAlpha;
-    varying vec3 vPosition;
-    varying float vProgress;
-
-    void main() {
-      float age = mod(time - startTime, lifeTime);
-      float progress = age / lifeTime;
-      vProgress = progress;
-
-      // Tlumení horizontálních rychlostí
-      float damping = pow(${horizontalDamping}, age);
-
-      vec3 disp = vec3(
-        velocity.x * damping,
-        velocity.y,
-        velocity.z * damping
-      ) * age;
-
-      vec3 pos = position + disp;
-      vPosition = pos;
-
-      // Postupné zeslabení částic během jejich životního cyklu
-      vAlpha = (1.0 - progress);
-
-      vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-      gl_PointSize = size * (5.0 / -mvPosition.z);
-      gl_Position = projectionMatrix * mvPosition;
-    }
-  `;
-
-  const fragmentShader = `
-    uniform vec3 startColor;
-    uniform vec3 endColor;
-    uniform float opacity;
-    uniform float glowIntensity;
-
-    varying float vAlpha;
-    varying vec3 vPosition;
-    varying float vProgress;
-
-    void main() {
-      vec2 center = vec2(0.5, 0.5);
-      float dist = distance(gl_PointCoord, center);
-
-      // Hladké okraje částic
-      float alpha = smoothstep(0.5, 0.0, dist) * vAlpha * opacity;
-
-      // Interpolace mezi startovní a cílovou barvou
-      vec3 color = mix(startColor, endColor, vProgress);
-
-      // Přidání zářivosti do středu částic
-      float glow = pow(1.0 - dist, 2.0) * glowIntensity;
-
-      color += vec3(glow);
-
-      gl_FragColor = vec4(color, alpha);
-    }
-  `;
-
-  const shaderMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      time: { value: 0 },
-      startColor: { value: new THREE.Color(startColor) },
-      endColor: { value: new THREE.Color(endColor) },
-      opacity: { value: opacity },
-      glowIntensity: { value: glowIntensity },
-    },
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader,
-    blending: THREE.NormalBlending,
-    depthWrite: false,
-    transparent: true,
-  });
-
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(particleCount * 3);
-  const velocities = new Float32Array(particleCount * 3);
-  const sizes = new Float32Array(particleCount);
-  const startTimes = new Float32Array(particleCount);
-  const lifeTimes = new Float32Array(particleCount);
-
-  for (let i = 0; i < particleCount; i++) {
-    const i3 = i * 3;
-
-    // Počáteční pozice u zbraně s rozptylem pro jednotlivé osy
-    positions[i3] = (Math.random() - 0.5) * spread.x;
-    positions[i3 + 1] = offsetY + (Math.random() - 0.5) * spread.y;
-    positions[i3 + 2] = (Math.random() - 0.5) * spread.z;
-
-    // Náhodná rychlost částic v daném rozmezí
-    const speed = speedMin + Math.random() * (speedMax - speedMin);
-
-    // Rychlosti pro pohyb částic nahoru
-    velocities[i3] = (Math.random() - 0.5) * speed * 0.5; // Menší horizontální rychlost
-    velocities[i3 + 1] = speed * (enchantLevel / 20); // y rychlost
-    velocities[i3 + 2] = (Math.random() - 0.5) * speed * 0.5; // Menší horizontální rychlost
-
-    // Velikost částic s použitím minSize a maxSize
-    sizes[i] = minSize + Math.random() * (maxSize - minSize);
-
-    // Náhodný počáteční čas pro každou částici
-    startTimes[i] = Math.random() * lifeTimeMax;
-
-    // Náhodná životnost pro každou částici
-    lifeTimes[i] = lifeTimeMin + Math.random() * (lifeTimeMax - lifeTimeMin);
-  }
-
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
-  geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-  geometry.setAttribute('startTime', new THREE.BufferAttribute(startTimes, 1));
-  geometry.setAttribute('lifeTime', new THREE.BufferAttribute(lifeTimes, 1));
-
-  const particles = new THREE.Points(geometry, shaderMaterial);
-  group.add(particles);
-
-  group.userData.update = (deltaTime) => {
-    shaderMaterial.uniforms.time.value += deltaTime;
-  };
-
-  return group;
-}
-
-
-
-
-
-
 let previousTime = performance.now(); // Definice a inicializace previousTime
 function animate() {
   const currentTime = performance.now();
@@ -2698,318 +2420,6 @@ function animate() {
   composer.render();
 }
 
-export function getCameraDirection() {
-  const direction = new THREE.Vector3();
-  camera.getWorldDirection(direction);
-  return direction;
-}
-
-function showNameModal(playerName) {
-  exitPointerLock();
-  const nameModal = document.getElementById("nameModal");
-  nameModal.innerHTML = `
-    <div class="modal-content">
-      <h2>${getTranslation("enterName")}</h2>
-      <input type="text" id="playerNameInput" value="${playerName || ""
-    }" placeholder="${getTranslation("playerName")}">
-      <select id="languageSelect">
-        <option value="en">English</option>
-        <option value="cs">Čeština</option>
-      </select>
-      <button id="submitName" disabled>${getTranslation("confirm")}</button>
-    </div>
-  `;
-  nameModal.style.display = "block";
-
-  const input = document.getElementById("playerNameInput");
-  const submitButton = document.getElementById("submitName");
-
-  input.addEventListener("input", function () {
-    submitButton.disabled = this.value.trim() === "";
-  });
-
-  document.getElementById("languageSelect").value = currentLanguage;
-  document.getElementById("languageSelect").addEventListener("change", (e) => {
-    setLanguage(e.target.value);
-    const playerName = document.getElementById("playerNameInput").value;
-    showNameModal(playerName); // Refresh modal with new language
-  });
-
-  submitButton.addEventListener("click", () => {
-    const name = input.value.trim();
-    if (name !== "") {
-      playerName = name;
-      localStorage.setItem("playerName", playerName);
-      document.getElementById("playerName").textContent = playerName;
-      getBestTime();
-      hideNameModal();
-      updateTranslations();
-      updateUITexts();
-    }
-  });
-
-  // Inicializace stavu tlačítka
-  submitButton.disabled = input.value.trim() === "";
-}
-
-function hideNameModal() {
-  exitPointerLock();
-  document.getElementById("nameModal").style.display = "none";
-}
-
-function showScoreModal() {
-  exitPointerLock();
-  document.getElementById("scoreModal").style.display = "block";
-}
-
-function hideScoreModal() {
-  requestPointerLock();
-  document.getElementById("scoreModal").style.display = "none";
-}
-
-async function submitScore(levelName, time) {
-  try {
-    var _playerName = localStorage.getItem("playerName");
-    const { data, error } = await supabase.from("maze_score").upsert(
-      [
-        {
-          playername: _playerName ? _playerName : "Unknown",
-          levelname: levelName,
-          time_score: time,
-          floor: selectedFloor,
-        },
-      ],
-      {
-        onConflict: ["playername", "levelname", "floor"],
-      }
-    );
-
-    if (error) throw error;
-    console.log("Skóre úspěšně uloženo");
-  } catch (error) {
-    console.error("Chyba při ukládání skóre:", error.message);
-  }
-}
-
-function addExperienceForCompletion(floor) {
-  const baseExperience = 2000;
-  const exponent = 1.5;
-  let totalExperience = Math.round(baseExperience * Math.pow(floor, exponent));
-
-  // Získáme úroveň hráče
-  const playerLevel = getPlayerLevel();
-
-  // Upravíme zkušenosti na základě úrovně hráče a podlaží
-  let expMultiplier = 1;
-
-  if (floor === 1 && playerLevel > 7) {
-    expMultiplier = Math.max(0.1, 1 - (playerLevel - 7) * 0.15);
-  } else if (floor === 2 && playerLevel > 12) {
-    expMultiplier = Math.max(0.1, 1 - (playerLevel - 12) * 0.15);
-  } else if (floor === 3 && playerLevel > 16) {
-    expMultiplier = Math.max(0.1, 1 - (playerLevel - 16) * 0.15);
-  } else if (floor === 4 && playerLevel > 20) {
-    expMultiplier = Math.max(0.1, 1 - (playerLevel - 20) * 0.15);
-  }
-
-  totalExperience = Math.round(totalExperience * expMultiplier);
-  addExperience(totalExperience);
-}
-
-async function displayScores(floor = null) {
-  try {
-    let query = supabase
-      .from("maze_score")
-      .select("*")
-      .order("time_score", { ascending: true });
-
-    if (floor !== null) {
-      query = query.eq("floor", floor);
-    }
-
-    const { data: scores, error } = await query;
-
-    if (error) throw error;
-
-    const tbody = document.querySelector("#scoreTable tbody");
-    tbody.innerHTML = "";
-
-    const groupedScores = groupAndSortScores(scores);
-
-    Object.entries(groupedScores).forEach(([levelName, levelScores]) => {
-      const groupRow = tbody.insertRow();
-      const groupCell = groupRow.insertCell(0);
-      groupCell.colSpan = 4;
-      groupCell.textContent = levelName;
-      groupCell.style.fontWeight = "bold";
-      groupCell.style.backgroundColor = "#34495e";
-
-      levelScores.forEach((score, index) => {
-        const row = tbody.insertRow();
-        row.insertCell(0).textContent = "";
-        row.insertCell(1).textContent = score.playername;
-        row.insertCell(2).textContent = formatTime(score.time_score);
-        row.insertCell(3).textContent = `Podlaží ${score.floor}`;
-      });
-    });
-  } catch (error) {
-    console.error("Chyba při načítání skóre:", error.message);
-  }
-}
-
-function groupAndSortScores(scores) {
-  const groupedScores = {};
-  scores.forEach((score) => {
-    if (!groupedScores[score.levelname]) {
-      groupedScores[score.levelname] = [];
-    }
-    groupedScores[score.levelname].push(score);
-  });
-
-  // Seřadíme skóre v každé skupině
-  Object.values(groupedScores).forEach((group) => {
-    group.sort((a, b) => a.time_score - b.time_score);
-  });
-
-  return groupedScores;
-}
-
-function formatTime(seconds) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-  return `${hours.toString().padStart(2, "0")}:${minutes
-    .toString()
-    .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
-}
-
-function filterScores() {
-  const searchTerm = document
-    .getElementById("mazeSearchInput")
-    .value.toLowerCase();
-  const rows = document.querySelectorAll("#scoreTable tbody tr");
-
-  let currentGroup = "";
-  let isGroupVisible = false;
-
-  rows.forEach((row) => {
-    if (row.cells[0].colSpan === 4) {
-      // Toto je řádek s názvem bludiště
-      currentGroup = row.cells[0].textContent.toLowerCase();
-      isGroupVisible = currentGroup.includes(searchTerm);
-      row.style.display = isGroupVisible ? "" : "none";
-    } else {
-      // Toto je řádek s daty hráče
-      if (isGroupVisible) {
-        const playerName = row.cells[1].textContent.toLowerCase();
-        row.style.display = playerName.includes(searchTerm) ? "" : "none";
-      } else {
-        row.style.display = "none";
-      }
-    }
-  });
-}
-
-function getUrlParameter(name) {
-  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-  var results = regex.exec(location.search);
-  return results === null
-    ? ""
-    : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
-function setUrlParameter(name, value) {
-  const url = new URL(window.location);
-  url.searchParams.set(name, value);
-  window.history.pushState({}, "", url);
-}
-
-function showHintModal() {
-  const hintModal = document.getElementById("hintModal");
-  const hintContent = document.getElementById("hintContent");
-  hintContent.innerHTML = generateHintContent();
-  hintModal.style.display = "block";
-}
-
-function hideHintModal() {
-  document.getElementById("hintModal").style.display = "none";
-}
-
-function generateHintContent() {
-  let content = `
-    <h3>${getTranslation("hintTitle")}</h3>
-    <p>${getTranslation("hintKeys", [totalKeys])}</p>
-    <p>${getTranslation("hintTeleports", [teleportPairsCount * 2])}</p>
-    <h3>${getTranslation("bosses", [bosses.length])}</h3>
-  `;
-
-  bosses.forEach((boss) => {
-    content += `
-      <div class="boss-info">
-        <h4>${boss.type.name}</h4>
-        <p>${getTranslation("bossHealth", [boss.maxHealth])}</p>
-        <p>${getTranslation("specialAttacks")} ${getReadableAttackNames(
-      boss.type.specialAttacks
-    )
-        .map((name) => `<span class="attack-name">${name}</span>`)
-        .join(", ")}</p>
-        <p class="tactic">${getTranslation("tactics")} ${getBossTactics(
-          boss.type.specialAttacks
-        )}</p>
-      </div>
-    `;
-  });
-
-  content += `
-    <h3>${getTranslation("hintTips")}</h3>
-    <ul>
-      <li>${getTranslation("hintTip1")}</li>
-      <li>${getTranslation("hintTip2")}</li>
-      <li>${getTranslation("hintTip3")}</li>
-      <li>${getTranslation("hintTip4")}</li>
-      <li>${getTranslation("hintTip5")}</li>
-    </ul>
-  `;
-
-  return content;
-}
-
-function getReadableAttackNames(attacks) {
-  const attackNames = {
-    multiShot: getTranslation("multiShot"),
-    aoeBlast: getTranslation("aoeBlast"),
-    teleport: getTranslation("teleport"),
-    frostbolt: getTranslation("frostbolt"),
-    magicArrow: getTranslation("magicArrow"),
-  };
-  return attacks.map((attack) => attackNames[attack] || attack);
-}
-function getBossTactics(specialAttacks) {
-  let tactics = [];
-  specialAttacks.forEach((attack) => {
-    switch (attack) {
-      case "multiShot":
-        tactics.push(getTranslation("multiShotTactic"));
-        break;
-      case "aoeBlast":
-        tactics.push(getTranslation("aoeBlastTactic"));
-        break;
-      case "teleport":
-        tactics.push(getTranslation("teleportTactic"));
-        break;
-      case "frostbolt":
-        tactics.push(getTranslation("frostboltTactic"));
-        break;
-      case "magicArrow":
-        tactics.push(getTranslation("magicArrowTactic"));
-        break;
-      default:
-        tactics.push(getTranslation("defaultTactic"));
-    }
-  });
-  return tactics.join(" ");
-}
 
 let showFPS = false;
 let fpsCounter;
@@ -3045,54 +2455,6 @@ export function requestPointerLock() {
 }
 export function exitPointerLock() {
   document.exitPointerLock();
-}
-
-// Upravte funkci showSettingsModal
-function showSettingsModal() {
-  exitPointerLock();
-  document.getElementById("lightSettings").value =
-    MAX_VISIBLE_LIGHTS.toString();
-  document.getElementById("qualitySettings").value = qualityFactor.toString();
-  document.getElementById("settingsModal").style.display = "block";
-}
-
-function hideSettingsModal() {
-  requestPointerLock();
-  document.getElementById("settingsModal").style.display = "none";
-}
-
-// Upravte funkci saveSettings
-function saveSettings() {
-  MAX_VISIBLE_LIGHTS = parseInt(document.getElementById("lightSettings").value);
-  localStorage.setItem("maxVisibleLights", MAX_VISIBLE_LIGHTS.toString());
-  lightManager.maxVisibleLights = MAX_VISIBLE_LIGHTS;
-
-  qualityFactor = parseFloat(document.getElementById("qualitySettings").value);
-  localStorage.setItem("qualityFactor", qualityFactor.toString());
-  setQuality(qualityFactor);
-
-  hideSettingsModal();
-}
-
-// Upravte funkci setQuality
-function setQuality(factor) {
-  qualityFactor = factor;
-
-  // Nastavení velikosti rendereru
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  // Nastavení rozlišení rendereru
-  renderer.setPixelRatio(window.devicePixelRatio * qualityFactor);
-
-  // Aktualizace poměru stran kamery
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-
-  // Aktualizace efektů post-processingu, pokud jsou použity
-  if (composer) {
-    composer.setSize(window.innerWidth, window.innerHeight);
-    composer.setPixelRatio(window.devicePixelRatio * qualityFactor);
-  }
 }
 
 function toggleConsole() {
