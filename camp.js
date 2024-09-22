@@ -578,12 +578,34 @@ function createTrees() {
     const treeModel = gltf.scene;
     const treePositions = generateTreePositions();
 
-    treePositions.forEach((pos) => {
-      const tree = treeModel.clone();
-      tree.position.set(pos.x, 0, pos.z);
-      const randomHeight = 0.8 + Math.random() * 0.2;
-      tree.scale.set(1, randomHeight, 1);
-      scene.add(tree);
+    const meshes = [];
+
+    // Shromáždění všech meshů z modelu stromu
+    treeModel.traverse((child) => {
+      if (child.isMesh) {
+        meshes.push(child);
+      }
+    });
+
+    meshes.forEach((mesh) => {
+      // Klonování geometrie a aplikace původní transformace
+      const geometry = mesh.geometry.clone();
+      geometry.applyMatrix4(mesh.matrixWorld);
+      const material = mesh.material;
+
+      const instancedMesh = new THREE.InstancedMesh(geometry, material, treePositions.length);
+
+      const dummy = new THREE.Object3D();
+      treePositions.forEach((pos, i) => {
+        const randomHeight = 0.8 + Math.random() * 0.2;
+        dummy.position.set(pos.x, 0, pos.z);
+        dummy.scale.set(1, randomHeight, 1);
+        dummy.updateMatrix();
+        instancedMesh.setMatrixAt(i, dummy.matrix);
+      });
+
+      instancedMesh.instanceMatrix.needsUpdate = true;
+      scene.add(instancedMesh);
     });
   });
 }

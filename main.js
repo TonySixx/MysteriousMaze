@@ -1210,7 +1210,7 @@ function createMaze(inputText = "", selectedFloor = 1) {
 
   // Přidejte mlhovinu
   nebulaMaterial = addNebula();
-  addFloatingObjects();
+  addStarsToNebula();
 
   // Přidejte mlhu
   scene.fog = new THREE.FogExp2(0x000000, 0.05); // Zvýšili jsme hustotu mlhy
@@ -2341,50 +2341,41 @@ function animateFire(deltaTime) {
 
 let floatingObjects = [];
 
-function addFloatingObjects() {
+function addStarsToNebula() {
   // Nejprve odstraníme staré objekty, pokud existují
   floatingObjects.forEach((obj) => scene.remove(obj));
   floatingObjects = [];
 
-  const geometries = [
-    new THREE.TetrahedronGeometry(0.5),
-    new THREE.OctahedronGeometry(0.5),
-    new THREE.DodecahedronGeometry(0.5),
-  ];
+  const starCount = 500;
+  const starGeometry = new THREE.BufferGeometry();
+  const starMaterial = new THREE.PointsMaterial({
+    color: 0x000000,  // Změníme barvu na černou
+    size: 0.4,
+    sizeAttenuation: true,
+  });
 
-  for (let i = 0; i < 100; i++) {
-    const geometry = geometries[Math.floor(Math.random() * geometries.length)];
-    const material = new THREE.MeshStandardMaterial({
-      color: Math.random() * 0xffffff,
-      metalness: 0.7,
-      roughness: 0.3,
-    });
-    const object = new THREE.Mesh(geometry, material);
+  const positions = new Float32Array(starCount * 3);
 
-    object.position.set(
-      (Math.random() - 0.5) * MAZE_SIZE * CELL_SIZE * 3,
-      Math.random() * MAZE_SIZE * CELL_SIZE,
-      (Math.random() - 0.5) * MAZE_SIZE * CELL_SIZE * 3
-    );
+  for (let i = 0; i < starCount; i++) {
+    const radius = MAZE_SIZE * CELL_SIZE * 1.3 * (1 + Math.random());
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(Math.random() * 2 - 1);
 
-    object.rotation.set(
-      Math.random() * 2 * Math.PI,
-      Math.random() * 2 * Math.PI,
-      Math.random() * 2 * Math.PI
-    );
-
-    object.userData.rotationSpeed = {
-      x: (Math.random() - 0.5) * 0.02,
-      y: (Math.random() - 0.5) * 0.02,
-      z: (Math.random() - 0.5) * 0.02,
-    };
-
-    object.userData.floatSpeed = (Math.random() - 0.5) * 0.05;
-
-    scene.add(object);
-    floatingObjects.push(object);
+    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+    positions[i * 3 + 2] = radius * Math.cos(phi);
   }
+
+  starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  scene.add(stars);
+  floatingObjects.push(stars);
+
+  // Odstraníme animaci třpytu, protože hvězdy jsou nyní černé a nesvítí
+  stars.userData.animate = () => {};
 }
+
 function addNebula() {
   const geometry = new THREE.SphereGeometry(1500, 32, 32);
   const material = new THREE.ShaderMaterial({
@@ -2679,19 +2670,6 @@ function animate() {
   resetStaffColor();
   updateStaffColor(deltaTime);
 
-  // Animace létajících objektů
-  floatingObjects.forEach((obj) => {
-    obj.rotation.x += obj.userData.rotationSpeed.x * (deltaTime * 30);
-    obj.rotation.y += obj.userData.rotationSpeed.y * (deltaTime * 50);
-    obj.rotation.z += obj.userData.rotationSpeed.z * (deltaTime * 30);
-
-    obj.position.y += obj.userData.floatSpeed * (deltaTime * 30);
-
-    // Pokud objekt vyletí příliš vysoko nebo nízko, obrátíme směr
-    if (obj.position.y > MAZE_SIZE * CELL_SIZE || obj.position.y < 0) {
-      obj.userData.floatSpeed *= -1;
-    }
-  });
 
   // Animace všech částicových efektů ve scéně
   scene.children.forEach((child) => {

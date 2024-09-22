@@ -23,6 +23,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  background-color: #000;
   background-image: url('/mainMenu.webp');
   background-size: 120% 120%;
   background-position: center;
