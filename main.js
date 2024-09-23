@@ -70,7 +70,7 @@ import { createMainMenu } from "./mainMenu.js";
 import { textureSets } from "./globals.js";
 import { displayScores, filterScores, hideHintModal, hideScoreModal, hideSettingsModal, saveSettings, setQuality, showHintModal, showNameModal, showScoreModal, showSettingsModal } from "./modals.js";
 import { addExperienceForCompletion, drawMinimap, getBestTime, getUrlParameter, removeFreezeEffect, setUrlParameter, submitScore, updateFreezeEffect, updateMagicBalls } from "./utils.js";
-import { createMainBossRoom, MainBoss } from "./mainBoss.js";
+import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
 
 export const version = "1.3.1";
 
@@ -183,6 +183,24 @@ export function setTotalKeys(value) {
 
 export function setMazeSize(value) {
   MAZE_SIZE = value;
+}
+
+function getSelectedFloorText() {
+  switch (selectedFloor) {
+    case 999:
+      return getTranslation("floorCamp");
+    case 100:
+      return getTranslation("bossFloor1");
+    case 101:
+      return getTranslation("bossFloor2");
+    case 102:
+      return getTranslation("bossFloor3");
+    case 103:
+      return getTranslation("bossFloor4");
+    default:
+      return `${getTranslation("selectFloor")} ${selectedFloor}`;
+  }
+
 }
 
 function loadSettings() {
@@ -366,10 +384,7 @@ export async function init() {
     camera.add(crosshair);
 
     initPlayerUI();
-    showFloorSelectBtn.textContent =
-      selectedFloor === 999
-        ? getTranslation("floorCamp")
-        : `${getTranslation("selectFloor")} ${selectedFloor}`;
+    showFloorSelectBtn.textContent = getSelectedFloorText();
     updateFloorOptions();
     updateSpellUpgrades(skillTree);
 
@@ -676,17 +691,12 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
   const seed = getHash(inputText);
   let rng = new seedrandom(seed);
 
-  if (selectedFloor % 10 === 0 && selectedFloor <= 40) {
-    // Vytvoření místnosti s hlavním bossem pro každé desáté podlaží
-    const mainBossRoom = createMainBossRoom();
+  if (selectedFloor >= 100 && selectedFloor <= 200) {
+    const mainBossRoom = createMainBossRoom(rng);
     scene.add(mainBossRoom);
 
-    const mainBossPosition = new THREE.Vector3(0, 0.5, 0);
-    const mainBoss = new MainBoss(mainBossPosition, bossCounter, rng, selectedFloor);
-    bosses.push(mainBoss);
-    setBossCounter(bossCounter + 1);
-
-
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
   }
   else {
 
@@ -908,10 +918,12 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     goal.userData.isGoal = true;
     placeObjectInFreeCell(goal, rng);
     scene.add(goal);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambientLight);
   }
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-  scene.add(ambientLight);
+
 
   // Přidejte mlhovinu
   nebulaMaterial = addNebula();
@@ -2083,7 +2095,7 @@ function animate() {
     lightManager.update(player.position, camera); // Aktualizace světel každý druhý snímek
   }
   frameCountForAnimation = (frameCountForAnimation + 1) % 2
-  
+
 
   updateVisibleObjects();
 
@@ -2232,10 +2244,10 @@ function canSelectFloor(floor) {
   if (floor === 2 && playerLevel >= 7) return true;
   if (floor === 3 && playerLevel >= 12) return true;
   if (floor === 4 && playerLevel >= 16) return true;
-  if (floor === 10 && playerLevel >= 1) return true;
-  if (floor === 20 && playerLevel >= 20) return true;
-  if (floor === 30 && playerLevel >= 30) return true;
-  if (floor === 40 && playerLevel >= 40) return true;
+  if (floor === 100 && playerLevel >= 7) return true;
+  if (floor === 101 && playerLevel >= 12) return true;
+  if (floor === 102 && playerLevel >= 16) return true;
+  if (floor === 103 && playerLevel >= 20) return true;
   return false;
 }
 

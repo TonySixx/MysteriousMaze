@@ -1,7 +1,7 @@
 import { addGold, expToNextLevel, getGold, getPlayerLevel, playerExp, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
-import { activateSoundBuffer, breakSoundBuffer,  changeStaffColor, coinSoundBuffer,  errorSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
+import { activateSoundBuffer, breakSoundBuffer,  changeStaffColor, coinSoundBuffer,  errorSoundBuffer, exitPointerLock, itemSoundBuffer, manager, playSound, requestPointerLock, successSoundBuffer } from './main.js';
 import { getItemName, itemDatabase, getDefaultPlayerPreview, ITEM_TYPES } from './itemDatabase.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { setOriginalStaffRotation } from './spells.js';
@@ -1043,7 +1043,7 @@ function updateWeaponModel() {
     }
 
     // Načteme nový model
-    const loader = new GLTFLoader();
+    const loader = new GLTFLoader(manager);
     loader.load(modelInfo.modelPath, (gltf) => {
       if (staffModel) {
         camera.remove(staffModel);

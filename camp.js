@@ -11,6 +11,7 @@ import {
   itemSoundBuffer,
   keys,
   LightManager,
+  manager,
   playSound,
   requestPointerLock,
   WALL_HEIGHT,
@@ -165,7 +166,7 @@ function createTents() {
 
 function createMerchant() {
   const merchantPosition = { x: 0, y: 0, z: 2 };
-  const gltfLoader = new GLTFLoader();
+  const gltfLoader = new GLTFLoader(manager);
   gltfLoader.load("models/merchant.glb", (gltf) => {
     const merchant = gltf.scene;
     merchant.position.set(
@@ -284,7 +285,7 @@ function createMerchant() {
 
 function createArmorMerchant() {
   const armorMerchantPosition = { x: 5.5, y: 0, z: -5.5 }; // Pozice před jedním ze stanů
-  const gltfLoader = new GLTFLoader();
+  const gltfLoader = new GLTFLoader(manager);
   gltfLoader.load("models/armor_npc.glb", (gltf) => {
     const armorMerchant = gltf.scene;
     armorMerchant.position.set(
@@ -572,7 +573,7 @@ export function createTorchOnCenterTower(x, z, towerHeight, dir) {
 }
 
 function createTrees() {
-  const gltfLoader = new GLTFLoader();
+  const gltfLoader = new GLTFLoader(manager);
   gltfLoader.load("models/Tree.glb", (gltf) => {
     const treeModel = gltf.scene;
     const treePositions = generateTreePositions();

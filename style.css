@@ -193,9 +193,6 @@ canvas {
 
 #generateMaze {
   padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
   border-radius: 5px;
 }
 
@@ -288,9 +285,6 @@ canvas {
 #saveSettings {
   margin-top: 10px;
   padding: 5px 10px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
   border-radius: 5px;
 }
 
@@ -549,9 +543,7 @@ canvas {
 }
 
 button {
-  background-color: #4CAF50;
   color: white;
-  border: none;
   padding: 5px 10px;
   text-align: center;
   text-decoration: none;
@@ -561,9 +553,21 @@ button {
   border-radius: 3px;
   position: relative;
   margin-top: 5px;
+  background-color: #1e1e1e;
+  color: #c8a97e;
+  border: 1px solid #c8a97e;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #c8a97e;
+  color: #1e1e1e;
 }
 
 button:disabled {
+  color:white;
+  border: 1px solid #a1a1a1;;
   background-color: #a1a1a1;
   cursor: not-allowed;
 }

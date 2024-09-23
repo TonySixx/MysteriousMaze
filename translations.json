@@ -59,6 +59,7 @@
     "requiresLevel7": "Requires level 7",
     "requiresLevel12": "Requires level 12",
     "requiresLevel16": "Requires level 16",
+    "requiresLevel20": "Requires level 20",
     "high": "High",
     "medium": "Medium",
     "low": "Low",
@@ -167,7 +168,14 @@
     "itemNoLongerExists": "The item no longer exists in the inventory.",
     "protectorsLapisia": "Protector's Lapisia",
     "powerLapisia": "Power Lapisia",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "bossFloor1": "Shadow Demon",
+    "bossFloor2": "Celestial Guardian",
+    "bossFloor3": "Ethereal Demon",
+    "bossFloor4": "Quantum Guardian",
+    "mazeFloors": "Maze floors",
+    "campArea": "Camp area",
+    "bossFloors": "Bosses"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -228,6 +236,7 @@
     "requiresLevel7": "Vyžaduje úroveň 7",
     "requiresLevel12": "Vyžaduje úroveň 12",
     "requiresLevel16": "Vyžaduje úroveň 16",
+    "requiresLevel20": "Vyžaduje úroveň 20",
     "high": "Vysoké",
     "medium": "Střední",
     "low": "Nízké",
@@ -337,6 +346,13 @@
     "itemNoLongerExists": "Předmět již neexistuje v inventáři.",
     "protectorsLapisia": "Lapísia Ochrany",
     "powerLapisia": "Lapísia Síly",
-    "loading": "Načítání..."
+    "loading": "Načítání...",
+    "bossFloor1": "Stínový démon",
+    "bossFloor2": "Nebeský strážce",
+    "bossFloor3": "Eternální démon",
+    "bossFloor4": "Kvantový strážce",
+    "mazeFloors": "Podlaží bludiště",
+    "campArea": "Tábor",
+    "bossFloors": "Bossové"
   }
 }

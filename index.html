@@ -92,46 +92,72 @@
   <canvas id="minimap" width="350" height="350"
     style="position: absolute; bottom: 25px; right: 10px; display: none; background-color: rgba(211, 211, 211, 0.7);"></canvas>
 
-  <div id="floorSelectModal" class="modal">
-    <div class="modal-content floor-select-content">
-      <span class="close">&times;</span>
-      <h2 data-translate="selectFloorTitle">Vyberte podlaží</h2>
-      <div class="floor-options">
-        <div class="floor-option" data-floor="1">
-          <div class="floor-image floor-1"></div>
-          <h3 data-translate="floor1">Podlaží 1</h3>
-          <p data-translate="availableAllLevels">Dostupné pro všechny úrovně</p>
+    <div id="floorSelectModal" class="modal">
+      <div class="modal-content floor-select-content">
+        <span class="close">&times;</span>
+        <h2 data-translate="selectFloorTitle">Vyberte podlaží</h2>
+        <div class="floor-group">
+          <h2 data-translate="campArea">Tábor</h2>
+          <div class="floor-options">
+            <div class="floor-option camp-floor" data-floor="999">
+              <div class="floor-icon">⛺</div>
+              <h3 data-translate="floorCamp">Tábor</h3>
+              <p data-translate="availableAllLevels">Dostupné pro všechny úrovně</p>
+            </div>
+          </div>
         </div>
-        <div class="floor-option" data-floor="2">
-          <div class="floor-image floor-2"></div>
-          <h3 data-translate="floor2">Podlaží 2</h3>
-          <p data-translate="requiresLevel7">Vyžaduje úroveň 7</p>
+        <div class="floor-group">
+          <h2 data-translate="mazeFloors">Podlaží Bludiště</h2>
+          <div class="floor-options">
+            <div class="floor-option maze-floor" data-floor="1">
+              <div class="floor-icon">🔴</div>
+              <h3 data-translate="floor1">Podlaží 1</h3>
+              <p data-translate="availableAllLevels">Dostupné pro všechny úrovně</p>
+            </div>
+            <div class="floor-option maze-floor" data-floor="2">
+              <div class="floor-icon">🟠</div>
+              <h3 data-translate="floor2">Podlaží 2</h3>
+              <p data-translate="requiresLevel7">Vyžaduje úroveň 7</p>
+            </div>
+            <div class="floor-option maze-floor" data-floor="3">
+              <div class="floor-icon">🟡</div>
+              <h3 data-translate="floor3">Podlaží 3</h3>
+              <p data-translate="requiresLevel12">Vyžaduje úroveň 12</p>
+            </div>
+            <div class="floor-option maze-floor" data-floor="4">
+              <div class="floor-icon">🟢</div>
+              <h3 data-translate="floor4">Podlaží 4</h3>
+              <p data-translate="requiresLevel16">Vyžaduje úroveň 16</p>
+            </div>
+          </div>
         </div>
-        <div class="floor-option" data-floor="3">
-          <div class="floor-image floor-3"></div>
-          <h3 data-translate="floor3">Podlaží 3</h3>
-          <p data-translate="requiresLevel12">Vyžaduje úroveň 12</p>
+        <div class="floor-group">
+          <h2 data-translate="bossFloors">Bosové</h2>
+          <div class="floor-options">
+            <div class="floor-option boss-floor" data-floor="100">
+              <div class="floor-icon">🐉</div>
+              <h3 data-translate="bossFloor1">Ohnivý drak</h3>
+              <p data-translate="requiresLevel7">Vyžaduje úroveň 7</p>
+            </div>
+            <div class="floor-option boss-floor" data-floor="101">
+              <div class="floor-icon">🐉</div>
+              <h3 data-translate="bossFloor2">Ledový golem</h3>
+              <p data-translate="requiresLevel12">Vyžaduje úroveň 12</p>
+            </div>
+            <div class="floor-option boss-floor" data-floor="102">
+              <div class="floor-icon">🐉</div>
+              <h3 data-translate="bossFloor3">Stínový démon</h3>
+              <p data-translate="requiresLevel16">Vyžaduje úroveň 16</p>
+            </div>
+            <div class="floor-option boss-floor" data-floor="103">
+              <div class="floor-icon">🐉</div>
+              <h3 data-translate="bossFloor4">Nebeský strážce</h3>
+              <p data-translate="requiresLevel20">Vyžaduje úroveň 20</p>
+            </div>
+          </div>
         </div>
-        <div class="floor-option" data-floor="4">
-          <div class="floor-image floor-4"></div>
-          <h3 data-translate="floor4">Podlaží 4</h3>
-          <p data-translate="requiresLevel16">Vyžaduje úroveň 16</p>
-        </div>
-        <div class="floor-option" data-floor="999">
-          <div class="floor-image floor-camp"></div>
-          <h3 data-translate="floorCamp">Tábor</h3>
-          <p data-translate="availableAllLevels">Dostupné pro všechny úrovně</p>
-        </div>
-      </div>
-      <h3 data-i18n="bossFloors">Podlaží s bossy</h3>
-      <div class="floor-options">
-          <button class="boss-floor-option" data-floor="10">10</button>
-          <button class="boss-floor-option" data-floor="20">20</button>
-          <button class="boss-floor-option" data-floor="30">30</button>
-          <button class="boss-floor-option" data-floor="40">40</button>
       </div>
     </div>
-  </div>
 
   <div id="hintModal" class="modal">
     <div class="modal-content">

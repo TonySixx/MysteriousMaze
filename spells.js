@@ -9,7 +9,7 @@ import chainLightningIcon from './public/spells/chain-lightning-icon.png';
 import { setPlayerMana, updatePlayerManaBar, playerMana } from "./player.js"
 import { bosses } from "./boss.js";
 import { calculateSpellDamage, isSpellUnlocked } from "./skillTree.js";
-import { createCastEffect, createExplosion, getCameraDirection } from "./utils.js";
+import { checkProjectileCollisionWithBosses, createCastEffect, createExplosion, getCameraDirection } from "./utils.js";
 
 export let fireBalls = [];
 export let frostBalls = [];
@@ -48,7 +48,7 @@ var spells = [
   new Spell('Fireball', fireballIcon, 'LMB', 500, "fireball", castFireball, 100),
   new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, "arcaneMissile", castArcaneMissile, 50),
   new Spell('Frostbolt', frostboltIcon, 'E', 5000, "frostbolt", castFrostbolt, 0),
-  new Spell('Chain Lightning', chainLightningIcon, 'R', 8000, "chainLightning", castChainLightning,300)
+  new Spell('Chain Lightning', chainLightningIcon, 'R', 8000, "chainLightning", castChainLightning, 300)
 ];
 
 // Funkce pro získání aktivních kouzel
@@ -457,7 +457,7 @@ function castArcaneMissile() {
       staffModel.getWorldPosition(staffWorldPosition);
       arcaneMissile.position.copy(staffWorldPosition);
       arcaneMissile.position.y += 0.3;
-      
+
       const cameraDirection = getCameraDirection();
       const leftVector = new THREE.Vector3().crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
       arcaneMissile.position.addScaledVector(leftVector, -0.1);
@@ -500,28 +500,30 @@ function updateFireballs(deltaTime) {
 
     // Kolize s bossy
     for (let boss of bosses) {
-      if (boss.model && fireball.position.distanceTo(boss.model.position) < 1.4) {
-        createExplosion(fireball.position);
-        boss.takeDamage(fireball.damage, fireball.burningEffect);
-        if (fireball.explosiveCore) {
-          // Způsobí poškození všem bossům v okruhu 3 metrů
-          createFireballExplosion(fireball.position);
+      if (boss.model) {
+        if (checkProjectileCollisionWithBosses(fireball, boss)) {
+          createExplosion(fireball.position);
+          boss.takeDamage(fireball.damage, fireball.burningEffect);
+          if (fireball.explosiveCore) {
+            // Způsobí poškození všem bossům v okruhu 3 metrů
+            createFireballExplosion(fireball.position);
 
-          bosses.forEach(nearbyBoss => {
-            if (nearbyBoss.model.position.distanceTo(fireball.position) <= 3) {
-              nearbyBoss.takeDamage(fireball.damage * 0.5);
-            }
-          });
+            bosses.forEach(nearbyBoss => {
+              if (nearbyBoss.model.position.distanceTo(fireball.position) <= 3) {
+                nearbyBoss.takeDamage(fireball.damage * 0.5);
+              }
+            });
+          }
+
+          scene.remove(fireball);
+          fireBalls.splice(i, 1);
+          break;
         }
-
-        scene.remove(fireball);
-        fireBalls.splice(i, 1);
-        break;
       }
     }
 
     // Detekce kolize s podlahou a stropem
-    const noFloorCheck = (selectedFloor === 999 || selectedFloor % 10 === 0);
+    const noFloorCheck = getNoFloorCheck();
     const ceilingHeight = noFloorCheck ? WALL_HEIGHT * 5 : isHighWallArea(fireball.position.x, fireball.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
     if (fireball.position.y <= 0 || fireball.position.y >= ceilingHeight) {
       // Vytvoření výbuchu při kolizi
@@ -571,7 +573,7 @@ function updateFrostbolts(deltaTime) {
     frostbolt.userData.animate();
 
     for (let boss of bosses) {
-      if (boss.model && frostbolt.position.distanceTo(boss.model.position) < 1.4) {
+      if (checkProjectileCollisionWithBosses(frostbolt, boss)) {
         createExplosion(frostbolt.position, 0xa6d9ff);
         boss.freeze();
         if (frostbolt.iceExplosion) {
@@ -584,7 +586,7 @@ function updateFrostbolts(deltaTime) {
       }
     }
 
-    const noFloorCheck = (selectedFloor === 999 || selectedFloor % 10 === 0);
+    const noFloorCheck = getNoFloorCheck();
     const ceilingHeight = noFloorCheck ? WALL_HEIGHT * 5 : isHighWallArea(frostbolt.position.x, frostbolt.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
     if (frostbolt.position.y <= 0 || frostbolt.position.y >= ceilingHeight) {
       createExplosion(frostbolt.position, 0xa6d9ff);
@@ -617,7 +619,7 @@ function updateArcaneMissiles(deltaTime) {
     arcaneMissile.userData.animate();
 
     for (let boss of bosses) {
-      if (boss.model && arcaneMissile.position.distanceTo(boss.model.position) < 1.4) {
+     if (checkProjectileCollisionWithBosses(arcaneMissile, boss)) {
         createExplosion(arcaneMissile.position, 0xf7c6bfa);
         scene.remove(arcaneMissile);
         arcaneMissiles.splice(i, 1);
@@ -626,7 +628,7 @@ function updateArcaneMissiles(deltaTime) {
       }
     }
 
-    const noFloorCheck = (selectedFloor === 999 || selectedFloor % 10 === 0);
+    const noFloorCheck = getNoFloorCheck();
     const ceilingHeight = noFloorCheck ? WALL_HEIGHT * 5 : isHighWallArea(arcaneMissile.position.x, arcaneMissile.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
     if (arcaneMissile.position.y <= 0 || arcaneMissile.position.y >= ceilingHeight) {
       createExplosion(arcaneMissile.position, 0xf7c6bfa);
@@ -753,7 +755,7 @@ export function updateChainLightnings(deltaTime) {
 
     // Kolize s bossy
     for (let boss of bosses) {
-      if (boss.model && lightning.position.distanceTo(boss.model.position) < 1.4) {
+     if (checkProjectileCollisionWithBosses(lightning, boss)) {
         createExplosion(lightning.position, 0xbac5ff);
         boss.takeDamage(lightning.damage);
         scene.remove(lightning);
@@ -764,7 +766,7 @@ export function updateChainLightnings(deltaTime) {
     }
 
     // Detekce kolize s podlahou a stropem
-    const noFloorCheck = (selectedFloor === 999 || selectedFloor % 10 === 0);
+    const noFloorCheck = getNoFloorCheck();
     const ceilingHeight = noFloorCheck ? WALL_HEIGHT * 5 : isHighWallArea(lightning.position.x, lightning.position.z) ? WALL_HEIGHT * 2 : WALL_HEIGHT;
     if (lightning.position.y <= 0 || lightning.position.y >= ceilingHeight) {
       // Vytvoření výbuchu při kolizi
@@ -1127,30 +1129,34 @@ export function inspectStaff() {
   const startTime = Date.now();
 
   function animate() {
-      const now = Date.now();
-      const progress = Math.min((now - startTime) / duration, 1);
+    const now = Date.now();
+    const progress = Math.min((now - startTime) / duration, 1);
 
-      if (progress < 1) {
-          // Hlavní rotace kolem osy Y
-          const rotationOffsetY = Math.sin(progress * Math.PI * 2) * maxRotationY;
-          
-          // Jemný oblouk pomocí rotace kolem osy X
-          const rotationOffsetX = Math.sin(progress * Math.PI) * maxRotationX;
+    if (progress < 1) {
+      // Hlavní rotace kolem osy Y
+      const rotationOffsetY = Math.sin(progress * Math.PI * 2) * maxRotationY;
 
-          staffModel.rotation.set(
-              startRotation.x - rotationOffsetX,
-              startRotation.y + rotationOffsetY,
-              startRotation.z
-          );
-          requestAnimationFrame(animate);
-      } else {
-          // Zajistíme, že hůlka se vrátí přesně do původní rotace
-          staffModel.rotation.copy(startRotation);
-          isInspectingStaff = false;
-      }
+      // Jemný oblouk pomocí rotace kolem osy X
+      const rotationOffsetX = Math.sin(progress * Math.PI) * maxRotationX;
+
+      staffModel.rotation.set(
+        startRotation.x - rotationOffsetX,
+        startRotation.y + rotationOffsetY,
+        startRotation.z
+      );
+      requestAnimationFrame(animate);
+    } else {
+      // Zajistíme, že hůlka se vrátí přesně do původní rotace
+      staffModel.rotation.copy(startRotation);
+      isInspectingStaff = false;
+    }
   }
 
   animate();
+}
+
+function getNoFloorCheck(){
+  return selectedFloor === 999 || (selectedFloor >= 100  && selectedFloor <= 200);
 }
 
 export { spells, Spell, castFireball, castFrostbolt, castArcaneMissile, updateFireballs, updateFrostbolts, updateArcaneMissiles };

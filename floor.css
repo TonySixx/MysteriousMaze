@@ -1,150 +1,158 @@
 #showFloorSelect {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    margin-bottom: 10px;
-  }
-  
-  .floor-select-content {
-    background-color: #2c3e50;
-    color: #ecf0f1;
-    max-width: 800px;
-  }
-  
-  .floor-options {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-  }
-  
-  .floor-option {
-    width: 200px;
-    margin: 10px;
-    text-align: center;
-    background-color: rgba(50, 50, 50, 0.7);
-    border-radius: 10px;
-    padding: 10px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .floor-option:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  }
-  
-  .floor-image {
-    width: 100%;
-    height: 150px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .floor-image::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.7) 80%);
-  }
-  
-  .floor-1 {
-    background-color: #2ecc71;
-    background-image: linear-gradient(45deg, #27ae60 25%, transparent 25%, transparent 75%, #27ae60 75%, #27ae60),
-                      linear-gradient(45deg, #27ae60 25%, transparent 25%, transparent 75%, #27ae60 75%, #27ae60);
-    background-size: 60px 60px;
-    background-position: 0 0, 30px 30px;
-  }
-  
-  .floor-2 {
-    background-color: #3498db;
-    background-image: 
-      radial-gradient(circle at 50% 50%, #2980b9 10%, transparent 10%),
-      radial-gradient(circle at 0% 0%, #2980b9 5%, transparent 5%),
-      radial-gradient(circle at 100% 0%, #2980b9 5%, transparent 5%),
-      radial-gradient(circle at 0% 100%, #2980b9 5%, transparent 5%),
-      radial-gradient(circle at 100% 100%, #2980b9 5%, transparent 5%);
-    background-size: 60px 60px;
-  }
-  
-  .floor-3 {
-    background-color: #9b59b6;
-    background-image: 
-      linear-gradient(30deg, #8e44ad 12%, transparent 12.5%, transparent 87%, #8e44ad 87.5%, #8e44ad),
-      linear-gradient(150deg, #8e44ad 12%, transparent 12.5%, transparent 87%, #8e44ad 87.5%, #8e44ad),
-      linear-gradient(30deg, #8e44ad 12%, transparent 12.5%, transparent 87%, #8e44ad 87.5%, #8e44ad),
-      linear-gradient(150deg, #8e44ad 12%, transparent 12.5%, transparent 87%, #8e44ad 87.5%, #8e44ad),
-      linear-gradient(60deg, #9b59b6 25%, transparent 25.5%, transparent 75%, #9b59b6 75%, #9b59b6),
-      linear-gradient(60deg, #9b59b6 25%, transparent 25.5%, transparent 75%, #9b59b6 75%, #9b59b6);
-    background-size: 80px 140px;
-    background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
-  }
-  
-  .floor-4 {
-    background-color: #1a1a2e;
-    background-image: 
-      radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-      radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-      radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
-      radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
-    background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
-    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
-  }
+  padding: 10px 20px;
+  background-color: #1e1e1e;
+  color: #c8a97e;
+  border: 1px solid #c8a97e;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
 
-  .floor-camp {
-    background-color: #8d6e63;
-    background-image: 
-      radial-gradient(#a1887f 15%, transparent 16%),
-      radial-gradient(#a1887f 15%, transparent 16%);
-    background-size: 60px 60px;
-    background-position: 0 0, 30px 30px;
-  }
-  
-  .floor-camp::before {
-    content: '⛺';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 50px;
-    color: #ecf0f1;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
+#showFloorSelect:hover {
+  background-color: #c8a97e;
+  color: #1e1e1e;
+}
 
-  .floor-option h3 {
-    margin: 10px 0;
-    color: #ffd700;
-  }
-  
-  .floor-option p {
-    font-size: 14px;
-    color: #bdc3c7;
-  }
-  
-  .floor-option.locked {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .floor-option.locked:hover {
-    transform: none;
-    box-shadow: none;
-  }
-  
-  .floor-option.locked .floor-image::after {
-    content: '🔒';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 40px;
-    color: #ecf0f1;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
+.floor-select-content {
+  background-color: rgba(0,0,0,0.9);
+  color: #f0e6d2;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 2px solid #c8a97e;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.floor-group {
+  margin-bottom: 30px;
+  border-bottom: 1px solid #c8a97e;
+  padding-bottom: 20px;
+}
+
+.floor-group h2 {
+  text-align: center;
+  color: #e9b266;
+  margin-bottom: 20px;
+  font-size: 24px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.floor-options {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.floor-option {
+  width: 200px;
+  margin: 15px;
+  text-align: center;
+  background-color: rgba(30, 30, 30, 0.8);
+  border: 1px solid #c8a97e;
+  border-radius: 10px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.floor-option:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(200, 169, 126, 0.3);
+}
+
+.floor-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 2;
+}
+
+.floor-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(200, 169, 126, 0.2) 0%, rgba(30, 30, 30, 0) 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.floor-option:hover::before {
+  opacity: 1;
+}
+
+.floor-option h3 {
+  margin: 10px 0;
+  color: #e9b266;
+  font-size: 18px;
+  position: relative;
+  z-index: 2;
+}
+
+.floor-option p {
+  font-size: 14px;
+  color: #bdc3c7;
+  position: relative;
+  z-index: 2;
+}
+
+.floor-option.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.floor-option.locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.floor-option.locked::after {
+  content: '🔒';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 36px;
+  color: #e9b266;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+}
+
+/* Styly pro podlaží bludiště */
+.maze-floor .floor-icon {
+  color: #3498db;
+}
+
+/* Styly pro bossy */
+.boss-floor {
+  border: 2px solid #e74c3c;
+}
+
+.boss-floor .floor-icon {
+  color: #e74c3c;
+}
+
+/* Styly pro tábor */
+.camp-floor .floor-icon {
+  color: #2ecc71;
+}
+
+.close {
+  color: #c8a97e;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+  color: #e9b266;
+  text-decoration: none;
+  cursor: pointer;
+}

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold, getPlayerLevel } from "./player.js"
-import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer } from './main.js';
+import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer, manager } from './main.js';
 import { getTranslation } from "./langUtils.js";
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
@@ -199,21 +199,27 @@ class Boss {
         this.slowEndTime = 0;
         this.slowParticles = null;
         this.type = type || this.selectBossType(floor, rng);
+        this.originalMaterial = null;
+        this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
+        this.attackCooldown = this.type.attackCooldown;
+        this.attackSpeed = this.type.attackSpeed;
+        this.attackSize = this.type.attackSize || 0.2;
+        this.bossHitBoxMarginXZ = this.type.bossHitBoxMarginXZ || 1.4;
+        this.bossHitBoxMarginY = this.type.bossHitBoxMarginY || 1.4;
 
 
         if (!this.isMainBoss) {
             this.maxHealth = this.generateHealth(rng);
             this.health = this.maxHealth;
-            this.attackCooldown = this.type.attackCooldown;
             this.teleportCooldown = 2000;
             this.lastTeleportTime = 0;
-            this.originalMaterial = null;
-            this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
+            //this.frozenMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEFA, emissive: 0xa1c3ff, emissiveIntensity: 1, transparent: true, opacity: 0.6 });
             this.loadModel();
+            this.changeDirection();
+            this.createHealthUI();
         }
 
-        this.changeDirection();
-        this.createHealthUI();
+      
     }
 
     selectBossType(floor, rng) {
@@ -273,7 +279,7 @@ class Boss {
     }
 
     loadModel() {
-        const loader = new GLTFLoader();
+        const loader = new GLTFLoader(manager);
         loader.load('models/Dragon.glb', (gltf) => {
             this.model = gltf.scene;
             this.model.position.copy(this.position);
@@ -674,7 +680,7 @@ class Boss {
             this.attackAction.setLoop(THREE.LoopOnce);
         }
         playSound(bossSoundBuffer);
-        const magicBall = this.createMagicBall(this.position, player.position);
+        const magicBall = this.createMagicBall(this.position, player.position,this.attackSpeed,this.attackSize);
         scene.add(magicBall);
         magicBalls.push(magicBall);
     }
@@ -933,10 +939,11 @@ class Boss {
     }
 
 
-    createMagicBall(startPosition, targetPosition) {
-        const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-        const material = new THREE.MeshBasicMaterial({
-            color: this.type.attackColor, emissive: this.type.attackColor,
+    createMagicBall(startPosition, targetPosition,magicBallSpeed = null,ballSize = 0.2) {
+        const geometry = new THREE.SphereGeometry(ballSize, 32, 32);
+        const material = new THREE.MeshStandardMaterial({
+            color: this.type.attackColor,
+            emissive: this.type.attackColor,
             emissiveIntensity: this.type.emissiveIntensity || 2
         });
         const magicBall = new THREE.Mesh(geometry, material);
@@ -946,7 +953,7 @@ class Boss {
         const direction = new THREE.Vector3().subVectors(targetPosition, startPosition).normalize();
 
         // Nastavení rychlosti na základě rng, v rozmezí 0.2 - 0.3
-        const speed = 0.2 + this.rng() * 0.1;
+        const speed = magicBallSpeed ? magicBallSpeed : 0.2 + this.rng() * 0.1;
         magicBall.velocity = direction.multiplyScalar(speed);
 
         return magicBall;
@@ -976,7 +983,7 @@ class Boss {
             nextPosition.z < -halfMazeSize || nextPosition.z > halfMazeSize
         ) {
             this.changeDirection(); // Pokud by boss opustil hranice bludiště, změní směr
-        } else if (!this.checkCollisionOnMove(nextPosition)) {
+        } else if (!this.checkCollisionOnMove(nextPosition,collisionOffset)) {
             this.position.add(moveStep);
             this.model.position.copy(this.position);
         } else {
@@ -1004,7 +1011,7 @@ class Boss {
         }
     }
 
-    update(deltaTime) {
+    update(deltaTime,collisionOffset = 1) {
         this.updateSlowParticles(deltaTime);
         if (this.isFrozen) return;
 
@@ -1028,7 +1035,7 @@ class Boss {
         if (canSeePlayer(this.position, player.position)) {
             this.attack();
         } else {
-            this.move(deltaTime);
+            this.move(deltaTime,collisionOffset);
         }
     }
 

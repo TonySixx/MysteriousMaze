@@ -307,7 +307,7 @@ function createPlayer() {
         return;
     }
 
-    if (selectedFloor % 10 === 0) { //Boss floor
+    if (selectedFloor >= 100  && selectedFloor <= 200) { //Boss floor
         player.position.set(0, 0, 10 - (CELL_SIZE / 2));
         return;
     }
@@ -397,10 +397,19 @@ function updatePlayerPosition(deltaTime) {
         }
 
 
-        if (moveForward) playerVelocity.z -= speed * deltaTime;
-        if (moveBackward) playerVelocity.z += speed * deltaTime;
-        if (moveLeft) playerVelocity.x -= speed * deltaTime;
-        if (moveRight) playerVelocity.x += speed * deltaTime;
+        // Upravená část pro normalizaci pohybu
+        let moveVector = new THREE.Vector3(0, 0, 0);
+        if (moveForward) moveVector.z -= 1;
+        if (moveBackward) moveVector.z += 1;
+        if (moveLeft) moveVector.x -= 1;
+        if (moveRight) moveVector.x += 1;
+
+        // Normalizujeme vektor pohybu, pokud se hráč pohybuje
+        if (moveVector.length() > 0) {
+            moveVector.normalize();
+            playerVelocity.x = moveVector.x * speed * deltaTime;
+            playerVelocity.z = moveVector.z * speed * deltaTime;
+        }
 
         playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
     }
