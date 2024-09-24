@@ -280,7 +280,7 @@ class Boss {
     }
 
     loadModel() {
-        const loader = new GLTFLoader(manager);
+        const loader = new GLTFLoader();
         loader.load('models/Dragon.glb', (gltf) => {
             this.model = gltf.scene;
             this.model.position.copy(this.position);

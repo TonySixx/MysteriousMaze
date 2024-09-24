@@ -67,7 +67,7 @@ export class MainBoss extends Boss {
         this.health = type.maxHealth;
         this.isMainBoss = true;
         this.chaseDistance = 15;
-        this.lastSpecialAttackTime = Date.now() + 10000; // Přidáno 60 sekund zpoždění pro první útok
+        this.lastSpecialAttackTime = Date.now()
         this.specialAttackInterval = 20000; // 20 sekund
         this.multiShotCount = 0;
         this.maxMultiShots = 10;
@@ -84,7 +84,7 @@ export class MainBoss extends Boss {
     }
 
     loadMainBossModel() {
-        const loader = new GLTFLoader(manager);
+        const loader = new GLTFLoader();
         loader.load("models/GhostSkull.glb", (gltf) => {
             this.model = gltf.scene;
             this.model.position.copy(this.position);
@@ -168,7 +168,7 @@ export class MainBoss extends Boss {
         }
 
         // Aktualizace a odstranění efektů
-        this.activeEffects = this.activeEffects.filter((effect) => {
+        this.activeEffects = this.activeEffects?.filter((effect) => {
             const isActive = effect.userData.update(deltaTime);
             if (!isActive) {
                 scene.remove(effect);
@@ -208,14 +208,16 @@ export class MainBoss extends Boss {
             interactionText.textContent = "Press 'F' to open chest";
             interactionText.style.display = "none";
             document.body.appendChild(interactionText);
+            var chestOpened = false;
             // Funkce pro kontrolu vzdálenosti hráče od truhly
             function checkPlayerDistance() {
                 const distance = player.position.distanceTo(chest.position);
                 if (distance < 2) {
                     interactionText.style.display = "block";
                     if (keys.f) {
-                        if (checkSpaceInInventory() === true){
-                            openChest(chest);                      
+                        if (chestOpened === false && checkSpaceInInventory(3) === true) {
+                            chestOpened = true;
+                            openChest(chest);
                         }
                         keys.f = false; // Resetujeme stav klávesy, aby se truhla neotevírala opakovaně
                     }
@@ -260,7 +262,7 @@ export class MainBoss extends Boss {
                 }
                 updateChestAnimation();
             }
-        
+
 
             // Přidání portálu po poražení bosse
             const portal = createTeleportModel(0xff8080); // Zelená barva pro portál
@@ -300,12 +302,12 @@ export class MainBoss extends Boss {
             function teleportToCamp() {
                 // Implementace teleportace do kempu
                 setSelectedFloor(999);
-                showFloorSelectBtn.textContent = getTranslation("floorCamp");       
+                showFloorSelectBtn.textContent = getTranslation("floorCamp");
                 playSound(teleportSoundBuffer);
                 generateNewMaze();
             }
 
-           
+
             // Přidání funkce pro kontrolu vzdálenosti do animační smyčky
             function update() {
                 checkPlayerDistance();
@@ -383,36 +385,45 @@ export class MainBoss extends Boss {
         playSound(teleportSoundBuffer);
         const centerPosition = new THREE.Vector3(0, 0.5, 0);
         const spacing = 2; // Rozestup 2 metry
+        const dragonStartHeight = 20; // Výška, ze které draci začnou klesat
         const dragonPositions = [
-            new THREE.Vector3(
-                centerPosition.x - spacing,
-                centerPosition.y,
-                centerPosition.z - spacing
-            ),
-            new THREE.Vector3(
-                centerPosition.x + spacing,
-                centerPosition.y,
-                centerPosition.z - spacing
-            ),
-            new THREE.Vector3(
-                centerPosition.x - spacing,
-                centerPosition.y,
-                centerPosition.z + spacing
-            ),
-            new THREE.Vector3(
-                centerPosition.x + spacing,
-                centerPosition.y,
-                centerPosition.z + spacing
-            ),
+            new THREE.Vector3(centerPosition.x - spacing, centerPosition.y, centerPosition.z - spacing),
+            new THREE.Vector3(centerPosition.x + spacing, centerPosition.y, centerPosition.z - spacing),
+            new THREE.Vector3(centerPosition.x - spacing, centerPosition.y, centerPosition.z + spacing),
+            new THREE.Vector3(centerPosition.x + spacing, centerPosition.y, centerPosition.z + spacing),
         ];
-
-        dragonPositions.forEach((position) => {
+    
+        dragonPositions.forEach((targetPosition) => {
+            const startPosition = targetPosition.clone().setY(dragonStartHeight);
             setBossCounter(bossCounter + 1);
-            const dragon = new Boss(position, bossCounter, this.rng, 1, false, null, true);
+            const dragon = new Boss(startPosition, bossCounter, this.rng, 1, false, null, true);
             dragon.health = dragon.maxHealth;
             bosses.push(dragon);
+    
+            // Animace příletu draka
+            const flyDuration = 2; // Doba letu v sekundách
+            const startTime = Date.now();
+            let animateDragonEntryRequestId = null;
+    
+            function animateDragonEntry() {
+                const elapsedTime = (Date.now() - startTime) / 1000;
+                const progress = Math.min(elapsedTime / flyDuration, 1);
+    
+                dragon.position.lerpVectors(startPosition, targetPosition, progress);
+                if (dragon.model) {
+                    dragon.model.position.copy(dragon.position);
+                }
+    
+                if (progress < 1) {
+                    animateDragonEntryRequestId = requestAnimationFrame(animateDragonEntry);
+                } else {
+                    cancelAnimationFrame(animateDragonEntryRequestId);
+                }
+            }
+    
+            animateDragonEntry();
         });
-
+    
         this.dragonsSpawned = true;
     }
 
@@ -425,12 +436,12 @@ export class MainBoss extends Boss {
                 {
                     particleCount: 50,
                     duration: 0.5,
-                    spread: { x: -0.3, y: 0.3, z: 0.2 },
-                    offset: { x: -1.5, y: 1, z: 0.05 }, // Upravte tyto hodnoty podle potřeby
+                    spread: { x: 0.5, y: 0.3, z: 0.2 },
+                    offset: { x: 0, y: 1, z: 0.05 }, // Upravte tyto hodnoty podle potřeby
                     speedFactor: 2.0,
-                    glowIntensity: 2.0,
-                    minSize: 0.1,
-                    maxSize: 0.12,
+                    glowIntensity: 1,
+                    minSize: 0.2,
+                    maxSize: 0.3,
                 }
             );
             scene.add(castEffectRightHand);
@@ -568,27 +579,49 @@ export function createMainBossRoom(rng) {
     });
 
     // Přidáme časovač pro spawn bosse
+    // Přidáme časovač pro spawn bosse
     const spawnTimeout = setTimeout(() => {
-        const mainBossPosition = new THREE.Vector3(0, 0.5, 0);
+        const mainBossStartPosition = new THREE.Vector3(0, 20, 0); // Začátek vysoko nad místností
+        const mainBossTargetPosition = new THREE.Vector3(0, 0.5, 0); // Cílová pozice na zemi
         setBossCounter(bossCounter + 1);
         const mainBoss = new MainBoss(
-            mainBossPosition,
+            mainBossStartPosition,
             bossCounter,
             rng,
-            selectedFloor,
+            selectedFloor - 100 + 2,
             MAIN_BOSS_TYPES[selectedFloor - 100]
-
         );
         bosses.push(mainBoss);
-    }, 6000);
 
+        // Animace příletu bosse
+        const flyDuration = 3; // Doba letu v sekundách
+        const startTime = Date.now();
+        var animateBossEntryRequestId = null;
+        function animateBossEntry() {
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            const progress = Math.min(elapsedTime / flyDuration, 1);
+
+            mainBoss.position.lerpVectors(mainBossStartPosition, mainBossTargetPosition, progress);
+            if (mainBoss.model) {
+                mainBoss.model.position.copy(mainBoss.position);
+            }
+
+            if (progress < 1) {
+                animateBossEntryRequestId = requestAnimationFrame(animateBossEntry);
+            } else {
+                cancelAnimationFrame(animateBossEntryRequestId);
+            }
+        }
+        playSound(teleportSoundBuffer);
+        animateBossEntry();
+    }, 6000);
     // Spustíme odpočet a uložíme interval
     const countdownInterval = showCountdown(5);
 
     // Vracíme objekt s časovačem a intervalem
     return { room, spawnTimeout, countdownInterval };
 
-    return room;
+
 }
 
 function showCountdown(duration) {
@@ -600,7 +633,7 @@ function showCountdown(duration) {
     countdownElement.style.transform = "translate(-50%, -50%)";
     countdownElement.style.fontSize = "100px";
     countdownElement.style.fontWeight = "bold";
-    countdownElement.style.color = "#ff0000";
+    countdownElement.style.color = "#ee2f2f";
     countdownElement.style.textShadow = "2px 2px 4px #000000";
     countdownElement.style.zIndex = "1000";
     document.body.appendChild(countdownElement);

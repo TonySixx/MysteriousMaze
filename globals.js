@@ -28,6 +28,20 @@ window.merchantAnimationId = null;
 window.armorMerchantAnimationId = null;
 window.bossChestAndPortalAnimationId = null;
 
+window.currentBackgroundMusic = null;
+
+export const floorMusic = {
+  1: "music/msc_lost.mp3",
+  2: "music/msc_lost.mp3",
+  3: "music/msc_lost.mp3",
+  4: "music/msc_lost.mp3",
+  999: "music/msc_camp.mp3",
+  100: "music/msc_boss_fight.mp3",
+  101: "music/msc_boss_fight.mp3",
+  102: "music/msc_boss_fight.mp3",
+  103: "music/msc_boss_fight.mp3"
+};
+
 export const textureSets = [
     {
       wallTexture: "textures/wall.jpg",

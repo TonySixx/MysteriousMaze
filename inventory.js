@@ -1,7 +1,7 @@
 import { addGold, expToNextLevel, getGold, getPlayerLevel, playerExp, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
-import { activateSoundBuffer, breakSoundBuffer,  changeStaffColor, coinSoundBuffer,  errorSoundBuffer, exitPointerLock, itemSoundBuffer, manager, playSound, requestPointerLock, successSoundBuffer } from './main.js';
+import { activateSoundBuffer, breakSoundBuffer,  changeStaffColor, coinSoundBuffer,  errorSoundBuffer, exitPointerLock, itemSoundBuffer, manager, playSound, potionSoundBuffer, requestPointerLock, successSoundBuffer } from './main.js';
 import { getItemName, itemDatabase, getDefaultPlayerPreview, ITEM_TYPES, ITEM_RARITIES } from './itemDatabase.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { setOriginalStaffRotation } from './spells.js';
@@ -962,10 +962,11 @@ function addItemsForTesting() {
 
 }
 
-export function checkSpaceInInventory(){
-  if (inventory.filter((i) => i !== null).length >= INVENTORY_SIZE) {
+export function checkSpaceInInventory(slotsNeeded = 1){
+  const emptySlots = inventory.filter((i) => i === null).length;
+  if (emptySlots < slotsNeeded) {
     playSound(errorSoundBuffer);
-    showMessage(getTranslation("inventoryFull"));
+    showMessage(getTranslation("inventoryFull",slotsNeeded));
     return false;
   }
   return true;
@@ -977,6 +978,7 @@ export function usePotion(type) {
   const cooldown = type === 'hp' ? hpPotionCooldown : mpPotionCooldown;
 
   if (potion && potion.count > 0 && cooldown <= 0) {
+    playSound(potionSoundBuffer,0.6);
     let restoreAmount;
 
     if (typeof potion.restoreAmount === 'number') {
@@ -1059,7 +1061,7 @@ function updateWeaponModel() {
     }
 
     // Načteme nový model
-    const loader = new GLTFLoader(manager);
+    const loader = new GLTFLoader();
     loader.load(modelInfo.modelPath, (gltf) => {
       if (staffModel) {
         camera.remove(staffModel);

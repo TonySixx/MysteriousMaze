@@ -4,6 +4,7 @@ import { addExperience, getPlayerLevel, player, playerHealth, setPlayerHealth, u
 import * as THREE from 'three';
 import { equipment } from "./inventory";
 import { bosses } from "./boss";
+import { floorMusic } from "./globals";
 
 export function destroyAllSideAnimations() {
   if (merchantAnimationId !== null) {
@@ -824,3 +825,22 @@ export function createBossCastEffect(position, color = 0xff0000, options = {}) {
   }, 3000);
 }
 
+export function loadAndPlayMusic(floor,audioLoader) {
+  if (currentBackgroundMusic) {
+    currentBackgroundMusic.stop();
+    currentBackgroundMusic.buffer = null;
+  }
+
+  const musicFile = floorMusic[floor] || "music/msc_lost.mp3";
+
+  audioLoader.load(musicFile, function (buffer) {
+    if (currentBackgroundMusic) {
+      currentBackgroundMusic.disconnect();
+    }
+    currentBackgroundMusic = new THREE.Audio(new THREE.AudioListener());
+    currentBackgroundMusic.setBuffer(buffer);
+    currentBackgroundMusic.setLoop(true);
+    currentBackgroundMusic.setVolume(0.35);
+    currentBackgroundMusic.play();
+  });
+}

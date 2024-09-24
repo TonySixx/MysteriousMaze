@@ -95,6 +95,7 @@ import {
   drawMinimap,
   getBestTime,
   getUrlParameter,
+  loadAndPlayMusic,
   removeFreezeEffect,
   setUrlParameter,
   submitScore,
@@ -190,11 +191,11 @@ export var breakSoundBuffer;
 export var successSoundBuffer;
 export var activateSoundBuffer;
 export var chestSoundBuffer;
+export var potionSoundBuffer;
 
 export var bossSoundBuffer;
 export var aoeBlastSoundBuffer;
 
-export var backgroundMusic;
 let isMusicPlaying = true;
 let footstepsSound;
 
@@ -203,7 +204,7 @@ const floorSelectModal = document.getElementById("floorSelectModal");
 const floorOptions = document.querySelectorAll(".floor-option");
 export let selectedFloor = 1;
 
-var audioLoader = new AudioLoader();
+var audioLoader = undefined;
 
 export function setSelectedFloor(value) {
   selectedFloor = value;
@@ -309,13 +310,6 @@ export async function init() {
     footstepsSound.setVolume(0.5); // Adjust volume as needed
   });
 
-  audioLoader.load("music/msc_lost.mp3", function (buffer) {
-    backgroundMusic = new THREE.Audio(new THREE.AudioListener());
-    backgroundMusic.setBuffer(buffer);
-    backgroundMusic.setLoop(true);
-    backgroundMusic.setVolume(0.25); // Adjust volume as needed
-    backgroundMusic.play();
-  });
 
   audioLoader.load("snd_fireball.wav", function (buffer) {
     fireballSoundBuffer = buffer;
@@ -385,6 +379,10 @@ export async function init() {
     chestSoundBuffer = buffer;
   });
 
+  audioLoader.load("snd_potion.mp3", function (buffer) {
+    potionSoundBuffer = buffer;
+  });
+
   loadPlayerProgress();
   initWeaponModel();
   const floorParam = getUrlParameter("floor");
@@ -400,6 +398,8 @@ export async function init() {
     selectedFloor = 999;
     setUrlParameter("floor", selectedFloor);
   }
+
+  loadAndPlayMusic(selectedFloor,audioLoader);
 
   try {
     await loadKeyModel(manager);
@@ -618,15 +618,24 @@ function onMouseDown(event) {
 }
 
 function toggleBackgroundMusic() {
-  if (backgroundMusic) {
+  if (currentBackgroundMusic) {
     if (isMusicPlaying) {
-      backgroundMusic.pause();
+      currentBackgroundMusic.pause();
       document.getElementById("toggleMusicText").style.color = "red";
     } else {
-      backgroundMusic.play();
+      currentBackgroundMusic.play();
       document.getElementById("toggleMusicText").style.color = "white";
     }
     isMusicPlaying = !isMusicPlaying;
+  }
+}
+
+function cleanupAudio() {
+  if (currentBackgroundMusic) {
+    currentBackgroundMusic.stop();
+    currentBackgroundMusic.disconnect();
+    currentBackgroundMusic.buffer = null;
+    currentBackgroundMusic = null;
   }
 }
 
@@ -648,6 +657,7 @@ export function playerDeath() {
 }
 
 function clearScene() {
+  cleanupAudio()
   // Odstraníme všechny objekty ze scény
   while (scene.children.length > 0) {
     scene.remove(scene.children[0]);
@@ -727,6 +737,8 @@ function clearScene() {
 }
 
 function createMaze(inputText = "", selectedFloor = 1, manager) {
+  loadAndPlayMusic(selectedFloor,audioLoader);
+
   if (selectedFloor === 999) {
     clearScene();
     createCamp(lightManager);
@@ -1628,7 +1640,7 @@ function hideTeleportPrompt() {
 
 // Přidejte novou funkci pro přepínání minimapy
 export function toggleMinimap() {
-  if (selectedFloor === 999) return; // Nelze použít minimapu v táboře
+  if (selectedFloor === 999 || selectedFloor >= 100) { playSound(errorSoundBuffer); return; } // Nelze použít minimapu v táboře nebo boss room
   if (!canOpenMinimap && !isMinimapVisible) return;
 
   isMinimapVisible = !isMinimapVisible;
