@@ -384,6 +384,7 @@ export function createExplosion(position, color = 0xff8f45) {
   const duration = 1000; // Doba trvání exploze v milisekundách
 
   function animateExplosion() {
+    var requestAnimationFrameId = null;
     const currentTime = performance.now();
     const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / duration, 1);
@@ -407,8 +408,10 @@ export function createExplosion(position, color = 0xff8f45) {
     particles.geometry.attributes.size.needsUpdate = true;
 
     if (progress < 1) {
-      requestAnimationFrame(animateExplosion);
+      requestAnimationFrameId = requestAnimationFrame(animateExplosion);
     } else {
+      cancelAnimationFrame(requestAnimationFrameId);
+      requestAnimationFrameId = null;
       scene.remove(explosionGroup);
     }
   }

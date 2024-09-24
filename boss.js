@@ -465,9 +465,10 @@ class Boss {
     }
 
     showDamageText(damage) {
+        var requestAnimationFrameId = null;
         if (this.model) {
             const damageText = document.createElement('div');
-            damageText.textContent = `-${damage}`;
+            damageText.textContent = `-${Math.round(damage)}`;
             damageText.style.position = 'absolute';
             damageText.style.color = 'red';
             damageText.style.fontSize = '24px';
@@ -487,13 +488,15 @@ class Boss {
                     damageText.style.left = `${bossScreenPosition.x}px`;
                     damageText.style.top = `${bossScreenPosition.y - 50 - (elapsed / duration) * 50}px`;
                     damageText.style.opacity = 1 - (elapsed / duration);
-                    requestAnimationFrame(animate);
+                    requestAnimationFrameId = requestAnimationFrame(animate);
                 } else {
                     document.body.removeChild(damageText);
+                    cancelAnimationFrame(requestAnimationFrameId);
+                    requestAnimationFrameId = null;
                 }
             };
 
-            requestAnimationFrame(animate);
+            requestAnimationFrameId = requestAnimationFrame(animate);
         }
     }
 
@@ -537,6 +540,7 @@ class Boss {
     }
 
     showExpText(exp) {
+        var requestAnimationFrameId = null;
         if (this.model) {
             const expText = document.createElement('div');
             expText.textContent = `+${exp} EXP`;
@@ -559,17 +563,20 @@ class Boss {
                     expText.style.left = `${bossScreenPosition.x}px`;
                     expText.style.top = `${bossScreenPosition.y - 100 - (elapsed / duration) * 100}px`;
                     expText.style.opacity = 1 - (elapsed / duration);
-                    requestAnimationFrame(animate);
+                     requestAnimationFrameId = requestAnimationFrame(animate);
                 } else {
                     document.body.removeChild(expText);
+                    cancelAnimationFrame(requestAnimationFrameId);
+                    requestAnimationFrameId = null;
                 }
             };
 
-            requestAnimationFrame(animate);
+            requestAnimationFrameId = requestAnimationFrame(animate);
         }
     }
 
     showGoldText(gold) {
+        var requestAnimationFrameId = null;
         if (this.model) {
             const expText = document.createElement('div');
             expText.textContent = `+${gold} G`;
@@ -592,13 +599,15 @@ class Boss {
                     expText.style.left = `${bossScreenPosition.x}px`;
                     expText.style.top = `${bossScreenPosition.y - 130 - (elapsed / duration) * 100}px`;
                     expText.style.opacity = 1 - (elapsed / duration);
-                    requestAnimationFrame(animate);
+                    requestAnimationFrameId = requestAnimationFrame(animate);
                 } else {
                     document.body.removeChild(expText);
+                    cancelAnimationFrame(requestAnimationFrameId);
+                    requestAnimationFrameId = null;
                 }
             };
-
-            requestAnimationFrame(animate);
+            
+            requestAnimationFrameId = requestAnimationFrame(animate);
         }
     }
 
@@ -857,6 +866,7 @@ class Boss {
     }
 
     createTeleportParticles(position) {
+        var requestAnimationFrameId = null;
         const particleCount = 100;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
@@ -895,8 +905,10 @@ class Boss {
             material.opacity -= 0.02;
 
             if (material.opacity > 0) {
-                requestAnimationFrame(animate);
+                requestAnimationFrameId = requestAnimationFrame(animate);
             } else {
+                cancelAnimationFrame(requestAnimationFrameId);
+                requestAnimationFrameId = null;
                 scene.remove(particles);
             }
         };

@@ -1088,6 +1088,7 @@ export function setOriginalStaffRotation() {
 }
 
 function animateStaffSwing() {
+  var requestAnimationFrameId = null;
   if (!staffModel) return;
 
   isSwingingStaff = true;
@@ -1106,10 +1107,12 @@ function animateStaffSwing() {
     if (progress <= 1) {
       const currentAngle = Math.sin(progress * Math.PI) * swingAngle;
       staffModel.rotation.x = originalStaffRotation.x + currentAngle;
-      requestAnimationFrame(() => animate(progress + 0.045));
+      requestAnimationFrameId = requestAnimationFrame(() => animate(progress + 0.045));
     } else {
       staffModel.rotation.z = originalStaffRotation.z;
       isSwingingStaff = false;
+      cancelAnimationFrame(requestAnimationFrameId);
+      requestAnimationFrameId = null;
     }
   };
 
@@ -1117,6 +1120,7 @@ function animateStaffSwing() {
 }
 
 export function inspectStaff() {
+  var requestAnimationFrameId = null;
   if (!staffModel || isInspectingStaff || isSwingingStaff) return;
 
   isInspectingStaff = true;
@@ -1144,11 +1148,13 @@ export function inspectStaff() {
         startRotation.y + rotationOffsetY,
         startRotation.z
       );
-      requestAnimationFrame(animate);
+      requestAnimationFrameId = requestAnimationFrame(animate);
     } else {
       // Zajistíme, že hůlka se vrátí přesně do původní rotace
       staffModel.rotation.copy(startRotation);
       isInspectingStaff = false;
+      cancelAnimationFrame(requestAnimationFrameId);
+      requestAnimationFrameId = null;
     }
   }
 
