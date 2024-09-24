@@ -388,7 +388,7 @@
   border-radius: 3px;
 }
 
-.enchant-button {
+.enchant-button, .sort-button {
   margin-top: 10px;
   padding: 8px 15px;
   background-color: #1e1e1e;
@@ -402,15 +402,16 @@
   letter-spacing: 1px;
   transition: all 0.3s ease;
   box-shadow: 0 0 10px rgba(200, 169, 126, 0.3);
+  display: inline-block; /* Přidáme inline-block pro zobrazení vedle sebe */
 }
 
-.enchant-button:hover {
+.enchant-button:hover, .sort-button:hover {
   background-color: #c8a97e;
   color: #1e1e1e;
   box-shadow: 0 0 15px rgba(200, 169, 126, 0.5);
 }
 
-.enchant-button:active {
+.enchant-button:active, .sort-button:active {
   transform: scale(0.98);
 }
 

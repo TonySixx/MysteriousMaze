@@ -2,7 +2,7 @@ import { addGold, expToNextLevel, getGold, getPlayerLevel, playerExp, updatePlay
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
 import { activateSoundBuffer, breakSoundBuffer,  changeStaffColor, coinSoundBuffer,  errorSoundBuffer, exitPointerLock, itemSoundBuffer, manager, playSound, requestPointerLock, successSoundBuffer } from './main.js';
-import { getItemName, itemDatabase, getDefaultPlayerPreview, ITEM_TYPES } from './itemDatabase.js';
+import { getItemName, itemDatabase, getDefaultPlayerPreview, ITEM_TYPES, ITEM_RARITIES } from './itemDatabase.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { setOriginalStaffRotation } from './spells.js';
 import { enchantEffectsOpt } from './staffModels.js';
@@ -56,7 +56,7 @@ export function initInventory() {
     equipItem(staff.id, 'weapon');
     addItemToInventory(createItem(getItemName(itemDatabase.healthPotion), 5));
     addItemToInventory(createItem(getItemName(itemDatabase.manaPotion), 5));
-    //addItemsForTesting();
+    addItemsForTesting();
   }
 
   console.log("Inventory initialized:", inventory);
@@ -363,7 +363,7 @@ function showMessage(message) {
   }, 3000);
 }
 
-function renderInventory() {
+export function renderInventory() {
   const inventoryGrid = document.getElementById('inventoryGrid');
   inventoryGrid.innerHTML = '';
 
@@ -379,6 +379,7 @@ function renderInventory() {
   const existingPlayerStats = document.getElementById('playerStats');
   const existingPreviewStatsContainer = document.getElementById('previewStatsContainer');
   const existingEnchantButton = document.getElementById('enchantButton');
+  const existingSortButton = document.getElementById('sortButton'); // Přidáme kontrolu pro existující tlačítko Sort
   if (existingPlayerPreview) {
     existingPlayerPreview.remove();
   }
@@ -390,6 +391,9 @@ function renderInventory() {
   }
   if (existingEnchantButton) {
     existingEnchantButton.remove();
+  }
+  if (existingSortButton) { // Odstraníme existující tlačítko Sort, pokud existuje
+    existingSortButton.remove();
   }
 
   // Přidáme kontejner pro preview a statistiky
@@ -404,13 +408,28 @@ function renderInventory() {
   playerPreview.style.backgroundImage = `url('${getPlayerPreviewImage()}')`;
   previewStatsContainer.appendChild(playerPreview);
 
+  // Přidáme tlačítko Enchant a Sort do kontejneru
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.display = 'flex';
+  buttonContainer.style.gap = '10px'; // Přidáme mezeru mezi tlačítky
+
   // Přidáme tlačítko Enchant
   const enchantButton = document.createElement('button');
   enchantButton.id = 'enchantButton';
   enchantButton.textContent = getTranslation('enchant');
   enchantButton.className = 'enchant-button';
   enchantButton.onclick = openEnchantWindow;
-  document.querySelector('.inventory-content').appendChild(enchantButton);
+  buttonContainer.appendChild(enchantButton);
+
+  // Přidáme tlačítko Sort
+  const sortButton = document.createElement('button');
+  sortButton.id = 'sortButton';
+  sortButton.textContent = getTranslation('sort');
+  sortButton.className = 'sort-button';
+  sortButton.onclick = sortInventory; // Přidáme funkci pro setřídění inventáře
+  buttonContainer.appendChild(sortButton);
+
+  document.querySelector('.inventory-content').appendChild(buttonContainer);
 
   // Přidáme zobrazení statistik
   const playerStats = document.createElement('div');
@@ -425,7 +444,7 @@ function renderInventory() {
       <tr><td>${getTranslation('maxMana')}:</td><td>${getPlayerMaxMana()}</td></tr>
       <tr><td>${getTranslation('bonusDamage')}:</td><td>${calculatePlayerDamage()}</td></tr>
     </table>
-        <div class="gold-display">
+    <div class="gold-display">
       <img src="gold-coin.png" alt="Gold" class="gold-icon">
       <span id="goldDisplay">${getGold().toLocaleString()}</span>
     </div>
@@ -433,7 +452,6 @@ function renderInventory() {
   previewStatsContainer.appendChild(playerStats);
 
   document.querySelector('.inventory-content').insertBefore(previewStatsContainer, document.querySelector('.equipment'));
-
 
   for (let i = 0; i < INVENTORY_SIZE; i++) {
     const slot = document.createElement('div');
@@ -453,6 +471,18 @@ function renderInventory() {
 
   renderEquipment();
   renderPotionBar();
+}
+
+//Funkce pro setřídění inventáře
+function sortInventory() {
+  inventory.sort((a, b) => {
+    if (!a) return 1;
+    if (!b) return -1;
+    if (a.type !== b.type) return a.type > b.type ? 1 : -1;
+    return ITEM_RARITIES[a.rarity] > ITEM_RARITIES[b.rarity] ? 1 : -1;
+  });
+  saveInventoryToLocalStorage();
+  renderInventory();
 }
 
 function renderEquipment() {
