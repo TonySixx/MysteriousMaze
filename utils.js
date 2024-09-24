@@ -5,6 +5,21 @@ import * as THREE from 'three';
 import { equipment } from "./inventory";
 import { bosses } from "./boss";
 
+export function destroyAllSideAnimations() {
+  if (merchantAnimationId !== null) {
+    cancelAnimationFrame(merchantAnimationId);
+    merchantAnimationId = null;
+  }
+  if (armorMerchantAnimationId !== null) {
+    cancelAnimationFrame(armorMerchantAnimationId);
+    armorMerchantAnimationId = null;
+  }
+  if (bossChestAndPortalAnimationId !== null) {
+    cancelAnimationFrame(bossChestAndPortalAnimationId);
+    bossChestAndPortalAnimationId = null;
+  }
+}
+
 export function createEnchantEffect(weapon, offsetY = 0, effectColor = 0x999999, options = {}) {
   if (!weapon || !weapon.enchantLevel || weapon.enchantLevel < 5) return null;
 
@@ -783,3 +798,26 @@ export function createBossCastEffect(position, color = 0xff0000, options = {}) {
 
   return group;
 }
+
+ export function showMessage(message,breakLine=false) {
+  const messageContainer = document.getElementById('message-container');
+  const messageElement = document.createElement('div');
+  messageElement.className = breakLine ? 'game-message break-line' : 'game-message';
+  messageElement.innerHTML = message;
+
+  messageContainer.appendChild(messageElement);
+
+  // Animace pro zobrazení zprávy
+  setTimeout(() => {
+    messageElement.style.opacity = '1';
+  }, 10);
+
+  // Animace pro skrytí zprávy
+  setTimeout(() => {
+    messageElement.style.opacity = '0';
+    setTimeout(() => {
+      messageElement.remove();
+    }, 300);
+  }, 3000);
+}
+

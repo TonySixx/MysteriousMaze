@@ -175,7 +175,7 @@ export const BOSS_TYPES = [
 
 
 class Boss {
-    constructor(position, id, rng, floor,isMainBoss= false,type=null) {
+    constructor(position, id, rng, floor,isMainBoss= false,type=null,dontDropKey=false) {
         this.isMainBoss = isMainBoss;
         this.id = id;
         this.floor = floor;
@@ -206,6 +206,7 @@ class Boss {
         this.attackSize = this.type.attackSize || 0.2;
         this.bossHitBoxMarginXZ = this.type.bossHitBoxMarginXZ || 1.4;
         this.bossHitBoxMarginY = this.type.bossHitBoxMarginY || 1.4;
+        this.dontDropKey = dontDropKey;
 
 
         if (!this.isMainBoss) {
@@ -611,10 +612,12 @@ class Boss {
 
        playSound(killConfirmationSoundBuffer);
 
+        if(!this.dontDropKey){
         const key = keyModel.clone();
         key.userData.isKey = true;
         key.position.copy(this.position);
         scene.add(key);
+        }
 
         bosses = bosses.filter(b => b !== this);
 

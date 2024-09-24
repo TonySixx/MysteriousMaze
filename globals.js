@@ -22,8 +22,11 @@ window.magicBalls = [];
 window.bossSpawnTimeout = undefined;
 window.bossCountdownInterval = undefined;
 
-
 window.staffModel = undefined;
+
+window.merchantAnimationId = null;
+window.armorMerchantAnimationId = null;
+window.bossChestAndPortalAnimationId = null;
 
 export const textureSets = [
     {

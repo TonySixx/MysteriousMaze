@@ -6,7 +6,7 @@ import { getItemName, itemDatabase, getDefaultPlayerPreview, ITEM_TYPES, ITEM_RA
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { setOriginalStaffRotation } from './spells.js';
 import { enchantEffectsOpt } from './staffModels.js';
-import { createEnchantEffect } from './utils.js';
+import { createEnchantEffect, showMessage } from './utils.js';
 
 let inventory = [];
 let equipment = {
@@ -341,28 +341,6 @@ function closeEnchantWindow() {
   updateEnchantChance();
 }
 
-function showMessage(message) {
-  const messageContainer = document.getElementById('message-container');
-  const messageElement = document.createElement('div');
-  messageElement.className = 'game-message';
-  messageElement.textContent = message;
-
-  messageContainer.appendChild(messageElement);
-
-  // Animace pro zobrazení zprávy
-  setTimeout(() => {
-    messageElement.style.opacity = '1';
-  }, 10);
-
-  // Animace pro skrytí zprávy
-  setTimeout(() => {
-    messageElement.style.opacity = '0';
-    setTimeout(() => {
-      messageElement.remove();
-    }, 300);
-  }, 3000);
-}
-
 export function renderInventory() {
   const inventoryGrid = document.getElementById('inventoryGrid');
   inventoryGrid.innerHTML = '';
@@ -475,6 +453,7 @@ export function renderInventory() {
 
 //Funkce pro setřídění inventáře
 function sortInventory() {
+  playSound(itemSoundBuffer);
   inventory.sort((a, b) => {
     if (!a) return 1;
     if (!b) return -1;
@@ -653,7 +632,7 @@ function checkTooltipVisibility(event) {
   }
 }
 
-function getRarityColor(rarity) {
+export function getRarityColor(rarity) {
   const rarityColors = {
     common: '#ffffff',
     uncommon: '#1eff00',
@@ -981,8 +960,15 @@ function addItemsForTesting() {
   addItemToInventory(createItem(getItemName(itemDatabase.protectorsLapisia), 255));
 
 
+}
 
-
+export function checkSpaceInInventory(){
+  if (inventory.filter((i) => i !== null).length >= INVENTORY_SIZE) {
+    playSound(errorSoundBuffer);
+    showMessage(getTranslation("inventoryFull"));
+    return false;
+  }
+  return true;
 }
 
 export function usePotion(type) {

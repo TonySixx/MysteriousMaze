@@ -329,8 +329,8 @@ export const itemDatabase = {
     description: "A mysterious shroud that allows the wearer to tap into the power of the void, granting immense magical abilities.",
     playerPreview: 'inventory/player/voidwalkers-shroud-preview.jpg',
   },
-  scarletRunecLoak: {
-    name: "Scarlet RunecLoak",
+  scarletRunecloak: {
+    name: "Scarlet Runecloak",
     type: ITEM_TYPES.ARMOR,
     rarity: ITEM_RARITIES.UNCOMMON,
     requiredLevel: 15,
@@ -338,11 +338,11 @@ export const itemDatabase = {
     sellPrice: 300,
     buyPrice: 900,
     stackable: false,
-    icon: 'inventory/armor/scarlet-runecLoak.jpg',
+    icon: 'inventory/armor/scarlet-runecloak.jpg',
     hpBonus: 40,
     mpBonus: 50,
     description: "A cloak inscribed with basic runes, slightly enhancing fire-based spells and providing moderate protection.",
-    playerPreview: 'inventory/player/scarlet-runecLoak-preview.jpg',
+    playerPreview: 'inventory/player/scarlet-runecloak-preview.jpg',
   },
   cloudweaversMantle: {
     name: "Cloudweaver's Mantle",

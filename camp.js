@@ -277,7 +277,7 @@ function createMerchant() {
     // Spustíme kontrolu vzdálenosti v herní smyčce
     function update() {
       checkPlayerDistance();
-      requestAnimationFrame(update);
+      merchantAnimationId = requestAnimationFrame(update);
     }
     update();
   });
@@ -364,7 +364,7 @@ function createArmorMerchant() {
     // Spustíme kontrolu vzdálenosti v herní smyčce
     function update() {
       checkPlayerDistance();
-      requestAnimationFrame(update);
+      armorMerchantAnimationId = requestAnimationFrame(update);
     }
     update();
   });
@@ -769,35 +769,6 @@ export class Merchant {
   
     return itemElement;
   }
-
-  // showTooltip(event, item) {
-  //   const tooltip = document.createElement("div");
-  //   tooltip.className = "tooltip";
-  //   tooltip.innerHTML = `
-  //   <h3>${item.name}</h3>
-  //   <p>${getTranslation("itemType")}: ${getTranslation(item.type)}</p>
-  //   <p>${getTranslation("itemRarity")}: ${getTranslation(item.rarity)}</p>
-  //   <p>${getTranslation("requiredLevel", item.requiredLevel)}</p>
-  //   ${item.description ? `<p>${item.description}</p>` : ''}
-  //   ${item.attackBonus ? `<p>${getTranslation("attackBonus")}: +${item.attackBonus}</p>` : ''}
-  //   ${item.hpBonus ? `<p>${getTranslation("hpBonus")}: +${item.hpBonus}</p>` : ''}
-  //   ${item.mpBonus ? `<p>${getTranslation("mpBonus")}: +${item.mpBonus}</p>` : ''}
-  //   ${item.restoreAmount ? `<p>${getTranslation("restoreAmount")}: ${item.restoreAmount}</p>` : ''}
-  //   <p>${getTranslation("buyPrice")}: ${item.buyPrice} ${getTranslation("gold")}</p>
-  // `;
-
-  //   tooltip.style.left = `${event.clientX + 10}px`;
-  //   tooltip.style.top = `${event.clientY + 10}px`;
-
-  //   document.body.appendChild(tooltip);
-  // };
-
-  // hideTooltip() {
-  //   const tooltip = document.querySelector(".tooltip");
-  //   if (tooltip) {
-  //     tooltip.remove();
-  //   }
-  // }
 
   buyItem(item) {
     if (getGold() < item.buyPrice) {

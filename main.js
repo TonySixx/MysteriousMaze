@@ -91,6 +91,7 @@ import {
 } from "./modals.js";
 import {
   addExperienceForCompletion,
+  destroyAllSideAnimations,
   drawMinimap,
   getBestTime,
   getUrlParameter,
@@ -188,6 +189,7 @@ export var errorSoundBuffer;
 export var breakSoundBuffer;
 export var successSoundBuffer;
 export var activateSoundBuffer;
+export var chestSoundBuffer;
 
 export var bossSoundBuffer;
 export var aoeBlastSoundBuffer;
@@ -196,12 +198,16 @@ export var backgroundMusic;
 let isMusicPlaying = true;
 let footstepsSound;
 
-const showFloorSelectBtn = document.getElementById("showFloorSelect");
+export const showFloorSelectBtn = document.getElementById("showFloorSelect");
 const floorSelectModal = document.getElementById("floorSelectModal");
 const floorOptions = document.querySelectorAll(".floor-option");
 export let selectedFloor = 1;
 
 var audioLoader = new AudioLoader();
+
+export function setSelectedFloor(value) {
+  selectedFloor = value;
+}
 
 export function setTotalKeys(value) {
   totalKeys = value;
@@ -373,6 +379,10 @@ export async function init() {
 
   audioLoader.load("snd_activate.mp3", function (buffer) {
     activateSoundBuffer = buffer;
+  });
+
+  audioLoader.load("snd_chest.mp3", function (buffer) {
+    chestSoundBuffer = buffer;
   });
 
   loadPlayerProgress();
@@ -642,6 +652,8 @@ function clearScene() {
   while (scene.children.length > 0) {
     scene.remove(scene.children[0]);
   }
+
+ destroyAllSideAnimations();
 
   // Resetujeme globální proměnné
   walls = [];
@@ -1302,7 +1314,7 @@ function createBlockingWall(brickTexture) {
 }
 
 // Funkce pro vytvoření nového 3D modelu teleportu s particle efekty
-function createTeleportModel(color) {
+export function createTeleportModel(color) {
   const teleportGeometry = new THREE.TorusGeometry(0.8, 0.1, 32, 64);
   const teleportMaterial = new THREE.MeshStandardMaterial({
     color: color,
@@ -1350,6 +1362,7 @@ function createTeleportModel(color) {
   }
   animateTeleport();
 
+  teleport.userData.isRotating = true;
   return teleport;
 }
 
@@ -1716,9 +1729,9 @@ function onWindowResize() {
   composer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function rotateTeleports(deltaTime) {
+function rotateObjects(deltaTime) {
   scene.children.forEach((child) => {
-    if (child.userData.isTeleport) {
+    if (child.userData.isRotating) {
       child.rotation.y += 1 * deltaTime; // Pomalá rotace kolem osy Y
     }
   });
@@ -2104,7 +2117,7 @@ function animate() {
   updatePlayerPosition(deltaTime);
   animateKeys(deltaTime);
   animateGoal(deltaTime);
-  rotateTeleports(deltaTime);
+  rotateObjects(deltaTime);
   animateFire(deltaTime);
   updateFireballs(deltaTime);
   updateFrostbolts(deltaTime);
@@ -2214,7 +2227,7 @@ function toggleConsole() {
   }
 }
 
-function generateNewMaze() {
+export function generateNewMaze() {
   requestPointerLock();
   const inputText = document.getElementById("mazeInput").value;
   setUrlParameter("seed", inputText);
