@@ -19,6 +19,8 @@ window.bestTime = Infinity;
 
 window.magicBalls = [];
 
+window.bossSpawnTimeout = undefined;
+window.bossCountdownInterval = undefined;
 
 
 window.staffModel = undefined;

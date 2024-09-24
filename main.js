@@ -7,7 +7,15 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { AudioLoader } from "three";
 
-import { setBossCounter, setBosses, spawnBossInMaze, bosses, bossCounter, Boss, BOSS_TYPES } from "./boss.js";
+import {
+  setBossCounter,
+  setBosses,
+  spawnBossInMaze,
+  bosses,
+  bossCounter,
+  Boss,
+  BOSS_TYPES,
+} from "./boss.js";
 import {
   spells,
   updateFireballs,
@@ -68,8 +76,30 @@ import {
 } from "./inventory.js";
 import { createMainMenu } from "./mainMenu.js";
 import { textureSets } from "./globals.js";
-import { displayScores, filterScores, hideHintModal, hideScoreModal, hideSettingsModal, saveSettings, setQuality, showHintModal, showNameModal, showScoreModal, showSettingsModal } from "./modals.js";
-import { addExperienceForCompletion, drawMinimap, getBestTime, getUrlParameter, removeFreezeEffect, setUrlParameter, submitScore, updateFreezeEffect, updateMagicBalls } from "./utils.js";
+import {
+  displayScores,
+  filterScores,
+  hideHintModal,
+  hideScoreModal,
+  hideSettingsModal,
+  saveSettings,
+  setQuality,
+  showHintModal,
+  showNameModal,
+  showScoreModal,
+  showSettingsModal,
+} from "./modals.js";
+import {
+  addExperienceForCompletion,
+  drawMinimap,
+  getBestTime,
+  getUrlParameter,
+  removeFreezeEffect,
+  setUrlParameter,
+  submitScore,
+  updateFreezeEffect,
+  updateMagicBalls,
+} from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
 
 export const version = "1.3.1";
@@ -104,8 +134,6 @@ document.addEventListener("keyup", (event) => {
   }
 });
 
-
-
 let startTime, timerInterval;
 let moveCount = 0,
   keyCount = 0;
@@ -118,7 +146,6 @@ export const OBJECT_HEIGHT = 1.6;
 let lastTeleportTime = 0;
 const teleportCooldown = 1000;
 export var nearTeleport = null;
-
 
 export var keyModel;
 let treasureModel;
@@ -162,7 +189,6 @@ export var breakSoundBuffer;
 export var successSoundBuffer;
 export var activateSoundBuffer;
 
-
 export var bossSoundBuffer;
 export var aoeBlastSoundBuffer;
 
@@ -200,7 +226,6 @@ function getSelectedFloorText() {
     default:
       return `${getTranslation("selectFloor")} ${selectedFloor}`;
   }
-
 }
 
 function loadSettings() {
@@ -216,12 +241,12 @@ export async function init() {
   manager.onStart = function (url, itemsLoaded, itemsTotal) {
     console.log(
       "Started loading file: " +
-      url +
-      ".\nLoaded " +
-      itemsLoaded +
-      " of " +
-      itemsTotal +
-      " files."
+        url +
+        ".\nLoaded " +
+        itemsLoaded +
+        " of " +
+        itemsTotal +
+        " files."
     );
     showLoadingScreen();
   };
@@ -234,12 +259,12 @@ export async function init() {
   manager.onProgress = function (url, itemsLoaded, itemsTotal) {
     console.log(
       "Loading file: " +
-      url +
-      ".\nLoaded " +
-      itemsLoaded +
-      " of " +
-      itemsTotal +
-      " files."
+        url +
+        ".\nLoaded " +
+        itemsLoaded +
+        " of " +
+        itemsTotal +
+        " files."
     );
     updateLoadingProgress(itemsLoaded / itemsTotal);
   };
@@ -556,7 +581,6 @@ function toggleFlyMode() {
   }
 }
 
-
 function onMouseDown(event) {
   if (player.isFrozen) return;
   if (isAnyModalOpen()) return;
@@ -596,8 +620,6 @@ function toggleBackgroundMusic() {
   }
 }
 
-
-
 function updateFootstepsSound() {
   if (moveForward || moveBackward || moveLeft || moveRight) {
     if (!footstepsSound.isPlaying) {
@@ -615,7 +637,6 @@ export function playerDeath() {
   startGame();
 }
 
-
 function clearScene() {
   // Odstraníme všechny objekty ze scény
   while (scene.children.length > 0) {
@@ -628,6 +649,20 @@ function clearScene() {
   torches = [];
   floatingObjects.forEach((obj) => scene.remove(obj));
   floatingObjects = [];
+
+  // Zrušíme časovač pro spawn bosse a interval odpočtu
+  if (window.bossSpawnTimeout) {
+    clearTimeout(window.bossSpawnTimeout);
+    window.bossSpawnTimeout = null;
+  }
+  if (window.bossCountdownInterval) {
+    clearInterval(window.bossCountdownInterval);
+    window.bossCountdownInterval = null;
+  }
+  const countdownElement = document.getElementById("boss-countdown");
+  if (countdownElement) {
+    countdownElement.remove();
+  }
 
   // Odstraníme mlhovinu a mlhu
   if (nebula) {
@@ -653,25 +688,28 @@ function clearScene() {
   }
 
   // Odstraníme elementy interakce s obchodníky
-  const interactionTexts = document.querySelectorAll('.interaction-text');
-  interactionTexts.forEach(text => text.remove());
+  const interactionTexts = document.querySelectorAll(".interaction-text");
+  interactionTexts.forEach((text) => text.remove());
 
   // Zavřeme všechny otevřené obchody
   const shopModals = document.querySelectorAll('[id^="merchantModal"]');
-  shopModals.forEach(modal => modal.remove());
+  shopModals.forEach((modal) => modal.remove());
 
   // Resetujeme instance obchodníků (pokud jsou uloženy globálně)
-  if (typeof potionMerchant !== 'undefined') potionMerchant = null;
-  if (typeof armorMerchantInstance !== 'undefined') armorMerchantInstance = null;
+  if (typeof potionMerchant !== "undefined") potionMerchant = null;
+  if (typeof armorMerchantInstance !== "undefined")
+    armorMerchantInstance = null;
 
   // Zastavíme všechny animace (pokud jsou spuštěny)
-  if (typeof updateMerchantAnimation !== 'undefined') cancelAnimationFrame(updateMerchantAnimation);
-  if (typeof updateArmorMerchantAnimation !== 'undefined') cancelAnimationFrame(updateArmorMerchantAnimation);
+  if (typeof updateMerchantAnimation !== "undefined")
+    cancelAnimationFrame(updateMerchantAnimation);
+  if (typeof updateArmorMerchantAnimation !== "undefined")
+    cancelAnimationFrame(updateArmorMerchantAnimation);
 
   // Odstraníme všechny event listenery přidané v táboře
   // Poznámka: Toto je obecné řešení, může být potřeba specifičtější přístup
-  const campElements = document.querySelectorAll('.camp-element');
-  campElements.forEach(element => {
+  const campElements = document.querySelectorAll(".camp-element");
+  campElements.forEach((element) => {
     element.replaceWith(element.cloneNode(true));
   });
 }
@@ -692,14 +730,15 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
   let rng = new seedrandom(seed);
 
   if (selectedFloor >= 100 && selectedFloor <= 200) {
-    const mainBossRoom = createMainBossRoom(rng);
-    scene.add(mainBossRoom);
+    const { room, spawnTimeout, countdownInterval } = createMainBossRoom(rng);
+    scene.add(room);
+    window.bossSpawnTimeout = spawnTimeout;
+    window.bossCountdownInterval = countdownInterval;
 
+    nebulaMaterial = addNebula("#FF0000", "#FF69B4"); // Červená až růžová
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
-  }
-  else {
-
+  } else {
     // Adjust textureSets selection based on the floor
     let availableTextureSets;
     switch (selectedFloor) {
@@ -728,8 +767,8 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     brickTexture.colorSpace = THREE.SRGBColorSpace;
     ceilingTexture.colorSpace = THREE.SRGBColorSpace;
 
-    const specialTextures = selectedTextureSet.specialTextures.map((textureName) =>
-      loader.load(textureName)
+    const specialTextures = selectedTextureSet.specialTextures.map(
+      (textureName) => loader.load(textureName)
     );
     specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
@@ -773,7 +812,11 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
 
     maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed, selectedFloor);
 
-    const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+    const wallGeometry = new THREE.BoxGeometry(
+      CELL_SIZE,
+      WALL_HEIGHT,
+      CELL_SIZE
+    );
     const wallMaterial = new THREE.MeshStandardMaterial({ map: brickTexture });
 
     const ceilingGeometry = new THREE.BoxGeometry(
@@ -919,14 +962,13 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     placeObjectInFreeCell(goal, rng);
     scene.add(goal);
 
+    // Přidejte mlhovinu
+    nebulaMaterial = addNebula();
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
   }
 
-
-
-  // Přidejte mlhovinu
-  nebulaMaterial = addNebula();
   addStarsToNebula();
 
   // Přidejte mlhu
@@ -1523,7 +1565,6 @@ async function startGame() {
   startTimer(); // Spuštění nového časovače
 }
 
-
 function updateKeyCount() {
   document.getElementById("keyCount").textContent = `${keyCount}/${totalKeys}`;
 }
@@ -1560,8 +1601,9 @@ function updateTimer() {
   const totalSeconds = Math.floor(cumulativeTime / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""
-    }${seconds}`;
+  document.getElementById("timeCount").textContent = `${minutes}:${
+    seconds < 10 ? "0" : ""
+  }${seconds}`;
 }
 
 function hideTeleportPrompt() {
@@ -1570,7 +1612,6 @@ function hideTeleportPrompt() {
     promptElement.style.display = "none";
   }
 }
-
 
 // Přidejte novou funkci pro přepínání minimapy
 export function toggleMinimap() {
@@ -1610,7 +1651,9 @@ function updateStaffColor(deltaTime) {
   if (staffModel) {
     const modelInfo = equipment.weapon.modelInfo;
     if (modelInfo.emissivePartName) {
-      staffModel.getObjectByName(modelInfo.emissivePartName).material.emissive.copy(currentStaffColor);
+      staffModel
+        .getObjectByName(modelInfo.emissivePartName)
+        .material.emissive.copy(currentStaffColor);
     } else {
       staffModel.traverse((child) => {
         if (child.isMesh && child.material.emissive) {
@@ -1620,7 +1663,6 @@ function updateStaffColor(deltaTime) {
     }
   }
 }
-
 
 // Funkce pro načtení modelu klíče
 function loadKeyModel(manager) {
@@ -1645,7 +1687,6 @@ function loadKeyModel(manager) {
   });
 }
 
-
 function loadTreasureModel(manager) {
   return new Promise((resolve, reject) => {
     console.log("Starting to load treasure model");
@@ -1667,7 +1708,6 @@ function loadTreasureModel(manager) {
     );
   });
 }
-
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -1799,7 +1839,7 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
 
               torch.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                dir.dx * CELL_SIZE * 0.5,
+                  dir.dx * CELL_SIZE * 0.5,
                 WALL_HEIGHT / 2 - 0.2,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
               );
@@ -1822,10 +1862,10 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
               );
               light.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                dir.dx * CELL_SIZE * 0.18,
+                  dir.dx * CELL_SIZE * 0.18,
                 WALL_HEIGHT / 2 + 0.25,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                dir.dz * CELL_SIZE * 0.18
+                  dir.dz * CELL_SIZE * 0.18
               );
 
               lightManager.addLight(light);
@@ -1920,7 +1960,7 @@ function addStarsToNebula() {
   const starCount = 500;
   const starGeometry = new THREE.BufferGeometry();
   const starMaterial = new THREE.PointsMaterial({
-    color: 0x000000,  // Změníme barvu na černou
+    color: 0x000000, // Změníme barvu na černou
     size: 0.4,
     sizeAttenuation: true,
   });
@@ -1937,21 +1977,31 @@ function addStarsToNebula() {
     positions[i * 3 + 2] = radius * Math.cos(phi);
   }
 
-  starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  starGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
 
   const stars = new THREE.Points(starGeometry, starMaterial);
   scene.add(stars);
   floatingObjects.push(stars);
 
   // Odstraníme animaci třpytu, protože hvězdy jsou nyní černé a nesvítí
-  stars.userData.animate = () => { };
+  stars.userData.animate = () => {};
 }
 
-function addNebula() {
+function addNebula(color1, color2) {
   const geometry = new THREE.SphereGeometry(1500, 32, 32);
   const material = new THREE.ShaderMaterial({
     uniforms: {
       time: { value: 0 },
+      color1: {
+        value: color1 ? new THREE.Color(color1) : new THREE.Color(0x000000),
+      },
+      color2: {
+        value: color2 ? new THREE.Color(color2) : new THREE.Color(0x000000),
+      },
+      useFixedColors: { value: color1 && color2 ? 1.0 : 0.0 },
     },
     vertexShader: `
       varying vec3 vNormal;
@@ -1962,10 +2012,15 @@ function addNebula() {
     `,
     fragmentShader: `
       uniform float time;
+      uniform vec3 color1;
+      uniform vec3 color2;
+      uniform float useFixedColors;
       varying vec3 vNormal;
       void main() {
-        vec3 color = 0.5 + 0.5 * cos(time * 0.2 + vNormal.xyx + vec3(0,2,4));
-        gl_FragColor = vec4(color, 0.3);
+        vec3 animatedColor = 0.5 + 0.5 * cos(time * 0.2 + vNormal.xyx + vec3(0,2,4));
+        vec3 gradientColor = mix(color1, color2, (vNormal.y + 1.0) * 0.5);
+        vec3 finalColor = mix(animatedColor, gradientColor, useFixedColors);
+        gl_FragColor = vec4(finalColor, 0.3);
       }
     `,
     side: THREE.BackSide,
@@ -2037,8 +2092,6 @@ function updateVisibleObjects() {
   });
 }
 
-
-
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
 function animate() {
@@ -2078,7 +2131,6 @@ function animate() {
   resetStaffColor();
   updateStaffColor(deltaTime);
 
-
   // Animace všech částicových efektů ve scéně
   scene.children.forEach((child) => {
     if (child.userData.animate) {
@@ -2086,16 +2138,15 @@ function animate() {
     }
   });
 
-  if (nebulaMaterial) {
-    nebulaMaterial.material.uniforms.time.value += deltaTime * 1;
+  if (nebulaMaterial && nebulaMaterial.material) {
+    nebulaMaterial.material.uniforms.time.value += deltaTime;
   }
 
   if (frameCountForAnimation % 2 === 0) {
     checkObjectInteractions();
     lightManager.update(player.position, camera); // Aktualizace světel každý druhý snímek
   }
-  frameCountForAnimation = (frameCountForAnimation + 1) % 2
-
+  frameCountForAnimation = (frameCountForAnimation + 1) % 2;
 
   updateVisibleObjects();
 
@@ -2110,7 +2161,6 @@ function animate() {
 
   composer.render();
 }
-
 
 let showFPS = false;
 let fpsCounter;
@@ -2251,17 +2301,15 @@ function canSelectFloor(floor) {
   return false;
 }
 
-
-
 // Aktualizujte tuto funkci při změně úrovně hráče
 export function updateFloorOptions() {
-  const floorOptions = document.querySelectorAll('.floor-option');
+  const floorOptions = document.querySelectorAll(".floor-option");
   floorOptions.forEach((option) => {
     const floor = parseInt(option.dataset.floor);
     if (canSelectFloor(floor)) {
-      option.classList.remove('locked');
+      option.classList.remove("locked");
     } else {
-      option.classList.add('locked');
+      option.classList.add("locked");
     }
   });
 
@@ -2310,7 +2358,6 @@ function updateLoadingProgress(progress) {
     progressBar.style.width = progress * 100 + "%";
   }
 }
-
 
 window.addEventListener("load", () => {
   createMainMenu();

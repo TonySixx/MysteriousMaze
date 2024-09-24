@@ -216,9 +216,9 @@ export function createMainBossRoom(rng) {
 
     const room = new THREE.Group();
     const loader = new THREE.TextureLoader(manager);
-    const floorTexture = loader.load(textureSets[0].floorTexture);
+    const floorTexture = loader.load(textureSets[1].floorTexture);
     floorTexture.colorSpace = THREE.SRGBColorSpace;
-    const wallTexture = loader.load(textureSets[0].wallTexture);
+    const wallTexture = loader.load(textureSets[1].wallTexture);
     wallTexture.colorSpace = THREE.SRGBColorSpace;
     floorTexture.repeat.set(roomSize, roomSize);
     floorTexture.wrapS = THREE.RepeatWrapping;
@@ -293,17 +293,19 @@ export function createMainBossRoom(rng) {
     });
 
 
-       // Přidáme časovač pro spawn bosse
-       setTimeout(() => {
+    // Přidáme časovač pro spawn bosse
+    const spawnTimeout = setTimeout(() => {
         const mainBossPosition = new THREE.Vector3(0, 0.5, 0);
         setBossCounter(bossCounter + 1);
         const mainBoss = new MainBoss(mainBossPosition, bossCounter, rng, selectedFloor, MAIN_BOSS_TYPES[selectedFloor - 100]);
         bosses.push(mainBoss);
- 
-    }, 5000);
+    }, 6000);
 
-    // Spustíme odpočet
-    showCountdown(5);
+    // Spustíme odpočet a uložíme interval
+    const countdownInterval = showCountdown(5);
+
+    // Vracíme objekt s časovačem a intervalem
+    return { room, spawnTimeout, countdownInterval };
 
     return room;
 }
@@ -331,4 +333,6 @@ function showCountdown(duration) {
         }
         timeLeft--;
     }, 1000);
+
+    return countdownInterval;
 }
