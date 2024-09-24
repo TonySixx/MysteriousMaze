@@ -659,3 +659,127 @@ export function checkProjectileCollisionWithBosses(projectile, boss) {
   }
   return false;
 }
+
+export function createBossCastEffect(position, color = 0xff0000, options = {}) {
+  const {
+    particleCount = 100,
+    duration = 1.0,
+    spread = { x: 0.5, y: 0.5, z: 0.5 },
+    offset = { x: 0, y: 0, z: 0 },  // Přidáno
+    startColor = color,
+    endColor = 0xffffff,
+    minSize = 0.05,
+    maxSize = 0.15,
+    speedFactor = 1.0,
+    glowIntensity = 1.0,
+    opacity = 1.0
+  } = options;
+
+  const group = new THREE.Group();
+
+  const vertexShader = `
+    uniform float time;
+    attribute float size;
+    attribute vec3 velocity;
+    attribute float startTime;
+    varying float vAlpha;
+    varying float vProgress;
+
+    void main() {
+      float age = time - startTime;
+      float progress = age / ${duration.toFixed(1)};
+      vProgress = progress;
+
+      vec3 pos = position + velocity * age;
+      vAlpha = 1.0 - progress;
+
+      vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+      gl_PointSize = size * (300.0 / -mvPosition.z);
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `;
+
+  const fragmentShader = `
+    uniform vec3 startColor;
+    uniform vec3 endColor;
+    uniform float opacity;
+    uniform float glowIntensity;
+
+    varying float vAlpha;
+    varying float vProgress;
+
+    void main() {
+      vec2 center = vec2(0.5, 0.5);
+      float dist = distance(gl_PointCoord, center);
+
+      float alpha = smoothstep(0.5, 0.0, dist) * vAlpha * opacity;
+      vec3 color = mix(startColor, endColor, vProgress);
+
+      float glow = pow(1.0 - dist, 2.0) * glowIntensity;
+      color += vec3(glow);
+
+      gl_FragColor = vec4(color, alpha);
+    }
+  `;
+
+  const shaderMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      time: { value: 0 },
+      startColor: { value: new THREE.Color(startColor) },
+      endColor: { value: new THREE.Color(endColor) },
+      opacity: { value: opacity },
+      glowIntensity: { value: glowIntensity },
+    },
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    transparent: true,
+  });
+
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const velocities = new Float32Array(particleCount * 3);
+  const sizes = new Float32Array(particleCount);
+  const startTimes = new Float32Array(particleCount);
+
+  for (let i = 0; i < particleCount; i++) {
+    const i3 = i * 3;
+
+    // Upraveno pro použití offsetu
+    positions[i3] = position.x + offset.x + (Math.random() - 0.5) * spread.x;
+    positions[i3 + 1] = position.y + offset.y + (Math.random() - 0.5) * spread.y;
+    positions[i3 + 2] = position.z + offset.z + (Math.random() - 0.5) * spread.z;
+
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * speedFactor;
+    velocities[i3] = Math.cos(angle) * speed;
+    velocities[i3 + 1] = Math.sin(angle) * speed + speed * 0.5; // Mírně nahoru
+    velocities[i3 + 2] = (Math.random() - 0.5) * speed;
+
+    sizes[i] = minSize + Math.random() * (maxSize - minSize);
+    startTimes[i] = Math.random() * duration * 0.5; // Rozložení startu částic
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+  geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  geometry.setAttribute('startTime', new THREE.BufferAttribute(startTimes, 1));
+
+  const particles = new THREE.Points(geometry, shaderMaterial);
+  group.add(particles);
+
+  let elapsedTime = 0;
+
+  group.userData.update = (deltaTime) => {
+    elapsedTime += deltaTime;
+    shaderMaterial.uniforms.time.value = elapsedTime;
+
+    if (elapsedTime > duration) {
+      return false; // Signalizuje, že efekt skončil
+    }
+    return true;
+  };
+
+  return group;
+}
