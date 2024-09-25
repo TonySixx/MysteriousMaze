@@ -164,6 +164,7 @@ function createTents() {
   });
 }
 
+
 function createMerchant() {
   const merchantPosition = { x: 0, y: 0, z: 2 };
   const gltfLoader = new GLTFLoader(manager);
@@ -178,30 +179,20 @@ function createMerchant() {
     merchant.rotation.y = 0;
     scene.add(merchant);
 
-    const mixer = new THREE.AnimationMixer(merchant);
-    const action = mixer.clipAction(gltf.animations[0]);
+    // Uložíme mixer a clock do userData
+    merchant.userData.mixer = new THREE.AnimationMixer(merchant);
+    const action = merchant.userData.mixer.clipAction(gltf.animations[0]);
     action.setLoop(THREE.LoopRepeat);
     action.play();
 
-    const clock = new THREE.Clock();
-    function updateMerchantAnimation() {
-      const delta = clock.getDelta();
-      mixer.update(delta);
-      requestAnimationFrame(updateMerchantAnimation);
-    }
-    updateMerchantAnimation();
+    merchant.userData.clock = new THREE.Clock();
 
     const potionBottle = createPotionBottle();
     potionBottle.position.set(-0.1, 2.5, 0); // Umístění nad hlavou obchodníka
     merchant.add(potionBottle);
 
-    // Animace "pohupování"
-    const bobAnimation = () => {
-      const time = Date.now() * 0.001;
-      potionBottle.position.y = 2.5 + Math.sin(time * 2) * 0.1;
-      requestAnimationFrame(bobAnimation);
-    };
-    bobAnimation();
+    // Uložíme potionBottle pro pozdější animaci
+    merchant.userData.potionBottle = potionBottle;
 
     // Přidání zářivého efektu
     const glowMaterial = new THREE.ShaderMaterial({
@@ -236,8 +227,12 @@ function createMerchant() {
     );
     potionBottle.add(glowSphere);
 
+    // Uložíme glowSphere pro případné další použití
+    merchant.userData.glowSphere = glowSphere;
+
     // Vytvoření instance třídy Merchant
     const potionMerchant = new Merchant("Potion Merchant", createMerchantItems());
+    merchant.userData.merchantInstance = potionMerchant;
 
     // Přidání interakční zóny
     const interactionZone = new THREE.Mesh(
@@ -254,37 +249,16 @@ function createMerchant() {
     interactionText.style.display = "none";
     document.body.appendChild(interactionText);
 
-    // Funkce pro kontrolu vzdálenosti hráče od obchodníka
-    function checkPlayerDistance() {
-      const distance = player.position.distanceTo(merchant.position);
-      if (distance < 2) {
-        interactionText.style.display = "block";
-        if (keys.f) {
-          if (document.getElementById(potionMerchant.getModalId())) {
-            potionMerchant.closeShop();
-          } else {
-            potionMerchant.showShop();
-          }
-          keys.f = false; // Resetujeme stav klávesy, aby se obchod neotevíral/nezavíral opakovaně
-        }
-      } else {
-        if (document.getElementById(potionMerchant.getModalId())) {
-          potionMerchant.closeShop();
-        }
-        interactionText.style.display = "none";
-      }
-    }
-    // Spustíme kontrolu vzdálenosti v herní smyčce
-    function update() {
-      checkPlayerDistance();
-      merchantAnimationId = requestAnimationFrame(update);
-    }
-    update();
+    // Uložíme interakční text do userData
+    merchant.userData.interactionText = interactionText;
+
+    // Přidáme obchodníka do pole merchants
+    merchants.push(merchant);
   });
 }
 
 function createArmorMerchant() {
-  const armorMerchantPosition = { x: 5.5, y: 0, z: -5.5 }; // Pozice před jedním ze stanů
+  const armorMerchantPosition = { x: 5.5, y: 0, z: -5.5 };
   const gltfLoader = new GLTFLoader(manager);
   gltfLoader.load("models/armor_npc.glb", (gltf) => {
     const armorMerchant = gltf.scene;
@@ -294,38 +268,30 @@ function createArmorMerchant() {
       armorMerchantPosition.z
     );
     armorMerchant.scale.set(1, 1, 1);
-    armorMerchant.rotation.y = -(Math.PI / 4); // Otočíme obchodníka směrem do tábora
+    armorMerchant.rotation.y = -(Math.PI / 4);
     scene.add(armorMerchant);
 
-    const mixer = new THREE.AnimationMixer(armorMerchant);
-    const action = mixer.clipAction(gltf.animations[0]);
+    // Uložíme mixer a hodiny do userData, abychom je mohli později aktualizovat
+    armorMerchant.userData.mixer = new THREE.AnimationMixer(armorMerchant);
+    const action = armorMerchant.userData.mixer.clipAction(gltf.animations[0]);
     action.setLoop(THREE.LoopRepeat);
     action.play();
 
-    const clock = new THREE.Clock();
-    function updateArmorMerchantAnimation() {
-      const delta = clock.getDelta();
-      mixer.update(delta);
-      requestAnimationFrame(updateArmorMerchantAnimation);
-    }
-    updateArmorMerchantAnimation();
+    armorMerchant.userData.clock = new THREE.Clock();
 
     const armorIcon = createArmorIcon();
-    armorIcon.position.set(0, 2.5, 0); // Umístění nad hlavou obchodníka
+    armorIcon.position.set(0, 2.5, 0);
     armorMerchant.add(armorIcon);
 
-    // Animace "pohupování" a rotace
-    const bobAnimation = () => {
-      const time = Date.now() * 0.001;
-      armorIcon.position.y = 2.5 + Math.sin(time * 2) * 0.1;
-      armorIcon.rotation.y = time * 0.5; // Přidáme pomalou rotaci
-      requestAnimationFrame(bobAnimation);
-    };
-    bobAnimation();
+    // Uložíme armorIcon pro pozdější aktualizaci
+    armorMerchant.userData.armorIcon = armorIcon;
 
-    // Vytvoření instance třídy Merchant pro obchodníka s brněním
-    const armorMerchantInstance = new Merchant("Armor Merchant", createArmorMerchantItems());
-
+    // Vytvoření instance obchodníka
+    const armorMerchantInstance = new Merchant(
+      "Armor Merchant",
+      createArmorMerchantItems()
+    );
+    armorMerchant.userData.merchantInstance = armorMerchantInstance;
     // Přidání interakční zóny
     const interactionZone = new THREE.Mesh(
       new THREE.CylinderGeometry(2, 2, 2, 32),
@@ -334,39 +300,19 @@ function createArmorMerchant() {
     interactionZone.position.copy(armorMerchant.position);
     scene.add(interactionZone);
 
-    // Přidání textu pro interakci
+    // Přidání interakční zóny a textu
     const interactionText = document.createElement("div");
     interactionText.className = "interaction-text";
     interactionText.textContent = getTranslation("pressFToShop");
     interactionText.style.display = "none";
     document.body.appendChild(interactionText);
 
-    // Funkce pro kontrolu vzdálenosti hráče od obchodníka
-    function checkPlayerDistance() {
-      const distance = player.position.distanceTo(armorMerchant.position);
-      if (distance < 2) {
-        interactionText.style.display = "block";
-        if (keys.f) {
-          if (document.getElementById(armorMerchantInstance.getModalId())) {
-            armorMerchantInstance.closeShop();
-          } else {
-            armorMerchantInstance.showShop();
-          }
-          keys.f = false; // Resetujeme stav klávesy, aby se obchod neotevíral/nezavíral opakovaně
-        }
-      } else {
-        if (document.getElementById(armorMerchantInstance.getModalId())) {
-          armorMerchantInstance.closeShop();
-        }
-        interactionText.style.display = "none";
-      }
-    }
-    // Spustíme kontrolu vzdálenosti v herní smyčce
-    function update() {
-      checkPlayerDistance();
-      armorMerchantAnimationId = requestAnimationFrame(update);
-    }
-    update();
+    // Uložíme interakční text do userData
+    armorMerchant.userData.interactionText = interactionText;
+
+    // Přidáme obchodníka do pole merchants
+    merchants.push(armorMerchant);
+
   });
 }
 
@@ -687,8 +633,8 @@ export class Merchant {
     this.items = items;
   }
 
-  getModalId(){
-    return 'shopModal'+"_"+this.name;
+  getModalId() {
+    return 'shopModal' + "_" + this.name;
   }
 
   showShop() {
@@ -753,20 +699,20 @@ export class Merchant {
     const itemElement = document.createElement("div");
     itemElement.className = `shop-item item-${item.rarity}`;
     itemElement.style.backgroundImage = `url(${item.icon})`;
-  
+
     itemElement.addEventListener("mouseover", (event) =>
       showTooltip(event, item)
     );
     itemElement.addEventListener("mouseout", hideTooltip);
     itemElement.addEventListener("click", () => this.buyItem(item));
-  
+
     if (item.stackable && item.count > 1) {
       const itemCount = document.createElement('div');
       itemCount.className = 'item-count';
       itemCount.textContent = item.count;
       itemElement.appendChild(itemCount);
     }
-  
+
     return itemElement;
   }
 
@@ -824,6 +770,50 @@ export function createMerchantItems() {
   ];
 }
 
+export function checkMerchantInteraction(merchant) {
+  const distance = player.position.distanceTo(merchant.position);
+  const interactionText = merchant.userData.interactionText;
+  const merchantInstance = merchant.userData.merchantInstance;
+
+  if (distance < 2) {
+    // Vytvoříme vektor pro pozici textu nad obchodníkem
+    const textPosition = merchant.position.clone().add(new THREE.Vector3(0, 2, 0));
+    
+    // Projektujeme pozici textu do prostoru kamery
+    const vector = textPosition.project(camera);
+    
+    // Zkontrolujeme, zda je obchodník v záběru kamery
+    const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
+
+    if (isInView) {
+      interactionText.style.display = "block";
+      const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+      
+      interactionText.style.left = `${x}px`;
+      interactionText.style.top = `${y}px`;
+      interactionText.style.bottom = "unset";
+      interactionText.style.minWidth = "150px";
+
+      if (keys.f) {
+        if (document.getElementById(merchantInstance.getModalId())) {
+          merchantInstance.closeShop();
+        } else {
+          merchantInstance.showShop();
+        }
+        keys.f = false; // Resetujeme stav klávesy
+      }
+    } else {
+      interactionText.style.display = "none";
+    }
+  } else {
+    if (document.getElementById(merchantInstance.getModalId())) {
+      merchantInstance.closeShop();
+    }
+    interactionText.style.display = "none";
+  }
+}
+
 
 export function createArmorMerchantItems() {
   const armorMerchantItems = [];
@@ -869,12 +859,12 @@ function createArmorIcon() {
 
   // Vytvoříme štít
   const shieldGeometry = new THREE.CircleGeometry(0.2, 32);
-  const shieldMaterial = new THREE.MeshPhongMaterial({ color: 0xC0C0C0,side: THREE.DoubleSide }); // Stříbrná barva
+  const shieldMaterial = new THREE.MeshPhongMaterial({ color: 0xC0C0C0, side: THREE.DoubleSide }); // Stříbrná barva
   const shield = new THREE.Mesh(shieldGeometry, shieldMaterial);
 
   // Přidáme "lem" štítu
   const rimGeometry = new THREE.TorusGeometry(0.2, 0.02, 16, 100);
-  const rimMaterial = new THREE.MeshPhongMaterial({ color: 0xFFD700,side: THREE.DoubleSide  }); // Zlatá barva
+  const rimMaterial = new THREE.MeshPhongMaterial({ color: 0xFFD700, side: THREE.DoubleSide }); // Zlatá barva
   const rim = new THREE.Mesh(rimGeometry, rimMaterial);
 
   // Přidáme "emblém" na štít

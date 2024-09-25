@@ -4,7 +4,7 @@ import { addExperience, getPlayerLevel, player, playerHealth, setPlayerHealth, u
 import * as THREE from 'three';
 import { equipment } from "./inventory";
 import { bosses } from "./boss";
-import { floorMusic } from "./globals";
+import { floorMusic, floorsConfig } from "./globals";
 
 export function destroyAllSideAnimations() {
   if (merchantAnimationId !== null) {
@@ -668,8 +668,8 @@ export function drawMinimap() {
 
 export function checkProjectileCollisionWithBosses(projectile, boss) {
   const horizontalDistance = Math.sqrt(
-    Math.pow(projectile.position.x - boss.model.position.x, 2) +
-    Math.pow(projectile.position.z - boss.model.position.z, 2)
+    Math.pow(projectile.position.x - boss.model?.position.x, 2) +
+    Math.pow(projectile.position.z - boss.model?.position.z, 2)
   );
   const verticalDistance = projectile.position.y - boss.model.position.y;
 
@@ -843,4 +843,45 @@ export function loadAndPlayMusic(floor,audioLoader) {
     currentBackgroundMusic.setVolume(0.35);
     currentBackgroundMusic.play();
   });
+}
+
+export function getMazeSizeForFloor(floor) {
+  const config = floorsConfig[floor];
+  return { minSize: config.minSize, maxSize: config.maxSize };
+}
+
+export function getFloorTextureSet(floor) {
+  return floorsConfig[floor].textureSets;
+}
+
+
+export function disposeObject(obj) {
+  if (obj.geometry) {
+    obj.geometry.dispose();
+  }
+
+  if (obj.material) {
+    if (Array.isArray(obj.material)) {
+      obj.material.forEach((material) => disposeMaterial(material));
+    } else {
+      disposeMaterial(obj.material);
+    }
+  }
+
+  // Rekurzivně projdeme děti objektu
+  if (obj.children) {
+    for (let i = 0; i < obj.children.length; i++) {
+      disposeObject(obj.children[i]);
+    }
+  }
+}
+
+export function disposeMaterial(material) {
+  // Uvolníme všechny textury materiálu
+  for (const key in material) {
+    if (material[key] && material[key].isTexture) {
+      material[key].dispose();
+    }
+  }
+  material.dispose();
 }

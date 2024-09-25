@@ -3,7 +3,6 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import {
     Boss,
     canSeePlayer,
-    BOSS_TYPES,
     setBossCounter,
     bossCounter,
     bosses,
@@ -396,7 +395,7 @@ export class MainBoss extends Boss {
         dragonPositions.forEach((targetPosition) => {
             const startPosition = targetPosition.clone().setY(dragonStartHeight);
             setBossCounter(bossCounter + 1);
-            const dragon = new Boss(startPosition, bossCounter, this.rng, 1, false, null, true);
+            const dragon = new Boss(startPosition, bossCounter, this.rng, selectedFloor - 100 + 1, false, null, true);
             dragon.health = dragon.maxHealth;
             bosses.push(dragon);
     

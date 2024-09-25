@@ -14,7 +14,6 @@ import {
   bosses,
   bossCounter,
   Boss,
-  BOSS_TYPES,
 } from "./boss.js";
 import {
   spells,
@@ -75,7 +74,7 @@ import {
   updateStaffVisibility,
 } from "./inventory.js";
 import { createMainMenu } from "./mainMenu.js";
-import { textureSets } from "./globals.js";
+import { floorsConfig, textureSets } from "./globals.js";
 import {
   displayScores,
   filterScores,
@@ -92,8 +91,11 @@ import {
 import {
   addExperienceForCompletion,
   destroyAllSideAnimations,
+  disposeObject,
   drawMinimap,
   getBestTime,
+  getFloorTextureSet,
+  getMazeSizeForFloor,
   getUrlParameter,
   loadAndPlayMusic,
   removeFreezeEffect,
@@ -103,6 +105,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
+import { animateMerchants } from "./animate.js";
 
 export const version = "1.3.2";
 
@@ -248,12 +251,12 @@ export async function init() {
   manager.onStart = function (url, itemsLoaded, itemsTotal) {
     console.log(
       "Started loading file: " +
-        url +
-        ".\nLoaded " +
-        itemsLoaded +
-        " of " +
-        itemsTotal +
-        " files."
+      url +
+      ".\nLoaded " +
+      itemsLoaded +
+      " of " +
+      itemsTotal +
+      " files."
     );
     showLoadingScreen();
   };
@@ -266,12 +269,12 @@ export async function init() {
   manager.onProgress = function (url, itemsLoaded, itemsTotal) {
     console.log(
       "Loading file: " +
-        url +
-        ".\nLoaded " +
-        itemsLoaded +
-        " of " +
-        itemsTotal +
-        " files."
+      url +
+      ".\nLoaded " +
+      itemsLoaded +
+      " of " +
+      itemsTotal +
+      " files."
     );
     updateLoadingProgress(itemsLoaded / itemsTotal);
   };
@@ -399,7 +402,7 @@ export async function init() {
     setUrlParameter("floor", selectedFloor);
   }
 
-  loadAndPlayMusic(selectedFloor,audioLoader);
+  loadAndPlayMusic(selectedFloor, audioLoader);
 
   try {
     await loadKeyModel(manager);
@@ -657,19 +660,34 @@ export function playerDeath() {
 }
 
 function clearScene() {
-  cleanupAudio()
-  // Odstraníme všechny objekty ze scény
+  cleanupAudio();
+
+  // Odstraníme a uvolníme všechny objekty ze scény
   while (scene.children.length > 0) {
-    scene.remove(scene.children[0]);
+    const child = scene.children[0];
+    disposeObject(child);
+    scene.remove(child);
   }
 
- destroyAllSideAnimations();
+  destroyAllSideAnimations();
 
-  // Resetujeme globální proměnné
+  // Uvolníme a resetujeme globální proměnné
+  walls.forEach((wall) => disposeObject(wall));
   walls = [];
+
+  merchants.forEach((merchant) => disposeObject(merchant));
+  merchants = [];
+
+  highWallAreas.forEach((area) => disposeObject(area));
   highWallAreas = [];
+
+  torches.forEach((torch) => disposeObject(torch));
   torches = [];
-  floatingObjects.forEach((obj) => scene.remove(obj));
+
+  floatingObjects.forEach((obj) => {
+    disposeObject(obj);
+    scene.remove(obj);
+  });
   floatingObjects = [];
 
   // Zrušíme časovač pro spawn bosse a interval odpočtu
@@ -688,6 +706,7 @@ function clearScene() {
 
   // Odstraníme mlhovinu a mlhu
   if (nebula) {
+    disposeObject(nebula);
     scene.remove(nebula);
     nebula = null;
   }
@@ -729,15 +748,16 @@ function clearScene() {
     cancelAnimationFrame(updateArmorMerchantAnimation);
 
   // Odstraníme všechny event listenery přidané v táboře
-  // Poznámka: Toto je obecné řešení, může být potřeba specifičtější přístup
   const campElements = document.querySelectorAll(".camp-element");
   campElements.forEach((element) => {
     element.replaceWith(element.cloneNode(true));
   });
 }
 
+
+
 function createMaze(inputText = "", selectedFloor = 1, manager) {
-  loadAndPlayMusic(selectedFloor,audioLoader);
+  loadAndPlayMusic(selectedFloor, audioLoader);
 
   if (selectedFloor === 999) {
     clearScene();
@@ -765,20 +785,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
   } else {
     // Adjust textureSets selection based on the floor
     let availableTextureSets;
-    switch (selectedFloor) {
-      case 1:
-        availableTextureSets = textureSets.slice(0, 2);
-        break;
-      case 2:
-        availableTextureSets = textureSets.slice(2, 4);
-        break;
-      case 3:
-        availableTextureSets = textureSets.slice(4, 6);
-        break;
-      case 4:
-        availableTextureSets = textureSets.slice(6, 8);
-        break;
-    }
+    availableTextureSets = getFloorTextureSet(selectedFloor);
     const textureSetIndex = Math.floor(rng() * availableTextureSets.length);
     const selectedTextureSet = availableTextureSets[textureSetIndex];
 
@@ -796,25 +803,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     );
     specialTextures.forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
 
-    let minSize, maxSize;
-    switch (selectedFloor) {
-      case 1:
-        minSize = 20;
-        maxSize = 25;
-        break;
-      case 2:
-        minSize = 25;
-        maxSize = 35;
-        break;
-      case 3:
-        minSize = 30;
-        maxSize = 50;
-        break;
-      case 4:
-        minSize = 20;
-        maxSize = 30;
-        break;
-    }
+    let { minSize, maxSize } = getMazeSizeForFloor(selectedFloor);
     MAZE_SIZE = Math.floor(rng() * (maxSize - minSize + 1)) + minSize;
     totalKeys = Math.max(3, Math.min(10, 3 + Math.floor(rng() * 8)));
 
@@ -1169,32 +1158,13 @@ function generateMaze(width, height, seed, selectedFloor) {
   carvePassage(1, 1);
 
   // Přidáme generování hal a bossů
-  const baseHallProbability = 0.02;
-  const hallProbabilityDecrease = -0.001;
-  let hallProbability =
-    baseHallProbability + (selectedFloor - 1) * hallProbabilityDecrease;
+  const floorConfig = floorsConfig[selectedFloor];
 
-  // Zvýšíme pravděpodobnost hal pro 4. podlaží
-  if (selectedFloor === 4) {
-    hallProbability *= 3;
-  }
-  // Upravíme velikost haly podle podlaží
-  let minHallSize, maxHallSize;
-  minHallSize = 2;
-
-  if (selectedFloor === 1) {
-    maxHallSize = 3;
-  } else if (selectedFloor === 2) {
-    maxHallSize = 4;
-  } else {
-    maxHallSize = 5;
-  }
-  const hallSize =
-    minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
-  var bossProbability = 0.8; // 80% šance na spawnutí bosse v hale
-  if (selectedFloor === 4) {
-    bossProbability = 1.0;
-  }
+  const hallProbability = floorConfig.hallConfig.probability;
+  const minHallSize = floorConfig.hallConfig.minSize;
+  const maxHallSize = floorConfig.hallConfig.maxSize;
+  const hallSize = minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
+  const bossProbability = floorConfig.bossProbability;
 
   for (let y = 1; y < MAZE_SIZE - hallSize; y += hallSize) {
     for (let x = 1; x < MAZE_SIZE - hallSize; x += hallSize) {
@@ -1224,7 +1194,7 @@ function generateMaze(width, height, seed, selectedFloor) {
         }
 
         // Šance na spawnutí bosse v hale
-        if (rng() < bossProbability) {
+        if (rng() < bossProbability && bosses.length <= 15) {
           spawnBossInMaze(maze, rng, selectedFloor);
         }
       }
@@ -1626,9 +1596,8 @@ function updateTimer() {
   const totalSeconds = Math.floor(cumulativeTime / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  document.getElementById("timeCount").textContent = `${minutes}:${
-    seconds < 10 ? "0" : ""
-  }${seconds}`;
+  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""
+    }${seconds}`;
 }
 
 function hideTeleportPrompt() {
@@ -1864,7 +1833,7 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
 
               torch.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                  dir.dx * CELL_SIZE * 0.5,
+                dir.dx * CELL_SIZE * 0.5,
                 WALL_HEIGHT / 2 - 0.2,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
               );
@@ -1887,10 +1856,10 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
               );
               light.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                  dir.dx * CELL_SIZE * 0.18,
+                dir.dx * CELL_SIZE * 0.18,
                 WALL_HEIGHT / 2 + 0.25,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                  dir.dz * CELL_SIZE * 0.18
+                dir.dz * CELL_SIZE * 0.18
               );
 
               lightManager.addLight(light);
@@ -2012,7 +1981,7 @@ function addStarsToNebula() {
   floatingObjects.push(stars);
 
   // Odstraníme animaci třpytu, protože hvězdy jsou nyní černé a nesvítí
-  stars.userData.animate = () => {};
+  stars.userData.animate = () => { };
 }
 
 function addNebula(color1, color2) {
@@ -2141,6 +2110,8 @@ function animate() {
   regenerateHealth(deltaTime);
   animateStaffRotation(deltaTime);
   updatePotionCooldowns(deltaTime);
+
+  animateMerchants();
 
   if (staffModel && staffModel.userData.enchantParticles) {
     staffModel.userData.enchantParticles.userData.update(deltaTime);
@@ -2313,16 +2284,20 @@ floorOptions.forEach((option) => {
   });
 });
 
-function canSelectFloor(floor) {
-  if (floor === 999) return true;
-  if (floor === 1) return true;
-  if (floor === 2 && playerLevel >= 7) return true;
-  if (floor === 3 && playerLevel >= 12) return true;
-  if (floor === 4 && playerLevel >= 16) return true;
-  if (floor === 100 && playerLevel >= 7) return true;
-  if (floor === 101 && playerLevel >= 12) return true;
-  if (floor === 102 && playerLevel >= 16) return true;
-  if (floor === 103 && playerLevel >= 20) return true;
+export function canSelectFloor(floor) {
+  if (floor === 999) return true; // Tábor je vždy dostupný
+  if (floor === 1) return true; // První podlaží je vždy dostupné
+  if (floor === 2) return playerLevel >= 7;
+  if (floor === 3) return playerLevel >= 12;
+  if (floor === 4) return playerLevel >= 16;
+  if (floor === 5) return playerLevel >= 21;
+  if (floor === 6) return playerLevel >= 26;
+  if (floor === 7) return playerLevel >= 31;
+  if (floor === 8) return playerLevel >= 36;
+  if (floor === 100) return playerLevel >= 7;
+  if (floor === 101) return playerLevel >= 12;
+  if (floor === 102) return playerLevel >= 16;
+  if (floor === 103) return playerLevel >= 20;
   return false;
 }
 
@@ -2338,16 +2313,6 @@ export function updateFloorOptions() {
     }
   });
 
-  // // Přidáme možnosti pro podlaží s bossy
-  // const bossFloorOptions = document.querySelectorAll('.boss-floor-option');
-  // bossFloorOptions.forEach((option) => {
-  //     const floor = parseInt(option.dataset.floor);
-  //     if (canSelectBossFloor(floor)) {
-  //         option.classList.remove('locked');
-  //     } else {
-  //         option.classList.add('locked');
-  //     }
-  // });
 }
 
 export function playSound(soundBuffer, volume = 1) {
