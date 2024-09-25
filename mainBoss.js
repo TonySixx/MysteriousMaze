@@ -579,7 +579,6 @@ export function createMainBossRoom(rng) {
     });
 
     // Přidáme časovač pro spawn bosse
-    // Přidáme časovač pro spawn bosse
     const spawnTimeout = setTimeout(() => {
         const mainBossStartPosition = new THREE.Vector3(0, 20, 0); // Začátek vysoko nad místností
         const mainBossTargetPosition = new THREE.Vector3(0, 0.5, 0); // Cílová pozice na zemi
@@ -591,6 +590,7 @@ export function createMainBossRoom(rng) {
             selectedFloor - 100 + 2,
             MAIN_BOSS_TYPES[selectedFloor - 100]
         );
+        document.getElementById("bossHealthContainer").style = "display:block";
         bosses.push(mainBoss);
 
         // Animace příletu bosse

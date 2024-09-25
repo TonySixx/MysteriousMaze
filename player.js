@@ -147,6 +147,8 @@ export function loadPlayerProgress() {
     const savedGold = localStorage.getItem('playerGold') || 0;
     const savedExpToNextLevel = localStorage.getItem('expToNextLevel');
     const playerName = localStorage.getItem('playerName');
+    MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem("maxVisibleLights")) || 10;
+    qualityFactor = parseFloat(localStorage.getItem("qualityFactor")) || 1;
 
     if (savedVersion !== version) {
         localStorage.clear();
@@ -192,6 +194,11 @@ export function loadPlayerProgress() {
             playerGold = 0;
         }
     }
+
+    //nastavime vždy
+    localStorage.setItem("maxVisibleLights", MAX_VISIBLE_LIGHTS.toString());  
+    localStorage.setItem("qualityFactor", qualityFactor.toString());
+
     updatePlayerLevelStats();
     updateGoldDisplay();
     updateExpBar();
