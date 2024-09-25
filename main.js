@@ -104,7 +104,7 @@ import {
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
 
-export const version = "1.3.1";
+export const version = "1.3.2";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
