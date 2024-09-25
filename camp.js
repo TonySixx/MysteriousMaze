@@ -24,6 +24,7 @@ export function createCamp() {
   createGround();
   createSky();
   addStars();
+  addShootingStars();
   createTents();
   createMerchant();
   createArmorMerchant();
@@ -81,6 +82,113 @@ function createSky() {
   });
   const sky = new THREE.Mesh(skyGeometry, skyMaterial);
   scene.add(sky);
+}
+
+function createShootingStar() {
+  const geometry = new THREE.BufferGeometry();
+  const material = new THREE.PointsMaterial({
+    color: 0xFFFFFF,
+    size: 2,  // Zvětšíme velikost
+    sizeAttenuation: true,
+    blending: THREE.AdditiveBlending,
+  });
+
+  const star = new THREE.Points(geometry, material);
+  
+  // Náhodná počáteční pozice
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.random() * Math.PI / 2 + Math.PI / 4; // Omezíme na horní polokouli
+  star.position.setFromSphericalCoords(450, phi, theta);
+  
+  // Směr pohybu - vždy s výraznou horizontální složkou
+  const direction = new THREE.Vector3(
+    -0.7 + Math.random() * 1.4,
+    -0.5 - Math.random() * 0.5,
+    -0.7 + Math.random() * 1.4
+  ).normalize();
+
+  scene.add(star);
+
+  // Přidáme stopu
+  const trailGeometry = new THREE.BufferGeometry();
+  const trailMaterial = new THREE.LineBasicMaterial({
+    color: 0xFFFFFF,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+  });
+  const trail = new THREE.Line(trailGeometry, trailMaterial);
+  scene.add(trail);
+
+  // Přidáme zářivý efekt
+  const glowGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+  const glowMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      viewVector: { value: camera.position }
+    },
+    vertexShader: `
+      uniform vec3 viewVector;
+      varying float intensity;
+      void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        vec3 actual_normal = vec3(modelMatrix * vec4(normal, 0.0));
+        intensity = pow( dot(normalize(viewVector), actual_normal), 6.0 );
+      }
+    `,
+    fragmentShader: `
+      varying float intensity;
+      void main() {
+        gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;
+      }
+    `,
+    side: THREE.FrontSide,
+    blending: THREE.AdditiveBlending,
+    transparent: true
+  });
+
+  const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+  star.add(glowMesh);
+
+  const trailPoints = [star.position.clone()];
+
+  function animateShootingStar() {
+    star.position.addScaledVector(direction, 4);
+    
+    // Aktualizace stopy
+    trailPoints.push(star.position.clone());
+    if (trailPoints.length > 25) {
+      trailPoints.shift();
+    }
+    trailGeometry.setFromPoints(trailPoints);
+    
+    // Aktualizace zářivého efektu
+    glowMaterial.uniforms.viewVector.value = new THREE.Vector3().subVectors(camera.position, star.position);
+    
+    // Zmenšení opacity ke konci "života" hvězdy
+    const distanceFromCenter = star.position.length();
+    if (distanceFromCenter < 400) {
+      const opacity = (distanceFromCenter - 250) / 150;
+      material.opacity = opacity;
+      trailMaterial.opacity = opacity;
+      glowMaterial.opacity = opacity;
+    }
+
+    if (distanceFromCenter > 250) {
+      requestAnimationFrame(animateShootingStar);
+    } else {
+      scene.remove(star);
+      scene.remove(trail);
+    }
+  }
+
+  animateShootingStar();
+}
+
+function addShootingStars() {
+  setInterval(() => {
+    if (Math.random() < 0.8) {
+      createShootingStar();
+    }
+  }, 2000);
 }
 
 function addStars() {

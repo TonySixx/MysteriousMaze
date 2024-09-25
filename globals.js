@@ -33,9 +33,11 @@ window.currentBackgroundMusic = null;
 
 export const floorMusic = {
   1: "music/msc_lost.mp3",
-  2: "music/msc_lost.mp3",
+  2: "music/msc_magic_in_the_air.mp3",
   3: "music/msc_lost.mp3",
-  4: "music/msc_lost.mp3",
+  4: "music/msc_magic_in_the_air.mp3",
+  5: "music/msc_frozen_heart.mp3",
+  6: "music/msc_lost.mp3",
   999: "music/msc_camp.mp3",
   100: "music/msc_boss_fight.mp3",
   101: "music/msc_boss_fight.mp3",
