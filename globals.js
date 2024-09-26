@@ -20,6 +20,10 @@ window.bestTime = Infinity;
 window.magicBalls = [];
 window.merchants = [];
 
+window.damageTexts = [];
+window.goldTexts = [];
+window.expTexts = [];
+
 window.bossSpawnTimeout = undefined;
 window.bossCountdownInterval = undefined;
 

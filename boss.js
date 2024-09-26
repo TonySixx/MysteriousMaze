@@ -308,7 +308,6 @@ class Boss {
     }
 
     showDamageText(damage) {
-        var requestAnimationFrameId = null;
         if (this.model) {
             const damageText = document.createElement('div');
             damageText.textContent = `-${Math.round(damage)}`;
@@ -324,22 +323,12 @@ class Boss {
             const startTime = performance.now();
             const duration = 2000; // 2 sekundy
 
-            const animate = (currentTime) => {
-                const elapsed = currentTime - startTime;
-                if (elapsed < duration) {
-                    const bossScreenPosition = this.getScreenPosition();
-                    damageText.style.left = `${bossScreenPosition.x}px`;
-                    damageText.style.top = `${bossScreenPosition.y - 50 - (elapsed / duration) * 50}px`;
-                    damageText.style.opacity = 1 - (elapsed / duration);
-                    requestAnimationFrameId = requestAnimationFrame(animate);
-                } else {
-                    document.body.removeChild(damageText);
-                    cancelAnimationFrame(requestAnimationFrameId);
-                    requestAnimationFrameId = null;
-                }
-            };
-
-            requestAnimationFrameId = requestAnimationFrame(animate);
+            damageTexts.push({
+                element: damageText,
+                startTime: startTime,
+                duration: duration,
+                boss: this
+            });
         }
     }
 
@@ -383,7 +372,6 @@ class Boss {
     }
 
     showExpText(exp) {
-        var requestAnimationFrameId = null;
         if (this.model) {
             const expText = document.createElement('div');
             expText.textContent = `+${exp} EXP`;
@@ -399,58 +387,37 @@ class Boss {
             const startTime = performance.now();
             const duration = 3000; // 3 sekundy
 
-            const animate = (currentTime) => {
-                const elapsed = currentTime - startTime;
-                if (elapsed < duration) {
-                    const bossScreenPosition = this.getScreenPosition();
-                    expText.style.left = `${bossScreenPosition.x}px`;
-                    expText.style.top = `${bossScreenPosition.y - 100 - (elapsed / duration) * 100}px`;
-                    expText.style.opacity = 1 - (elapsed / duration);
-                     requestAnimationFrameId = requestAnimationFrame(animate);
-                } else {
-                    document.body.removeChild(expText);
-                    cancelAnimationFrame(requestAnimationFrameId);
-                    requestAnimationFrameId = null;
-                }
-            };
-
-            requestAnimationFrameId = requestAnimationFrame(animate);
+            expTexts.push({
+                element: expText,
+                startTime: startTime,
+                duration: duration,
+                boss: this
+            });
         }
     }
 
     showGoldText(gold) {
-        var requestAnimationFrameId = null;
         if (this.model) {
-            const expText = document.createElement('div');
-            expText.textContent = `+${gold} G`;
-            expText.style.position = 'absolute';
-            expText.style.color = 'gold';
-            expText.style.fontSize = '24px';
-            expText.style.fontWeight = 'bold';
-            expText.style.textShadow = '2px 2px 2px black';
-            expText.style.pointerEvents = 'none';
+            const goldText = document.createElement('div');
+            goldText.textContent = `+${gold} G`;
+            goldText.style.position = 'absolute';
+            goldText.style.color = 'gold';
+            goldText.style.fontSize = '24px';
+            goldText.style.fontWeight = 'bold';
+            goldText.style.textShadow = '2px 2px 2px black';
+            goldText.style.pointerEvents = 'none';
 
-            document.body.appendChild(expText);
+            document.body.appendChild(goldText);
 
             const startTime = performance.now();
             const duration = 3000; // 3 sekundy
 
-            const animate = (currentTime) => {
-                const elapsed = currentTime - startTime;
-                if (elapsed < duration) {
-                    const bossScreenPosition = this.getScreenPosition();
-                    expText.style.left = `${bossScreenPosition.x}px`;
-                    expText.style.top = `${bossScreenPosition.y - 130 - (elapsed / duration) * 100}px`;
-                    expText.style.opacity = 1 - (elapsed / duration);
-                    requestAnimationFrameId = requestAnimationFrame(animate);
-                } else {
-                    document.body.removeChild(expText);
-                    cancelAnimationFrame(requestAnimationFrameId);
-                    requestAnimationFrameId = null;
-                }
-            };
-            
-            requestAnimationFrameId = requestAnimationFrame(animate);
+            goldTexts.push({
+                element: goldText,
+                startTime: startTime,
+                duration: duration,
+                boss: this
+            });
         }
     }
 

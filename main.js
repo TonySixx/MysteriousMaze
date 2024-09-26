@@ -105,7 +105,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateMerchants } from "./animate.js";
+import { animateMerchants, updateDamageTexts, updateExpTexts, updateGoldTexts } from "./animate.js";
 
 export const version = "1.3.2";
 
@@ -2110,6 +2110,9 @@ function animate() {
   regenerateHealth(deltaTime);
   animateStaffRotation(deltaTime);
   updatePotionCooldowns(deltaTime);
+  updateDamageTexts(currentTime);
+  updateExpTexts(currentTime);
+  updateGoldTexts(currentTime);
 
   animateMerchants();
 
