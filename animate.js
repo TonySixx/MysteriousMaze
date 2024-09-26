@@ -1,4 +1,12 @@
 import { checkMerchantInteraction } from "./camp";
+import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor } from "./inventory";
+import { getItemName } from "./itemDatabase";
+import { getTranslation } from "./langUtils";
+import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
+import { MAIN_BOSS_TYPES } from "./mainBoss";
+import { player } from "./player";
+import { showMessage } from "./utils";
+import * as THREE from "three";
 
 export function animateMerchants() {
     merchants.forEach((merchant) => {
@@ -113,3 +121,92 @@ export function updateTeleportParticleSystems(deltaTime, currentTime) {
       }
     }
   }
+
+  export function updateMainBossDragons(deltaTime, currentTime) {
+    for (let i = mainBossDragons.length - 1; i >= 0; i--) {
+        const dragonData = mainBossDragons[i];
+        const elapsedTime = (currentTime - dragonData.startTime) / 1000;
+        const flyDuration = 2; // 2 sekundy
+        const progress = Math.min(elapsedTime / flyDuration, 1);
+
+        dragonData.dragon.position.lerpVectors(dragonData.startPosition, dragonData.targetPosition, progress);
+        if (dragonData.dragon.model) {
+            dragonData.dragon.model.position.copy(dragonData.dragon.position);
+        }
+
+        if (progress >= 1) {
+            mainBossDragons.splice(i, 1);
+        }
+    }
+}
+ 
+export function updateBossChestAndPortal(deltaTime) {
+    const { chest, portal, interactionText, portalInteractionText, chestOpened, chestMixer } = bossChestAndPortalData;
+
+      // Aktualizace mixeru truhly
+      if (chestMixer) {
+        chestMixer.update(deltaTime);
+    }
+
+    // Kontrola vzdálenosti hráče od truhly
+    const chestDistance = player.position.distanceTo(chest.position);
+    if (chestDistance < 2) {
+        interactionText.style.display = "block";
+        if (keys.f && !chestOpened && checkSpaceInInventory(3)) {
+            bossChestAndPortalData.chestOpened = true;
+            openChest(chest);
+            keys.f = false;
+        }
+    } else {
+        interactionText.style.display = "none";
+    }
+
+    // Kontrola vzdálenosti hráče od portálu
+    const portalDistance = player.position.distanceTo(portal.position);
+    if (portalDistance < 2) {
+        portalInteractionText.style.display = "block";
+        if (keys.f) {
+            teleportToCamp();
+            keys.f = false;
+        }
+    } else {
+        portalInteractionText.style.display = "none";
+    }
+}
+
+function openChest(chest) {
+    playSound(chestSoundBuffer);
+    
+    // Použití uloženého mixeru a akce pro otevření truhly
+    const { chestMixer, chestOpenAction } = bossChestAndPortalData;
+    chestOpenAction.play();
+
+    let gotItem = false;
+    // Přidání předmětů do inventáře na základě pravděpodobnosti
+    MAIN_BOSS_TYPES[0].dropItems.forEach(drop => {
+        if (Math.random() < drop.chance) {
+            addItemToInventory(createItem(getItemName(drop.item)));
+            gotItem = true;
+            showMessage("You have obtained: " + "<span style='color: " + getRarityColor(drop.item.rarity) + "'>" + drop.item.name + "</span>", true);
+        }
+    });
+
+    if (gotItem) {
+        playSound(itemSoundBuffer);
+    }
+
+    // Odebrání interakčního textu a zóny po otevření truhly
+    bossChestAndPortalData.interactionText.remove();
+    scene.remove(bossChestAndPortalData.interactionZone);
+
+    // Označení truhly jako otevřené
+    bossChestAndPortalData.chestOpened = true;
+}
+
+  export function teleportToCamp() {
+    // Implementace teleportace do kempu
+    setSelectedFloor(999);
+    showFloorSelectBtn.textContent = getTranslation("floorCamp");
+    playSound(teleportSoundBuffer);
+    generateNewMaze();
+}

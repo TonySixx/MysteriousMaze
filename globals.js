@@ -25,6 +25,9 @@ window.goldTexts = [];
 window.expTexts = [];
 window.teleportParticles = [];
 window.teleportParticleSystems = [];
+window.mainBossDragons = [];
+window.bossChestAndPortalData = null;
+window.chestMixer = null;
 
 window.bossSpawnTimeout = undefined;
 window.bossCountdownInterval = undefined;

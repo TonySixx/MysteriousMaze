@@ -105,7 +105,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateMerchants, updateDamageTexts, updateExpTexts, updateGoldTexts, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
+import { animateMerchants, updateBossChestAndPortal, updateDamageTexts, updateExpTexts, updateGoldTexts, updateMainBossDragons, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
 
 export const version = "1.3.2";
 
@@ -723,9 +723,19 @@ function clearScene() {
   resetSpells();
 
   teleportParticles = [];
+  damageTexts.forEach((damageText) => {
+    document.body.removeChild(damageText.element);
+  });
   damageTexts = [];
+  expTexts.forEach((expText) => {
+    document.body.removeChild(expText.element);
+  });
   expTexts = [];
+  goldTexts.forEach((goldText) => {
+    document.body.removeChild(goldText.element);
+  });
   goldTexts = [];
+  bossChestAndPortalData = null;
 
   // Vyčistíme kontejner pro zdraví bosse
   const bossHealthContainer = document.getElementById("bossHealthContainer");
@@ -2109,8 +2119,13 @@ function animate() {
   updateGoldTexts(currentTime);
   updateTeleportParticles(deltaTime, currentTime);
   updateTeleportParticleSystems(deltaTime, currentTime);
+  updateMainBossDragons(deltaTime, currentTime);
 
   animateMerchants();
+
+  if (bossChestAndPortalData) {
+    updateBossChestAndPortal(deltaTime);
+}
 
   if (staffModel && staffModel.userData.enchantParticles) {
     staffModel.userData.enchantParticles.userData.update(deltaTime);

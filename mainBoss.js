@@ -208,59 +208,7 @@ export class MainBoss extends Boss {
             interactionText.style.display = "none";
             document.body.appendChild(interactionText);
             var chestOpened = false;
-            // Funkce pro kontrolu vzdálenosti hráče od truhly
-            function checkPlayerDistance() {
-                const distance = player.position.distanceTo(chest.position);
-                if (distance < 2) {
-                    interactionText.style.display = "block";
-                    if (keys.f) {
-                        if (chestOpened === false && checkSpaceInInventory(3) === true) {
-                            chestOpened = true;
-                            openChest(chest);
-                        }
-                        keys.f = false; // Resetujeme stav klávesy, aby se truhla neotevírala opakovaně
-                    }
-                } else {
-                    interactionText.style.display = "none";
-                }
-            }
 
-            // Přidání funkce pro otevření truhly
-            function openChest(chest) {
-                playSound(chestSoundBuffer);
-                const mixer = new THREE.AnimationMixer(chest);
-                const action = mixer.clipAction(gltf.animations.find(clip => clip.name === "Chest_Open"));
-                action.setDuration(2)
-                action.setLoop(THREE.LoopOnce);
-                action.clampWhenFinished = true;
-                action.play();
-
-                let gotItem = false;
-                // Přidání předmětů do inventáře na základě pravděpodobnosti
-                MAIN_BOSS_TYPES[0].dropItems.forEach(drop => {
-                    if (Math.random() < drop.chance) {
-                        addItemToInventory(createItem(getItemName(drop.item)));
-                        gotItem = true;
-                        showMessage("You have obtained: " + "<span style='color: " + getRarityColor(drop.item.rarity) + "'>" + drop.item.name + "</span>", true);
-                    }
-                });
-
-                if (gotItem) {
-                    playSound(itemSoundBuffer);
-                }
-
-                // Odebrání interakčního textu a zóny po otevření truhly
-                interactionText.remove();
-                scene.remove(interactionZone);
-
-                const clock = new THREE.Clock();
-                function updateChestAnimation() {
-                    const delta = clock.getDelta();
-                    mixer.update(delta);
-                    requestAnimationFrame(updateChestAnimation);
-                }
-                updateChestAnimation();
-            }
 
 
             // Přidání portálu po poražení bosse
@@ -283,37 +231,21 @@ export class MainBoss extends Boss {
             portalInteractionText.style.display = "none";
             document.body.appendChild(portalInteractionText);
 
-            // Funkce pro kontrolu vzdálenosti hráče od portálu
-            function checkPlayerDistanceToPortal() {
-                const distance = player.position.distanceTo(portal.position);
-                if (distance < 2) {
-                    portalInteractionText.style.display = "block";
-                    if (keys.f) {
-                        teleportToCamp();
-                        keys.f = false; // Resetujeme stav klávesy, aby se portál neaktivoval opakovaně
-                    }
-                } else {
-                    portalInteractionText.style.display = "none";
-                }
-            }
+            // Vytvoření mixeru pro animaci truhly
+            chestMixer = new THREE.AnimationMixer(chest);
+            const chestOpenAction = chestMixer.clipAction(gltf.animations.find(clip => clip.name === "Chest_Open"));
+            chestOpenAction.setLoop(THREE.LoopOnce);
+            chestOpenAction.clampWhenFinished = true;
 
-            // Přidání funkce pro teleportaci do kempu
-            function teleportToCamp() {
-                // Implementace teleportace do kempu
-                setSelectedFloor(999);
-                showFloorSelectBtn.textContent = getTranslation("floorCamp");
-                playSound(teleportSoundBuffer);
-                generateNewMaze();
-            }
-
-
-            // Přidání funkce pro kontrolu vzdálenosti do animační smyčky
-            function update() {
-                checkPlayerDistance();
-                checkPlayerDistanceToPortal();
-                bossChestAndPortalAnimationId = requestAnimationFrame(update);
-            }
-            update();
+            bossChestAndPortalData = {
+                chest: chest,
+                portal: portal,
+                interactionText: interactionText,
+                portalInteractionText: portalInteractionText,
+                chestOpened: false,
+                chestMixer: chestMixer,
+                chestOpenAction: chestOpenAction
+            };
 
         });
     }
@@ -383,46 +315,30 @@ export class MainBoss extends Boss {
         this.createAttackEffect();
         playSound(teleportSoundBuffer);
         const centerPosition = new THREE.Vector3(0, 0.5, 0);
-        const spacing = 2; // Rozestup 2 metry
-        const dragonStartHeight = 20; // Výška, ze které draci začnou klesat
+        const spacing = 2;
+        const dragonStartHeight = 20;
         const dragonPositions = [
             new THREE.Vector3(centerPosition.x - spacing, centerPosition.y, centerPosition.z - spacing),
             new THREE.Vector3(centerPosition.x + spacing, centerPosition.y, centerPosition.z - spacing),
             new THREE.Vector3(centerPosition.x - spacing, centerPosition.y, centerPosition.z + spacing),
             new THREE.Vector3(centerPosition.x + spacing, centerPosition.y, centerPosition.z + spacing),
         ];
-    
+
         dragonPositions.forEach((targetPosition) => {
             const startPosition = targetPosition.clone().setY(dragonStartHeight);
             setBossCounter(bossCounter + 1);
             const dragon = new Boss(startPosition, bossCounter, this.rng, selectedFloor - 100 + 1, false, null, true);
             dragon.health = dragon.maxHealth;
             bosses.push(dragon);
-    
-            // Animace příletu draka
-            const flyDuration = 2; // Doba letu v sekundách
-            const startTime = Date.now();
-            let animateDragonEntryRequestId = null;
-    
-            function animateDragonEntry() {
-                const elapsedTime = (Date.now() - startTime) / 1000;
-                const progress = Math.min(elapsedTime / flyDuration, 1);
-    
-                dragon.position.lerpVectors(startPosition, targetPosition, progress);
-                if (dragon.model) {
-                    dragon.model.position.copy(dragon.position);
-                }
-    
-                if (progress < 1) {
-                    animateDragonEntryRequestId = requestAnimationFrame(animateDragonEntry);
-                } else {
-                    cancelAnimationFrame(animateDragonEntryRequestId);
-                }
-            }
-    
-            animateDragonEntry();
+
+            mainBossDragons.push({
+                dragon: dragon,
+                startPosition: startPosition,
+                targetPosition: targetPosition,
+                startTime: performance.now()
+            });
         });
-    
+
         this.dragonsSpawned = true;
     }
 
