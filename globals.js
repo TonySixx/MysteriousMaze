@@ -23,6 +23,8 @@ window.merchants = [];
 window.damageTexts = [];
 window.goldTexts = [];
 window.expTexts = [];
+window.teleportParticles = [];
+window.teleportParticleSystems = [];
 
 window.bossSpawnTimeout = undefined;
 window.bossCountdownInterval = undefined;

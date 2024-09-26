@@ -74,3 +74,42 @@ export function updateGoldTexts(currentTime) {
         }
     });
 }
+
+export function updateTeleportParticles(deltaTime, currentTime) {
+    for (let i = teleportParticles.length - 1; i >= 0; i--) {
+        const particleSystem = teleportParticles[i];
+        const positions = particleSystem.particles.geometry.attributes.position.array;
+        
+        for (let j = 0; j < positions.length; j += 3) {
+            positions[j] += (Math.random() - 0.5) * 0.1;
+            positions[j + 1] += 0.1;
+            positions[j + 2] += (Math.random() - 0.5) * 0.1;
+        }
+        
+        particleSystem.particles.geometry.attributes.position.needsUpdate = true;
+        particleSystem.material.opacity -= 0.02;
+
+        if (particleSystem.material.opacity <= 0 || currentTime - particleSystem.creationTime > 2000) {
+            scene.remove(particleSystem.particles);
+            teleportParticles.splice(i, 1);
+        }
+    }
+}
+
+export function updateTeleportParticleSystems(deltaTime, currentTime) {
+    for (let i = teleportParticleSystems.length - 1; i >= 0; i--) {
+      const particleSystem = teleportParticleSystems[i];
+      
+      particleSystem.rotation.x += 0.01 * deltaTime;
+      particleSystem.rotation.y += 0.01 * deltaTime;
+      
+      const scale = 1 + 0.1 * Math.sin(currentTime * 0.005);
+      particleSystem.scale.set(scale, scale, scale);
+  
+      // Zde můžete přidat logiku pro odstranění částic po určitém čase
+      if (currentTime - particleSystem.creationTime > 2000) { // například po 2 sekundách
+        scene.remove(particleSystem);
+        teleportParticleSystems.splice(i, 1);
+      }
+    }
+  }

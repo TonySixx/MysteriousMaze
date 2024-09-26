@@ -676,11 +676,10 @@ class Boss {
     }
 
     createTeleportParticles(position) {
-        var requestAnimationFrameId = null;
         const particleCount = 100;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
-
+    
         for (let i = 0; i < particleCount; i++) {
             const x = (Math.random() - 0.5) * 2;
             const y = Math.random() * 2;
@@ -689,41 +688,26 @@ class Boss {
             positions[i * 3 + 1] = y;
             positions[i * 3 + 2] = z;
         }
-
+    
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
+    
         const material = new THREE.PointsMaterial({
             color: this.type.attackColor,
             size: 0.1,
             transparent: true,
             blending: THREE.AdditiveBlending
         });
-
+    
         const particles = new THREE.Points(geometry, material);
         particles.position.copy(position);
         scene.add(particles);
-
-        // Animace částic
-        const animate = () => {
-            const positions = particles.geometry.attributes.position.array;
-            for (let i = 0; i < positions.length; i += 3) {
-                positions[i] += (Math.random() - 0.5) * 0.1;
-                positions[i + 1] += 0.1;
-                positions[i + 2] += (Math.random() - 0.5) * 0.1;
-            }
-            particles.geometry.attributes.position.needsUpdate = true;
-            material.opacity -= 0.02;
-
-            if (material.opacity > 0) {
-                requestAnimationFrameId = requestAnimationFrame(animate);
-            } else {
-                cancelAnimationFrame(requestAnimationFrameId);
-                requestAnimationFrameId = null;
-                scene.remove(particles);
-            }
-        };
-
-        animate();
+    
+        // Přidáme částice do pole teleportParticles
+        teleportParticles.push({
+            particles: particles,
+            material: material,
+            creationTime: performance.now()
+        });
     }
 
 

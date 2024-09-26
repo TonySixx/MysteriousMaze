@@ -105,7 +105,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateMerchants, updateDamageTexts, updateExpTexts, updateGoldTexts } from "./animate.js";
+import { animateMerchants, updateDamageTexts, updateExpTexts, updateGoldTexts, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
 
 export const version = "1.3.2";
 
@@ -722,6 +722,11 @@ function clearScene() {
   // Resetujeme kouzla
   resetSpells();
 
+  teleportParticles = [];
+  damageTexts = [];
+  expTexts = [];
+  goldTexts = [];
+
   // Vyčistíme kontejner pro zdraví bosse
   const bossHealthContainer = document.getElementById("bossHealthContainer");
   while (bossHealthContainer.firstChild) {
@@ -1330,19 +1335,8 @@ export function createTeleportModel(color) {
 
   const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
   teleport.add(particleSystem);
-
-  // Animace particle efektů
-  const clock = new THREE.Clock();
-  function animateTeleport() {
-    const delta = clock.getDelta();
-    particleSystem.rotation.x += 0.01 * delta;
-    particleSystem.rotation.y += 0.01 * delta;
-    particleSystem.scale.x = 1 + 0.1 * Math.sin(performance.now() * 0.005);
-    particleSystem.scale.y = 1 + 0.1 * Math.sin(performance.now() * 0.005);
-    particleSystem.scale.z = 1 + 0.1 * Math.sin(performance.now() * 0.005);
-    requestAnimationFrame(animateTeleport);
-  }
-  animateTeleport();
+  particleSystem.creationTime = performance.now();
+  teleportParticleSystems.push(particleSystem);
 
   teleport.userData.isRotating = true;
   return teleport;
@@ -2113,6 +2107,8 @@ function animate() {
   updateDamageTexts(currentTime);
   updateExpTexts(currentTime);
   updateGoldTexts(currentTime);
+  updateTeleportParticles(deltaTime, currentTime);
+  updateTeleportParticleSystems(deltaTime, currentTime);
 
   animateMerchants();
 
