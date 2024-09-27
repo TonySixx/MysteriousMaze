@@ -28,6 +28,7 @@ window.teleportParticleSystems = [];
 window.mainBossDragons = [];
 window.bossChestAndPortalData = null;
 window.chestMixer = null;
+window.mainBossEntryData = null;
 
 window.bossSpawnTimeout = undefined;
 window.bossCountdownInterval = undefined;

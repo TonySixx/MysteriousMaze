@@ -105,7 +105,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateMerchants, updateBossChestAndPortal, updateDamageTexts, updateExpTexts, updateGoldTexts, updateMainBossDragons, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
+import { animateBossEntry, animateMerchants, updateBossChestAndPortal, updateDamageTexts, updateExpTexts, updateGoldTexts, updateMainBossDragons, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
 
 export const version = "1.3.2";
 
@@ -736,6 +736,8 @@ function clearScene() {
   });
   goldTexts = [];
   bossChestAndPortalData = null;
+  mainBossEntryData = null;
+  chestMixer = null;
 
   // Vyčistíme kontejner pro zdraví bosse
   const bossHealthContainer = document.getElementById("bossHealthContainer");
@@ -2120,6 +2122,7 @@ function animate() {
   updateTeleportParticles(deltaTime, currentTime);
   updateTeleportParticleSystems(deltaTime, currentTime);
   updateMainBossDragons(deltaTime, currentTime);
+  animateBossEntry(deltaTime);
 
   animateMerchants();
 

@@ -210,3 +210,20 @@ function openChest(chest) {
     playSound(teleportSoundBuffer);
     generateNewMaze();
 }
+
+export function animateBossEntry(deltaTime) {
+    if (!mainBossEntryData) return;
+
+    const { mainBoss, startPosition, targetPosition, startTime, flyDuration } = mainBossEntryData;
+    const elapsedTime = (performance.now() - startTime) / 1000;
+    const progress = Math.min(elapsedTime / flyDuration, 1);
+
+    mainBoss.position.lerpVectors(startPosition, targetPosition, progress);
+    if (mainBoss.model) {
+        mainBoss.model.position.copy(mainBoss.position);
+    }
+
+    if (progress >= 1) {
+        mainBossEntryData = null;
+    }
+}
