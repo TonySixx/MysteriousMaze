@@ -105,7 +105,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateBossEntry, animateMerchants, updateBossChestAndPortal, updateDamageTexts, updateExpTexts, updateGoldTexts, updateMainBossDragons, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
+import { animateBossEntry, animateMerchants, updateBossChestAndPortal, updateDamageTexts, updateExplosions, updateExpTexts, updateGoldTexts, updateMainBossDragons, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
 
 export const version = "1.3.2";
 
@@ -735,6 +735,7 @@ function clearScene() {
     document.body.removeChild(goldText.element);
   });
   goldTexts = [];
+  explosions = [];
   bossChestAndPortalData = null;
   mainBossEntryData = null;
   chestMixer = null;
@@ -2123,6 +2124,7 @@ function animate() {
   updateTeleportParticleSystems(deltaTime, currentTime);
   updateMainBossDragons(deltaTime, currentTime);
   animateBossEntry(deltaTime);
+  updateExplosions(deltaTime, currentTime);
 
   animateMerchants();
 

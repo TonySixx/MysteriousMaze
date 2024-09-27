@@ -29,6 +29,7 @@ window.mainBossDragons = [];
 window.bossChestAndPortalData = null;
 window.chestMixer = null;
 window.mainBossEntryData = null;
+window.explosions = [];
 
 window.bossSpawnTimeout = undefined;
 window.bossCountdownInterval = undefined;

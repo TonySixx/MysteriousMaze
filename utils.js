@@ -327,7 +327,7 @@ export function createCastEffect(position, color = 0xffa500) {
 
 export function createExplosion(position, color = 0xff8f45) {
   const explosionGroup = new THREE.Group();
-
+  
   const particleCount = 100;
   const particles = new THREE.Points(
     new THREE.BufferGeometry(),
@@ -384,40 +384,13 @@ export function createExplosion(position, color = 0xff8f45) {
   const startTime = performance.now();
   const duration = 1000; // Doba trvání exploze v milisekundách
 
-  function animateExplosion() {
-    var requestAnimationFrameId = null;
-    const currentTime = performance.now();
-    const elapsedTime = currentTime - startTime;
-    const progress = Math.min(elapsedTime / duration, 1);
-
-    const positions = particles.geometry.attributes.position.array;
-    const velocities = particles.geometry.attributes.velocity.array;
-    const colors = particles.geometry.attributes.color.array;
-    const sizes = particles.geometry.attributes.size.array;
-
-    for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] += velocities[i * 3];
-      positions[i * 3 + 1] += velocities[i * 3 + 1];
-      positions[i * 3 + 2] += velocities[i * 3 + 2];
-
-      colors[i * 3 + 3] = 1 - progress; // Plynulé mizení
-      sizes[i] *= 0.99; // Postupné zmenšování částic
-    }
-
-    particles.geometry.attributes.position.needsUpdate = true;
-    particles.geometry.attributes.color.needsUpdate = true;
-    particles.geometry.attributes.size.needsUpdate = true;
-
-    if (progress < 1) {
-      requestAnimationFrameId = requestAnimationFrame(animateExplosion);
-    } else {
-      cancelAnimationFrame(requestAnimationFrameId);
-      requestAnimationFrameId = null;
-      scene.remove(explosionGroup);
-    }
-  }
-
-  animateExplosion();
+  // Místo volání animateExplosion zde, přidáme explozi do pole
+  explosions.push({
+      group: explosionGroup,
+      particles: particles,
+      startTime: startTime,
+      duration: duration
+  });
 
   return explosionGroup;
 }

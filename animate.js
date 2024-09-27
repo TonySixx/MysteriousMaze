@@ -227,3 +227,34 @@ export function animateBossEntry(deltaTime) {
         mainBossEntryData = null;
     }
 }
+
+export function updateExplosions(deltaTime, currentTime) {
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        const explosion = explosions[i];
+        const elapsedTime = currentTime - explosion.startTime;
+        const progress = Math.min(elapsedTime / explosion.duration, 1);
+
+        const positions = explosion.particles.geometry.attributes.position.array;
+        const velocities = explosion.particles.geometry.attributes.velocity.array;
+        const colors = explosion.particles.geometry.attributes.color.array;
+        const sizes = explosion.particles.geometry.attributes.size.array;
+
+        for (let j = 0; j < positions.length; j += 3) {
+            positions[j] += velocities[j] * deltaTime * 30;
+            positions[j + 1] += velocities[j + 1] * deltaTime * 30;
+            positions[j + 2] += velocities[j + 2] * deltaTime * 30;
+
+            colors[j + 3] = 1 - progress; // Plynulé mizení
+            sizes[j / 3] *= 0.99; // Postupné zmenšování částic
+        }
+
+        explosion.particles.geometry.attributes.position.needsUpdate = true;
+        explosion.particles.geometry.attributes.color.needsUpdate = true;
+        explosion.particles.geometry.attributes.size.needsUpdate = true;
+
+        if (progress >= 1) {
+            scene.remove(explosion.group);
+            explosions.splice(i, 1);
+        }
+    }
+}
