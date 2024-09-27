@@ -110,7 +110,9 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateBossEntry, animateMerchants, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
+import { initQuestSystem } from "./quests.js";
+import { addFireDragonQuest } from "./questDatabase.js";
 
 export const version = "1.3.2";
 
@@ -421,6 +423,8 @@ export async function init() {
     createPlayer();
     createSkillbar();
     initSkillTree();
+    initQuestSystem();
+    addFireDragonQuest()
     updatePlayerStats(true);
     startTimer();
     const crosshair = createCrosshair();
@@ -2148,6 +2152,8 @@ function animate() {
   animateStaffInspection(currentTime);
 
   animateMerchants();
+  updateQuestBoardInteraction(deltaTime);
+  animateQuestIndicator(deltaTime);
 
   if (bossChestAndPortalData) {
     updateBossChestAndPortal(deltaTime);

@@ -4,6 +4,7 @@ import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperi
 import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer, manager } from './main.js';
 import { getTranslation } from "./langUtils.js";
 import { BOSS_TYPES } from "./bossTypes.js";
+import { updateQuestProgress } from "./quests.js";
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -18,7 +19,7 @@ export function setBossCounter(value) {
 
 
 class Boss {
-    constructor(position, id, rng, floor,isMainBoss= false,type=null,dontDropKey=false) {
+    constructor(position, id, rng, floor, isMainBoss = false, type = null, dontDropKey = false) {
         this.isMainBoss = isMainBoss;
         this.id = id;
         this.floor = floor;
@@ -63,7 +64,7 @@ class Boss {
             this.createHealthUI();
         }
 
-      
+
     }
 
     selectBossType(floor, rng) {
@@ -364,7 +365,7 @@ class Boss {
     freeze(time = 2000) {
         this.isFrozen = true;
         this.setFrozenAppearance(true);
-        playSound(frostBoltHitSoundBuffer,0.7);
+        playSound(frostBoltHitSoundBuffer, 0.7);
         setTimeout(() => {
             this.isFrozen = false;
             this.setFrozenAppearance(false);
@@ -429,13 +430,25 @@ class Boss {
         }
         this.stopBurning();
 
-       playSound(killConfirmationSoundBuffer);
+        playSound(killConfirmationSoundBuffer);
 
-        if(!this.dontDropKey){
-        const key = keyModel.clone();
-        key.userData.isKey = true;
-        key.position.copy(this.position);
-        scene.add(key);
+        // Přidáme aktualizaci questu
+        if (this.type.translationKey === "fireDragon") {
+            updateQuestProgress('killFireDragons', (quest) => {
+                quest.objective.current++;
+                quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                if (quest.objective.current >= quest.objective.count) {
+                    quest.isCompleted = true;
+                }
+                return quest;
+            });
+        }
+
+        if (!this.dontDropKey) {
+            const key = keyModel.clone();
+            key.userData.isKey = true;
+            key.position.copy(this.position);
+            scene.add(key);
         }
 
         bosses = bosses.filter(b => b !== this);
@@ -445,28 +458,28 @@ class Boss {
             bossHealthElement.remove();
         }
 
-    // Přidání exp za zabití bosse
-    const expGained = this.maxHealth + ((this.floor-1)* 1000);
-    const exponent = 1.1;
-    let totalExperience = Math.round(expGained * Math.pow(this.floor, exponent));
+        // Přidání exp za zabití bosse
+        const expGained = this.maxHealth + ((this.floor - 1) * 1000);
+        const exponent = 1.1;
+        let totalExperience = Math.round(expGained * Math.pow(this.floor, exponent));
 
-    // Úprava zkušeností na základě úrovně hráče a podlaží
-    const playerLevel = getPlayerLevel(); // Předpokládáme, že tato funkce existuje
-    let expMultiplier = 1;
+        // Úprava zkušeností na základě úrovně hráče a podlaží
+        const playerLevel = getPlayerLevel(); // Předpokládáme, že tato funkce existuje
+        let expMultiplier = 1;
 
-    if (this.floor === 1 && playerLevel > 7) {
-        expMultiplier = Math.max(0.1, 1 - (playerLevel - 7) * 0.15);
-    } else if (this.floor === 2 && playerLevel > 12) {
-        expMultiplier = Math.max(0.1, 1 - (playerLevel - 12) * 0.15);
-    } else if (this.floor === 3 && playerLevel > 16) {
-        expMultiplier = Math.max(0.1, 1 - (playerLevel - 16) * 0.15);
-    } else if (this.floor === 4 && playerLevel > 20) {
-        expMultiplier = Math.max(0.1, 1 - (playerLevel - 20) * 0.15);
-    }
+        if (this.floor === 1 && playerLevel > 7) {
+            expMultiplier = Math.max(0.1, 1 - (playerLevel - 7) * 0.15);
+        } else if (this.floor === 2 && playerLevel > 12) {
+            expMultiplier = Math.max(0.1, 1 - (playerLevel - 12) * 0.15);
+        } else if (this.floor === 3 && playerLevel > 16) {
+            expMultiplier = Math.max(0.1, 1 - (playerLevel - 16) * 0.15);
+        } else if (this.floor === 4 && playerLevel > 20) {
+            expMultiplier = Math.max(0.1, 1 - (playerLevel - 20) * 0.15);
+        }
 
-    totalExperience = Math.round(totalExperience * expMultiplier);
-    addExperience(totalExperience);
-    this.showExpText(totalExperience)
+        totalExperience = Math.round(totalExperience * expMultiplier);
+        addExperience(totalExperience);
+        this.showExpText(totalExperience)
 
         // Přidání zlaťáků za zabití bosse
         const goldGained = Math.round((this.maxHealth / 100) + (this.floor * 10) + (Math.random() * 0.1 * this.maxHealth / 100));
@@ -502,7 +515,7 @@ class Boss {
             this.attackAction.setLoop(THREE.LoopOnce);
         }
         playSound(bossSoundBuffer);
-        const magicBall = this.createMagicBall(this.position, player.position,this.attackSpeed,this.attackSize);
+        const magicBall = this.createMagicBall(this.position, player.position, this.attackSpeed, this.attackSize);
         scene.add(magicBall);
         magicBalls.push(magicBall);
     }
@@ -524,7 +537,7 @@ class Boss {
                 break;
         }
     }
-    
+
 
     frostboltAttack() {
         if (this.attackAction) {
@@ -618,31 +631,31 @@ class Boss {
         if (currentTime - this.lastTeleportTime < this.teleportCooldown) {
             return;
         }
-    
+
         const teleportDistance = 5;
         let teleportDirection = new THREE.Vector3()
             .subVectors(player.position, this.position)
             .normalize()
             .multiplyScalar(teleportDistance);
         teleportDirection.y = 0;
-    
+
         this.createTeleportParticles(this.position);
-    
+
         const originalPosition = this.position.clone();
         let newPosition = this.position.clone().add(teleportDirection);
-    
+
         newPosition = this.findSafeTeleportPosition(newPosition, originalPosition);
-    
+
         if (newPosition) {
             playSound(teleportSoundBuffer);
-    
+
             this.position.copy(newPosition);
             this.model.position.copy(this.position);
-    
+
             const halfMazeSize = (MAZE_SIZE * CELL_SIZE) / 2;
             this.position.x = Math.max(Math.min(this.position.x, halfMazeSize), -halfMazeSize);
             this.position.z = Math.max(Math.min(this.position.z, halfMazeSize), -halfMazeSize);
-    
+
             this.createTeleportParticles(this.position);
             this.lastTeleportTime = currentTime;
             this.performStandardAttack();
@@ -650,19 +663,19 @@ class Boss {
             console.log("Boss nemohl najít bezpečnou pozici pro teleportaci");
         }
     }
-    
+
     findSafeTeleportPosition(targetPosition, originalPosition) {
         if (!this.checkCollisionOnMove(targetPosition)) {
             return targetPosition;
         }
-    
+
         const directions = [
             new THREE.Vector3(1, 0, 0),
             new THREE.Vector3(-1, 0, 0),
             new THREE.Vector3(0, 0, 1),
             new THREE.Vector3(0, 0, -1),
         ];
-    
+
         for (let i = 1; i <= 10; i++) {
             for (const direction of directions) {
                 const testPosition = targetPosition.clone().add(direction.clone().multiplyScalar(i * 0.5));
@@ -671,7 +684,7 @@ class Boss {
                 }
             }
         }
-    
+
         return originalPosition; // Vrátíme původní pozici, pokud nebyla nalezena žádná bezpečná pozice
     }
 
@@ -679,7 +692,7 @@ class Boss {
         const particleCount = 100;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
-    
+
         for (let i = 0; i < particleCount; i++) {
             const x = (Math.random() - 0.5) * 2;
             const y = Math.random() * 2;
@@ -688,20 +701,20 @@ class Boss {
             positions[i * 3 + 1] = y;
             positions[i * 3 + 2] = z;
         }
-    
+
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    
+
         const material = new THREE.PointsMaterial({
             color: this.type.attackColor,
             size: 0.1,
             transparent: true,
             blending: THREE.AdditiveBlending
         });
-    
+
         const particles = new THREE.Points(geometry, material);
         particles.position.copy(position);
         scene.add(particles);
-    
+
         // Přidáme částice do pole teleportParticles
         teleportParticles.push({
             particles: particles,
@@ -719,12 +732,12 @@ class Boss {
         }
 
         playSound(magicArrowSoundBuffer);
-        
+
         const magicArrow = this.createMagicArrow(this.position, player.position);
         scene.add(magicArrow);
         magicBalls.push(magicArrow);
     }
-    
+
     createMagicArrow(startPosition, targetPosition) {
         const geometry = new THREE.ConeGeometry(0.1, 0.5, 8);
         const material = new THREE.MeshBasicMaterial({
@@ -735,20 +748,20 @@ class Boss {
         const magicArrow = new THREE.Mesh(geometry, material);
         magicArrow.position.copy(startPosition);
         magicArrow.position.y += 1;
-    
+
         const direction = new THREE.Vector3().subVectors(targetPosition, startPosition).normalize();
         magicArrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
-    
+
         const speed = 0.5; // Rychlejší než běžné útoky
         magicArrow.velocity = direction.multiplyScalar(speed);
         magicArrow.isMagicArrow = true;
         magicArrow.damage = 30; // Větší poškození
-    
+
         return magicArrow;
     }
 
 
-    createMagicBall(startPosition, targetPosition,magicBallSpeed = null,ballSize = 0.2) {
+    createMagicBall(startPosition, targetPosition, magicBallSpeed = null, ballSize = 0.2) {
         const geometry = new THREE.SphereGeometry(ballSize, 32, 32);
         const material = new THREE.MeshStandardMaterial({
             color: this.type.attackColor,
@@ -773,7 +786,7 @@ class Boss {
         this.moveDirection.set(Math.cos(randomAngle), 0, Math.sin(randomAngle));
     }
 
-    move(deltaTime,collisionOffset = 1) {
+    move(deltaTime, collisionOffset = 1) {
         if (!this.model || !this.position) {
             return;
         }
@@ -792,7 +805,7 @@ class Boss {
             nextPosition.z < -halfMazeSize || nextPosition.z > halfMazeSize
         ) {
             this.changeDirection(); // Pokud by boss opustil hranice bludiště, změní směr
-        } else if (!this.checkCollisionOnMove(nextPosition,collisionOffset)) {
+        } else if (!this.checkCollisionOnMove(nextPosition, collisionOffset)) {
             this.position.add(moveStep);
             this.model.position.copy(this.position);
         } else {
@@ -816,11 +829,11 @@ class Boss {
         if (this.slowEffect === 1) {
             this.slowEffect = Math.min(this.slowEffect, slowFactor);
             this.slowEndTime = Math.max(this.slowEndTime, Date.now() + duration);
-        this.createSlowParticles();
+            this.createSlowParticles();
         }
     }
 
-    update(deltaTime,collisionOffset = 1) {
+    update(deltaTime, collisionOffset = 1) {
         this.updateSlowParticles(deltaTime);
         if (this.isFrozen) return;
 
@@ -844,7 +857,7 @@ class Boss {
         if (canSeePlayer(this.position, player.position)) {
             this.attack();
         } else {
-            this.move(deltaTime,collisionOffset);
+            this.move(deltaTime, collisionOffset);
         }
     }
 
@@ -852,9 +865,9 @@ class Boss {
         if (this.slowParticles) {
             this.removeSlowParticles();
         }
-    
+
         this.slowParticles = new THREE.Group();
-    
+
         // Ice trail
         const trailParticles = new THREE.Points(
             new THREE.BufferGeometry(),
@@ -865,11 +878,11 @@ class Boss {
                 transparent: true,
             })
         );
-    
+
         const trailPositions = new Float32Array(60 * 3);
         trailParticles.geometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
         this.slowParticles.add(trailParticles);
-    
+
         // Jemné ledové částice
         const iceParticles = new THREE.Points(
             new THREE.BufferGeometry(),
@@ -880,7 +893,7 @@ class Boss {
                 opacity: 1,
             })
         );
-    
+
         const icePositions = new Float32Array(100 * 3); // Zvýšili jsme počet částic
         for (let i = 0; i < icePositions.length; i += 3) {
             icePositions[i] = (Math.random() - 0.5) * 2; // Zvětšili jsme rozptyl na 2
@@ -889,16 +902,16 @@ class Boss {
         }
         iceParticles.geometry.setAttribute('position', new THREE.BufferAttribute(icePositions, 3));
         this.slowParticles.add(iceParticles);
-    
+
         this.model.add(this.slowParticles);
     }
-    
+
     updateSlowParticles(deltaTime) {
         if (!this.slowParticles) return;
-    
+
         const trailParticles = this.slowParticles.children[0];
         const iceParticles = this.slowParticles.children[1];
-    
+
         // Animate ice trail
         const trailPositions = trailParticles.geometry.attributes.position.array;
         for (let i = trailPositions.length - 1; i >= 3; i -= 3) {
@@ -906,25 +919,25 @@ class Boss {
             trailPositions[i - 1] = trailPositions[i - 4];
             trailPositions[i - 2] = trailPositions[i - 5];
         }
-        
+
         // Nastavení nové pozice částice s větším rozptylem
         trailPositions[0] = (Math.random() - 0.5) * 2;
         trailPositions[1] = (Math.random() - 0.5) * 2;
         trailPositions[2] = (Math.random() - 0.5) * 2;
-        
+
         trailParticles.geometry.attributes.position.needsUpdate = true;
-    
+
         // Animate ice particles
         const icePositions = iceParticles.geometry.attributes.position.array;
         for (let i = 0; i < icePositions.length; i += 3) {
             icePositions[i] += (Math.random() - 0.5) * 0.02; // Zvětšili jsme pohyb částic
             icePositions[i + 1] += (Math.random() - 0.5) * 0.02;
             icePositions[i + 2] += (Math.random() - 0.5) * 0.02;
-    
+
             // Omezení maximální vzdálenosti částic od středu
             const distance = Math.sqrt(
-                icePositions[i] * icePositions[i] + 
-                icePositions[i + 1] * icePositions[i + 1] + 
+                icePositions[i] * icePositions[i] +
+                icePositions[i + 1] * icePositions[i + 1] +
                 icePositions[i + 2] * icePositions[i + 2]
             );
             if (distance > 1) {
@@ -935,7 +948,7 @@ class Boss {
         }
         iceParticles.geometry.attributes.position.needsUpdate = true;
     }
-    
+
     removeSlowParticles() {
         if (this.slowParticles) {
             this.model.remove(this.slowParticles);

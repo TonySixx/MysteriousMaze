@@ -524,11 +524,11 @@ function getSlotTypeText(slot) {
   return slotTranslations[slot] || slot;
 }
 
-function createItemElement(item, isEquipped = false) {
+export function createItemElement(item, isEquipped = false, isQuestItem = false) {
   const itemElement = document.createElement('div');
   itemElement.className = `item item-${item.rarity}`;
   itemElement.style.backgroundImage = `url(${item.icon})`;
-  itemElement.draggable = true;
+  itemElement.draggable = !isQuestItem;
   itemElement.dataset.id = item.id;
 
   if (item.stackable && item.count > 1) {
@@ -545,14 +545,17 @@ function createItemElement(item, isEquipped = false) {
     itemElement.appendChild(enchantLevel);
   }
 
-  itemElement.addEventListener('dragstart', (event) => {
-    drag(event);
-    hideTooltip(); // Skryjeme tooltip při zahájení přetahování
-  });
-  itemElement.addEventListener('mouseenter', showTooltip);
+  if (!isQuestItem) {
+    itemElement.addEventListener('dragstart', (event) => {
+      drag(event);
+      hideTooltip(); // Skryjeme tooltip při zahájení přetahování
+    });
+  }
+
+  itemElement.addEventListener('mouseenter', (event) => showTooltip(event, isQuestItem ? item : null));
   itemElement.addEventListener('mouseleave', hideTooltip);
 
-  if (!isEquipped) {
+  if (!isEquipped && !isQuestItem) {
     itemElement.addEventListener('contextmenu', showContextMenu);
   }
 
@@ -562,7 +565,7 @@ function createItemElement(item, isEquipped = false) {
 
 export function showTooltip(event, itemArg) {
   const itemId = event.target.dataset.id;
-  const item = itemArg || findItemById(itemId) || findEquippedItemById(itemId) || this.items.find(i => i.id === itemId);
+  const item = itemArg || findItemById(itemId) || findEquippedItemById(itemId);
   if (!item) return;
 
   const tooltip = document.createElement('div');

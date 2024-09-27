@@ -175,7 +175,20 @@
     "bossFloor4": "Quantum Guardian",
     "mazeFloors": "Maze floors",
     "campArea": "Camp area",
-    "bossFloors": "Bosses"
+    "bossFloors": "Bosses",
+    "killFireDragonsQuest": "Kill Fire Dragons",
+    "killFireDragonsQuestDescription": "Kill 3 fire dragons and get valuable rewards!",
+    "selectQuest": "Select quest",
+    "rewards": "Rewards",
+    "exp": "Exp",
+    "progress": "Progress",
+    "inProgress": "In progress",
+    "completedQuests": "Completed quests",
+    "availableQuests": "Available quests",
+    "acceptQuest": "Accept quest",
+    "claimReward": "Claim reward",
+    "pressFToInteractWithQuestBoard": "Press 'F' to interact with the quest board",
+    "questBoard": "Quest board"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -353,6 +366,19 @@
     "bossFloor4": "Kvantový strážce",
     "mazeFloors": "Podlaží bludiště",
     "campArea": "Tábor",
-    "bossFloors": "Bossové"
+    "bossFloors": "Bossové",
+    "killFireDragonsQuest": "Lov ohnivých draků",
+    "killFireDragonsQuestDescription": "Zabij 3 ohnivé draky a získej cenné odměny!",
+    "selectQuest": "Vyberte úkol",
+    "rewards": "Odměny",
+    "exp": "Zkušenosti",
+    "progress": "Průběh",
+    "inProgress": "V průběhu",
+    "availableQuests": "Dostupné úkoly",
+    "completedQuests": "Dokončené úkoly",
+    "acceptQuest": "Přijmout úkol",
+    "questBoard": "Nástěnka úkolů",
+    "claimReward": "Vyzvednout odměnu",
+    "pressFToInteractWithQuestBoard": "Stiskněte 'F' pro interakci s nástěnkou úkolů"
   }
 }

@@ -18,6 +18,7 @@ import {
 } from "./main.js";
 import { ITEM_RARITIES, ITEM_TYPES, itemDatabase } from "./itemDatabase.js";
 import { textureSets } from "./globals.js";
+import { getAvailableQuests, getCompletedQuests } from "./quests.js";
 
 export function createCamp() {
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
@@ -31,6 +32,7 @@ export function createCamp() {
   createTowers();
   createCenterTower();
   createTrees();
+  createQuestBoard();
   addLighting();
 }
 
@@ -909,4 +911,93 @@ function createArmorIcon() {
   armorIconGroup.add(glowSphere);
 
   return armorIconGroup;
+}
+
+
+function createQuestBoard() {
+  const gltfLoader = new GLTFLoader(manager);
+  gltfLoader.load("models/QuestBoard.glb", (gltf) => {
+      const questBoard = gltf.scene;
+      questBoard.position.set(
+          -11,  // Upravte pozici podle potřeby
+          0,
+          2
+      );
+      questBoard.scale.set(2, 2, 2);  // Upravte měřítko podle potřeby
+      questBoard.rotation.y = Math.PI / 2; // Otočení nástěnky podle potřeby
+      questBoard.name = "questBoard";  // Důležité pro pozdější vyhledávání
+      scene.add(questBoard);
+
+        // Přidání neviditelné zdi
+    const wallWidth = 1; // Šířka zdi
+    const wallHeight = 3; // Výška zdi
+    const wallDepth = 0.1; // Hloubka zdi
+
+    const wallGeometry = new THREE.BoxGeometry(wallWidth, wallHeight, wallDepth);
+    const wallMaterial = new THREE.MeshBasicMaterial({ visible: false });
+    const invisibleWall = new THREE.Mesh(wallGeometry, wallMaterial);
+
+    // Umístění zdi těsně za nástěnkou
+    invisibleWall.position.set(
+      questBoard.position.x - 0.1, // Mírně posunuto za nástěnku
+      wallHeight / 2, // Střed výšky zdi
+      questBoard.position.z
+    );
+    invisibleWall.rotation.y = questBoard.rotation.y;
+
+    scene.add(invisibleWall);
+    walls.push(invisibleWall); // Přidání do pole zdí pro detekci kolizí
+
+      // Přidání interakční zóny
+      const interactionZone = new THREE.Mesh(
+          new THREE.CylinderGeometry(2, 2, 2, 32),
+          new THREE.MeshBasicMaterial({ visible: false })
+      );
+      interactionZone.position.copy(questBoard.position);
+      scene.add(interactionZone);
+
+      // Přidání textu pro interakci
+      const interactionText = document.createElement("div");
+      interactionText.className = "interaction-text";
+      interactionText.textContent = getTranslation("pressFToInteractWithQuestBoard");
+      interactionText.style.display = "none";
+      document.body.appendChild(interactionText);
+
+      // Uložíme interakční text do userData
+      questBoard.userData.interactionText = interactionText;
+
+      // Vytvoření a přidání otazníku/vykřičníku
+      const questIndicator = createQuestIndicator();
+      questIndicator.position.set(0, 2.5, 0); // Umístění nad nástěnkou
+      questBoard.add(questIndicator);
+
+      // Uložíme questIndicator pro pozdější aktualizaci
+      questBoard.userData.questIndicator = questIndicator;
+  });
+}
+
+function createQuestIndicator() {
+  const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+  const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+  const indicator = new THREE.Mesh(geometry, material);
+
+  // Animace pohupování
+  const animate = () => {
+      indicator.position.y = 2.5 + Math.sin(Date.now() * 0.003) * 0.1;
+      requestAnimationFrame(animate);
+  };
+  animate();
+
+  return indicator;
+}
+
+export function updateQuestIndicator(questBoard) {
+  const indicator = questBoard.userData.questIndicator;
+  if (getCompletedQuests().length > 0) {
+      indicator.material.color.setHex(0x00ff00); // Zelená pro hotové úkoly
+  } else if (getAvailableQuests().length > 0) {
+      indicator.material.color.setHex(0xffff00); // Žlutá pro nové úkoly
+  } else {
+      indicator.visible = false;
+  }
 }

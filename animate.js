@@ -1,11 +1,12 @@
 import { bosses } from "./boss";
-import { checkMerchantInteraction } from "./camp";
+import { checkMerchantInteraction, updateQuestIndicator } from "./camp";
 import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor } from "./inventory";
 import { getItemName } from "./itemDatabase";
 import { getTranslation } from "./langUtils";
 import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
 import { MAIN_BOSS_TYPES } from "./mainBoss";
 import { player } from "./player";
+import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
 import { showMessage } from "./utils";
 import * as THREE from "three";
@@ -386,6 +387,105 @@ export function updateIceExplosions(deltaTime) {
             setIsInspectingStaff(false);
         }
     }
+
+
+    export function checkQuestBoardInteraction(questBoard) {
+        const distance = player.position.distanceTo(questBoard.position);
+        const interactionText = questBoard.userData.interactionText;
+    
+        if (distance < 2) {
+            // Vytvoříme vektor pro pozici textu nad nástěnkou
+            const textPosition = questBoard.position.clone().add(new THREE.Vector3(0, 2, 0));
+    
+            // Projektujeme pozici textu do prostoru kamery
+            const vector = textPosition.project(camera);
+    
+            // Zkontrolujeme, zda je nástěnka v záběru kamery
+            const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
+    
+            if (isInView) {
+                interactionText.style.display = "block";
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+    
+                interactionText.style.left = `${x}px`;
+                interactionText.style.top = `${y}px`;
+    
+                if (keys.f) {
+                    toggleQuestBoardUI();
+                    keys.f = false; // Resetujeme stav klávesy
+                }
+            } else {
+                interactionText.style.display = "none";
+            }
+        } else {
+            interactionText.style.display = "none";
+        }
+    
+        // Aktualizace indikátoru questů
+        updateQuestIndicator(questBoard);
+    }
       
 
-  
+    export function updateQuestBoardInteraction(deltaTime) {
+        const questBoard = scene.getObjectByName("questBoard");
+        if (!questBoard) return;
+    
+        const distance = player.position.distanceTo(questBoard.position);
+        const interactionText = questBoard.userData.interactionText;
+    
+        if (distance < 2) {
+            // Vytvoříme vektor pro pozici textu nad nástěnkou
+            const textPosition = questBoard.position.clone().add(new THREE.Vector3(0, 2, 0));
+    
+            // Projektujeme pozici textu do prostoru kamery
+            const vector = textPosition.project(camera);
+    
+            // Zkontrolujeme, zda je nástěnka v záběru kamery
+            const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
+    
+            if (isInView) {
+                interactionText.style.display = "block";
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+    
+                interactionText.style.left = `${x}px`;
+                interactionText.style.top = `${y}px`;
+                interactionText.style.bottom = "unset";
+                interactionText.style.minWidth = "150px";
+    
+                if (keys.f) {
+                    toggleQuestBoardUI();
+                    keys.f = false; // Resetujeme stav klávesy
+                }
+            } else {
+                interactionText.style.display = "none";
+            }
+        } else {
+            interactionText.style.display = "none";
+        }
+    
+        updateQuestIndicator(questBoard);
+    }
+    
+    export function animateQuestIndicator(deltaTime) {
+        const questBoard = scene.getObjectByName("questBoard");
+        if (!questBoard || !questBoard.userData.questIndicator) return;
+    
+        const indicator = questBoard.userData.questIndicator;
+        const time = performance.now() * 0.001;
+    
+        // Animace pohupování
+        indicator.position.y = 2.5 + Math.sin(time * 2) * 0.1;
+    
+        // Aktualizace barvy a viditelnosti
+        if (getCompletedQuests().length > 0) {
+            indicator.material.color.setHex(0x00ff00); // Zelená pro hotové úkoly
+            indicator.visible = true;
+        } else if (getAvailableQuests().length > 0) {
+            indicator.material.color.setHex(0xffff00); // Žlutá pro nové úkoly
+            indicator.visible = true;
+        } else {
+            indicator.visible = false;
+        }
+    }

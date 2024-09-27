@@ -35,6 +35,7 @@ window.frostAuras = [];
 window.chainExplosions = [];
 window.chainLightnings = [];
 window.fireballExplosions = [];
+window.interactiveObjects = [];
 window.staffSwing = null;
 
 
