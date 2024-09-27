@@ -363,8 +363,7 @@ function castFireball() {
   return false;
 }
 
-function createIceExplosion(position) {
-  // Implementace ledové exploze
+export function createIceExplosion(position) {
   const explosionGeometry = new THREE.SphereGeometry(3, 32, 32);
   const explosionMaterial = new THREE.MeshBasicMaterial({
     color: 0x87CEFA,
@@ -374,26 +373,7 @@ function createIceExplosion(position) {
   const explosion = new THREE.Mesh(explosionGeometry, explosionMaterial);
   explosion.position.copy(position);
   scene.add(explosion);
-
-  // Animace exploze
-  const animate = () => {
-    explosion.scale.multiplyScalar(1.05);
-    explosion.material.opacity -= 0.05;
-    if (explosion.material.opacity > 0) {
-      requestAnimationFrame(animate);
-    } else {
-      scene.remove(explosion);
-    }
-  };
-  animate();
-
-  // Efekt na nepřátele
-  bosses.forEach(boss => {
-    if (boss.position.distanceTo(position) <= 5) {
-      if (boss.isFrozen == false) boss.freeze(1000); // Zmrazí bosse na 1 sekundu
-      boss.takeDamage(50); // Způsobí 50 poškození
-    }
-  });
+  iceExplosions.push(explosion);
 }
 
 function castFrostbolt() {
@@ -921,39 +901,18 @@ function createChainLightningVisual(startPosition, endPosition) {
 }
 
 // Přidejte novou funkci pro vytvoření mrazivé aury
-function createFrostAura() {
+export function createFrostAura() {
   const auraGeometry = new THREE.SphereGeometry(5, 32, 32);
   const auraMaterial = new THREE.MeshBasicMaterial({
     color: 0x87CEFA,
     transparent: true,
     opacity: 0.3,
-    side: THREE.DoubleSide // Toto zajistí, že aura bude viditelná z obou stran
+    side: THREE.DoubleSide
   });
   const aura = new THREE.Mesh(auraGeometry, auraMaterial);
   aura.position.copy(player.position);
   scene.add(aura);
-
-  // Animace a efekt aury
-  const animate = () => {
-    aura.position.copy(player.position); // Aktualizujeme pozici aury s hráčem
-    aura.scale.multiplyScalar(1.01);
-    aura.material.opacity -= 0.005; // Zpomalíme mizení aury
-    if (aura.material.opacity > 0) {
-      requestAnimationFrame(animate);
-
-      // Zpomalení nepřátel v dosahu aury
-      bosses.forEach(boss => {
-        if (boss.position.distanceTo(player.position) <= 7) {
-          boss.slow(0.7, 5000); // Zpomalí bosse na 70% rychlosti po dobu 5 sekund
-        }
-      });
-    } else {
-      scene.remove(aura);
-      aura.geometry.dispose();
-      aura.material.dispose();
-    }
-  };
-  animate();
+  frostAuras.push(aura);
 }
 
 function createFireballExplosion(position) {

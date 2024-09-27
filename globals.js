@@ -30,6 +30,9 @@ window.bossChestAndPortalData = null;
 window.chestMixer = null;
 window.mainBossEntryData = null;
 window.explosions = [];
+window.iceExplosions = [];
+window.frostAuras = [];
+
 
 window.bossSpawnTimeout = undefined;
 window.bossCountdownInterval = undefined;

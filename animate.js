@@ -1,3 +1,4 @@
+import { bosses } from "./boss";
 import { checkMerchantInteraction } from "./camp";
 import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor } from "./inventory";
 import { getItemName } from "./itemDatabase";
@@ -258,3 +259,36 @@ export function updateExplosions(deltaTime, currentTime) {
         }
     }
 }
+
+
+export function updateIceExplosions(deltaTime) {
+    for (let i = iceExplosions.length - 1; i >= 0; i--) {
+      const explosion = iceExplosions[i];
+      explosion.scale.multiplyScalar(1.05);
+      explosion.material.opacity -= 0.05 * deltaTime*35;
+      if (explosion.material.opacity <= 0) {
+        scene.remove(explosion);    
+        iceExplosions.splice(i, 1);
+      }
+    }
+  }
+  
+  export function updateFrostAuras(deltaTime) {
+    for (let i = frostAuras.length - 1; i >= 0; i--) {
+      const aura = frostAuras[i];
+      aura.position.copy(player.position);
+      aura.scale.multiplyScalar(1.01);
+      aura.material.opacity -= 0.005 * deltaTime *35;
+      if (aura.material.opacity <= 0) {
+        scene.remove(aura);
+        frostAuras.splice(i, 1);
+      } else {
+        // Zpomalení nepřátel v dosahu aury
+        bosses.forEach(boss => {
+          if (boss.position.distanceTo(player.position) <= 7) {
+            boss.slow(0.7, 5000);
+          }
+        });
+      }
+    }
+  }
