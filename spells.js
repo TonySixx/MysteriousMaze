@@ -825,80 +825,6 @@ function chainLightningEffect(position) {
   jump();
 }
 
-// Přidejte novou funkci pro vytvoření Chain Explosion
-function createChainExplosion(position) {
-  const explosionRadius = 5;
-  const explosionDamage = 100;
-
-  // Vizuální efekt exploze
-  const explosionGeometry = new THREE.SphereGeometry(explosionRadius, 32, 32);
-  const explosionMaterial = new THREE.MeshBasicMaterial({
-    color: 0xbac5ff,
-    transparent: true,
-    opacity: 0.5
-  });
-  const explosion = new THREE.Mesh(explosionGeometry, explosionMaterial);
-  explosion.position.copy(position);
-  scene.add(explosion);
-
-  // Animace exploze
-  const animate = () => {
-    explosion.scale.multiplyScalar(1.05);
-    explosion.material.opacity -= 0.05;
-    if (explosion.material.opacity > 0) {
-      requestAnimationFrame(animate);
-    } else {
-      scene.remove(explosion);
-      explosion.geometry.dispose();
-      explosion.material.dispose();
-    }
-  };
-  animate();
-
-  // Poškození nepřátel v dosahu
-  bosses.forEach(boss => {
-    if (boss.position.distanceTo(position) <= explosionRadius) {
-      boss.takeDamage(explosionDamage);
-    }
-  });
-}
-
-function createChainLightningVisual(startPosition, endPosition) {
-  const points = [];
-  const segmentCount = 10;
-
-  for (let i = 0; i <= segmentCount; i++) {
-    const t = i / segmentCount;
-    const point = new THREE.Vector3().lerpVectors(startPosition, endPosition, t);
-    if (i !== 0 && i !== segmentCount) {
-      point.x += (Math.random() - 0.5) * 0.5;
-      point.y += (Math.random() - 0.5) * 0.5;
-      point.z += (Math.random() - 0.5) * 0.5;
-    }
-    points.push(point);
-  }
-
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({ color: 0xbac5ff, linewidth: 3 });
-  const chainLightning = new THREE.Line(geometry, material);
-
-  scene.add(chainLightning);
-
-  // Animace a odstranění efektu
-  let opacity = 1;
-  const animate = () => {
-    opacity -= 0.05;
-    material.opacity = opacity;
-    if (opacity > 0) {
-      requestAnimationFrame(animate);
-    } else {
-      scene.remove(chainLightning);
-      geometry.dispose();
-      material.dispose();
-    }
-  };
-  animate();
-}
 
 // Přidejte novou funkci pro vytvoření mrazivé aury
 export function createFrostAura() {
@@ -915,69 +841,6 @@ export function createFrostAura() {
   frostAuras.push(aura);
 }
 
-function createFireballExplosion(position) {
-  const particleCount = 100;
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(particleCount * 3);
-  const colors = new Float32Array(particleCount * 3);
-
-  for (let i = 0; i < particleCount; i++) {
-    const radius = Math.random() * 3;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.random() * Math.PI;
-
-    positions[i * 3] = position.x + radius * Math.sin(phi) * Math.cos(theta);
-    positions[i * 3 + 1] = position.y + radius * Math.sin(phi) * Math.sin(theta);
-    positions[i * 3 + 2] = position.z + radius * Math.cos(phi);
-
-    colors[i * 3] = 1;  // R
-    colors[i * 3 + 1] = Math.random() * 0.5;  // G
-    colors[i * 3 + 2] = 0;  // B
-  }
-
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-  const material = new THREE.PointsMaterial({
-    size: 0.1,
-    vertexColors: true,
-    blending: THREE.AdditiveBlending,
-    transparent: true,
-    opacity: 1
-  });
-
-  const particles = new THREE.Points(geometry, material);
-  scene.add(particles);
-
-  // Animace částic
-  const animate = () => {
-    const positions = particles.geometry.attributes.position.array;
-    const colors = particles.geometry.attributes.color.array;
-
-    for (let i = 0; i < positions.length; i += 3) {
-      positions[i] += (Math.random() - 0.5) * 0.1;
-      positions[i + 1] += (Math.random() - 0.5) * 0.1;
-      positions[i + 2] += (Math.random() - 0.5) * 0.1;
-
-      colors[i + 1] *= 0.99;  // Postupné ztmavování částic
-    }
-
-    particles.geometry.attributes.position.needsUpdate = true;
-    particles.geometry.attributes.color.needsUpdate = true;
-
-    material.opacity -= 0.02;
-
-    if (material.opacity > 0) {
-      requestAnimationFrame(animate);
-    } else {
-      scene.remove(particles);
-      geometry.dispose();
-      material.dispose();
-    }
-  };
-
-  animate();
-}
 
 function findNearestUnhitBoss(position, maxDistance, hitBosses) {
   let nearestBoss = null;
@@ -1037,88 +900,131 @@ export function updateSkillbar() {
 
 
 
+export function createChainExplosion(position) {
+  const explosionRadius = 5;
+  const explosionGeometry = new THREE.SphereGeometry(explosionRadius, 32, 32);
+  const explosionMaterial = new THREE.MeshBasicMaterial({
+    color: 0xbac5ff,
+    transparent: true,
+    opacity: 0.5
+  });
+  const explosion = new THREE.Mesh(explosionGeometry, explosionMaterial);
+  explosion.position.copy(position);
+  scene.add(explosion);
+  chainExplosions.push(explosion);
+
+  // Poškození nepřátel v dosahu
+  bosses.forEach(boss => {
+    if (boss.position.distanceTo(position) <= explosionRadius) {
+      boss.takeDamage(100);
+    }
+  });
+}
+
+export function createChainLightningVisual(startPosition, endPosition) {
+  const points = [];
+  const segmentCount = 10;
+
+  for (let i = 0; i <= segmentCount; i++) {
+    const t = i / segmentCount;
+    const point = new THREE.Vector3().lerpVectors(startPosition, endPosition, t);
+    if (i !== 0 && i !== segmentCount) {
+      point.x += (Math.random() - 0.5) * 0.5;
+      point.y += (Math.random() - 0.5) * 0.5;
+      point.z += (Math.random() - 0.5) * 0.5;
+    }
+    points.push(point);
+  }
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: 0xbac5ff, linewidth: 3, transparent: true });
+  const chainLightning = new THREE.Line(geometry, material);
+
+  scene.add(chainLightning);
+  chainLightnings.push(chainLightning);
+}
+
+export function createFireballExplosion(position) {
+  const particleCount = 100;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount; i++) {
+    const radius = Math.random() * 3;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI;
+
+    positions[i * 3] = position.x + radius * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = position.y + radius * Math.sin(phi) * Math.sin(theta);
+    positions[i * 3 + 2] = position.z + radius * Math.cos(phi);
+
+    colors[i * 3] = 1;  // R
+    colors[i * 3 + 1] = Math.random() * 0.5;  // G
+    colors[i * 3 + 2] = 0;  // B
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const material = new THREE.PointsMaterial({
+    size: 0.1,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    opacity: 1
+  });
+
+  const particles = new THREE.Points(geometry, material);
+  scene.add(particles);
+  fireballExplosions.push(particles);
+}
+
 export let originalStaffRotation;
 export let isInspectingStaff = false;
 export let isSwingingStaff = false;
+export let inspectionStartTime = 0;
+export let inspectionDuration = 2500;
+
+export function setIsSwingingStaff(value) {
+  isSwingingStaff = value;
+}
+
+export function setIsInspectingStaff(value) {
+  isInspectingStaff = value;
+}
+
+export function animateStaffSwing() {
+  if (!staffModel) return;
+
+  isSwingingStaff = true;
+
+  staffModel.rotation.copy(originalStaffRotation);
+
+  const swingAngle = -(Math.PI / 4); // 45 stupňů
+
+  staffSwing = {
+    progress: 0,
+    swingAngle: swingAngle,
+    originalRotation: originalStaffRotation.clone()
+  };
+}
+
+export function inspectStaff() {
+  if (!staffModel || isInspectingStaff || isSwingingStaff) return;
+
+  originalStaffRotation = staffModel.rotation.clone();
+  isInspectingStaff = true;
+  inspectionStartTime = performance.now();
+}
+
 
 
 export function setOriginalStaffRotation() {
   originalStaffRotation = staffModel.rotation.clone();
 }
 
-function animateStaffSwing() {
-  var requestAnimationFrameId = null;
-  if (!staffModel) return;
 
-  isSwingingStaff = true;
-
-  // Uložíme původní rotaci, pokud ještě není uložena
-  if (!originalStaffRotation) {
-    originalStaffRotation = staffModel.rotation.clone();
-  }
-
-  // Vždy nastavíme počáteční rotaci na původní hodnotu
-  staffModel.rotation.copy(originalStaffRotation);
-
-  const swingAngle = -(Math.PI / 4); // 45 stupňů
-
-  const animate = (progress) => {
-    if (progress <= 1) {
-      const currentAngle = Math.sin(progress * Math.PI) * swingAngle;
-      staffModel.rotation.x = originalStaffRotation.x + currentAngle;
-      requestAnimationFrameId = requestAnimationFrame(() => animate(progress + 0.045));
-    } else {
-      staffModel.rotation.z = originalStaffRotation.z;
-      isSwingingStaff = false;
-      cancelAnimationFrame(requestAnimationFrameId);
-      requestAnimationFrameId = null;
-    }
-  };
-
-  animate(0);
-}
-
-export function inspectStaff() {
-  var requestAnimationFrameId = null;
-  if (!staffModel || isInspectingStaff || isSwingingStaff) return;
-
-  isInspectingStaff = true;
-
-  const duration = 2500; // Doba trvání animace v milisekundách
-  const startRotation = staffModel.rotation.clone();
-  const maxRotationY = Math.PI / 2; // 90 stupňů pro osu Y
-  const maxRotationX = Math.PI / 24; // 7.5 stupňů pro osu X (pro vytvoření oblouku)
-
-  const startTime = Date.now();
-
-  function animate() {
-    const now = Date.now();
-    const progress = Math.min((now - startTime) / duration, 1);
-
-    if (progress < 1) {
-      // Hlavní rotace kolem osy Y
-      const rotationOffsetY = Math.sin(progress * Math.PI * 2) * maxRotationY;
-
-      // Jemný oblouk pomocí rotace kolem osy X
-      const rotationOffsetX = Math.sin(progress * Math.PI) * maxRotationX;
-
-      staffModel.rotation.set(
-        startRotation.x - rotationOffsetX,
-        startRotation.y + rotationOffsetY,
-        startRotation.z
-      );
-      requestAnimationFrameId = requestAnimationFrame(animate);
-    } else {
-      // Zajistíme, že hůlka se vrátí přesně do původní rotace
-      staffModel.rotation.copy(startRotation);
-      isInspectingStaff = false;
-      cancelAnimationFrame(requestAnimationFrameId);
-      requestAnimationFrameId = null;
-    }
-  }
-
-  animate();
-}
 
 function getNoFloorCheck(){
   return selectedFloor === 999 || (selectedFloor >= 100  && selectedFloor <= 200);

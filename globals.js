@@ -32,6 +32,10 @@ window.mainBossEntryData = null;
 window.explosions = [];
 window.iceExplosions = [];
 window.frostAuras = [];
+window.chainExplosions = [];
+window.chainLightnings = [];
+window.fireballExplosions = [];
+window.staffSwing = null;
 
 
 window.bossSpawnTimeout = undefined;

@@ -26,6 +26,11 @@ import {
   resetSpells,
   createSkillbar,
   updateSkillbar,
+  setOriginalStaffRotation,
+  originalStaffRotation,
+  isInspectingStaff,
+  setIsInspectingStaff,
+  setIsSwingingStaff,
 } from "./spells.js";
 import {
   createPlayer,
@@ -105,7 +110,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateBossEntry, animateMerchants, updateBossChestAndPortal, updateDamageTexts, updateExplosions, updateExpTexts, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
 
 export const version = "1.3.2";
 
@@ -741,6 +746,13 @@ function clearScene() {
   chestMixer = null;
   frostAuras = [];
   iceExplosions = [];
+  chainExplosions = [];
+  fireballExplosions = [];
+  staffSwing = null;
+  setIsSwingingStaff(false);
+  setIsInspectingStaff(false);
+  staffModel.rotation.copy(originalStaffRotation)
+  
 
   // Vyčistíme kontejner pro zdraví bosse
   const bossHealthContainer = document.getElementById("bossHealthContainer");
@@ -2129,6 +2141,11 @@ function animate() {
   updateExplosions(deltaTime, currentTime);
   updateIceExplosions(deltaTime);
   updateFrostAuras(deltaTime);
+  updateChainExplosions(deltaTime);
+  updateChainLightnings(deltaTime);
+  updateFireballExplosions(deltaTime);
+  updateStaffSwing(deltaTime);
+  animateStaffInspection(currentTime);
 
   animateMerchants();
 

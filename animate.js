@@ -6,6 +6,7 @@ import { getTranslation } from "./langUtils";
 import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
 import { MAIN_BOSS_TYPES } from "./mainBoss";
 import { player } from "./player";
+import { inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
 import { showMessage } from "./utils";
 import * as THREE from "three";
 
@@ -241,9 +242,9 @@ export function updateExplosions(deltaTime, currentTime) {
         const sizes = explosion.particles.geometry.attributes.size.array;
 
         for (let j = 0; j < positions.length; j += 3) {
-            positions[j] += velocities[j] * deltaTime * 30;
-            positions[j + 1] += velocities[j + 1] * deltaTime * 30;
-            positions[j + 2] += velocities[j + 2] * deltaTime * 30;
+            positions[j] += velocities[j] * deltaTime * 50;
+            positions[j + 1] += velocities[j + 1] * deltaTime * 50;
+            positions[j + 2] += velocities[j + 2] * deltaTime * 50;
 
             colors[j + 3] = 1 - progress; // Plynulé mizení
             sizes[j / 3] *= 0.99; // Postupné zmenšování částic
@@ -265,7 +266,7 @@ export function updateIceExplosions(deltaTime) {
     for (let i = iceExplosions.length - 1; i >= 0; i--) {
       const explosion = iceExplosions[i];
       explosion.scale.multiplyScalar(1.05);
-      explosion.material.opacity -= 0.05 * deltaTime*35;
+      explosion.material.opacity -= 0.05 * deltaTime*50;
       if (explosion.material.opacity <= 0) {
         scene.remove(explosion);    
         iceExplosions.splice(i, 1);
@@ -278,7 +279,7 @@ export function updateIceExplosions(deltaTime) {
       const aura = frostAuras[i];
       aura.position.copy(player.position);
       aura.scale.multiplyScalar(1.01);
-      aura.material.opacity -= 0.005 * deltaTime *35;
+      aura.material.opacity -= 0.005 * deltaTime *50;
       if (aura.material.opacity <= 0) {
         scene.remove(aura);
         frostAuras.splice(i, 1);
@@ -292,3 +293,99 @@ export function updateIceExplosions(deltaTime) {
       }
     }
   }
+
+  export function updateChainExplosions(deltaTime) {
+    for (let i = chainExplosions.length - 1; i >= 0; i--) {
+      const explosion = chainExplosions[i];
+      explosion.scale.multiplyScalar(1.05);
+      explosion.material.opacity -= 0.05 * deltaTime *60;
+      if (explosion.material.opacity <= 0) {
+        scene.remove(explosion);
+        explosion.geometry.dispose();
+        explosion.material.dispose();
+        chainExplosions.splice(i, 1);
+      }
+    }
+  }
+  
+  export function updateChainLightnings(deltaTime) {
+    for (let i = chainLightnings.length - 1; i >= 0; i--) {
+      const lightning = chainLightnings[i];
+      lightning.material.opacity -= 0.05 * deltaTime * 60;
+      if (lightning.material.opacity <= 0) {
+        scene.remove(lightning);
+        lightning.geometry.dispose();
+        lightning.material.dispose();
+        chainLightnings.splice(i, 1);
+      }
+    }
+  }
+  
+  export function updateFireballExplosions(deltaTime) {
+    for (let i = fireballExplosions.length - 1; i >= 0; i--) {
+      const explosion = fireballExplosions[i];
+      const positions = explosion.geometry.attributes.position.array;
+      const colors = explosion.geometry.attributes.color.array;
+  
+      for (let j = 0; j < positions.length; j += 3) {
+        positions[j] += (Math.random() - 0.5) * 0.1;
+        positions[j + 1] += (Math.random() - 0.5) * 0.1;
+        positions[j + 2] += (Math.random() - 0.5) * 0.1;
+  
+        colors[j + 1] *= 0.99;  // Postupné ztmavování částic
+      }
+  
+      explosion.geometry.attributes.position.needsUpdate = true;
+      explosion.geometry.attributes.color.needsUpdate = true;
+  
+      explosion.material.opacity -= 0.02 * deltaTime;
+  
+      if (explosion.material.opacity <= 0) {
+        scene.remove(explosion);
+        explosion.geometry.dispose();
+        explosion.material.dispose();
+        fireballExplosions.splice(i, 1);
+      }
+    }
+  }
+  
+  export function updateStaffSwing(deltaTime) {
+    if (!staffSwing) return;
+    staffSwing.progress += 0.045 * deltaTime * 60;
+      if (staffSwing.progress <= 1) {
+        const currentAngle = Math.sin(staffSwing.progress * Math.PI) * staffSwing.swingAngle;
+        staffModel.rotation.x = staffSwing.originalRotation.x + currentAngle;
+      } else {
+        staffModel.rotation.copy(originalStaffRotation);
+        setIsSwingingStaff(false);
+        staffSwing = null;
+      }
+    }
+  
+    export function animateStaffInspection(currentTime) {
+        if (!isInspectingStaff || !staffModel) return;
+    
+        const progress = (currentTime - inspectionStartTime) / inspectionDuration;
+    
+    
+        if (progress < 1) {
+            const startRotation = originalStaffRotation.clone();
+            const maxRotationY = Math.PI / 2;
+            const maxRotationX = Math.PI / 24;
+    
+            const rotationOffsetY = Math.sin(progress * Math.PI * 2) * maxRotationY;
+            const rotationOffsetX = Math.sin(progress * Math.PI) * maxRotationX;
+    
+            staffModel.rotation.set(
+                startRotation.x - rotationOffsetX,
+                startRotation.y + rotationOffsetY,
+                startRotation.z
+            );
+        } else {
+            staffModel.rotation.copy(originalStaffRotation);
+            setIsInspectingStaff(false);
+        }
+    }
+      
+
+  
