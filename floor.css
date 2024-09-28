@@ -146,7 +146,6 @@
   float: right;
   font-size: 28px;
   font-weight: bold;
-  cursor: pointer;
   transition: 0.3s;
 }
 
@@ -154,5 +153,4 @@
 .close:focus {
   color: #e9b266;
   text-decoration: none;
-  cursor: pointer;
 }

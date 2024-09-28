@@ -118,7 +118,6 @@
 
 .context-menu li {
   padding: 8px 12px;
-  cursor: pointer;
   color: #f0e6d2;
   transition: all 0.2s ease;
 }
@@ -133,7 +132,6 @@
   right: 10px;
   font-size: 24px;
   color: #c8a97e;
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
@@ -294,7 +292,6 @@
   color: white;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
 }
 
 .enchant-window {
@@ -344,7 +341,6 @@
   padding: 5px 10px;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
 }
 
 #performEnchant:disabled {
@@ -400,7 +396,6 @@
   color: #c8a97e;
   border: 1px solid #c8a97e;
   border-radius: 5px;
-  cursor: pointer;
   font-size: 14px;
   font-weight: bold;
   text-transform: uppercase;

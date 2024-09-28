@@ -1,10 +1,10 @@
 import { getTranslation } from './langUtils.js';
 import { addExperience, addGold, getPlayerLevel } from './player.js';
-import { addItemToInventory, createItem, createItemElement } from './inventory.js';
+import { addItemToInventory, createItem, createItemElement, getRarityColor } from './inventory.js';
 import { getItemName } from './itemDatabase.js';
 import { getAllQuests } from './questDatabase.js';
 import { showMessage } from './utils.js';
-import { itemSoundBuffer, successSoundBuffer } from './main.js';
+import { activateSoundBuffer, itemSoundBuffer, playSound, successSoundBuffer } from './main.js';
 
 let quests = [];
 let selectedQuest = null;
@@ -130,12 +130,16 @@ function updateQuestDetails() {
 export function updateQuestProgress(questId, updateCallback) {
     const questIndex = quests.findIndex(q => q.id === questId);
     if (questIndex !== -1) {
-        quests[questIndex] = updateCallback(quests[questIndex]);
+        const updatedQuest = updateCallback(quests[questIndex]);
+        quests[questIndex] = updatedQuest;
         if (quests[questIndex] === selectedQuest) {
             updateQuestDetails();
         }
         updateQuestList();
         saveQuestsToLocalStorage();
+        
+        // Zobrazení zprávy o postupu v úkolu
+        showMessage(getTranslation('questProgressUpdate', updatedQuest.name, updatedQuest.progress), true,5000);
     }
 }
 
@@ -147,6 +151,7 @@ export function addQuest(quest) {
 
 export function checkQuestAvailability() {
     const playerLevel = getPlayerLevel();
+    const previousAvailableQuestsCount = availableQuests.length;
     availableQuests = availableQuests.filter(quest => quest.level <= playerLevel);
 
     // Přidáme nové questy, pokud jsou k dispozici
@@ -164,6 +169,11 @@ export function checkQuestAvailability() {
     const questBoardWindow = document.getElementById('questBoardWindow');
     if (questBoardWindow) {
         updateQuestBoardUI();
+    }
+
+    // Zobrazení zprávy o nových dostupných úkolech
+    if (availableQuests.length > previousAvailableQuestsCount) {
+        showMessage(getTranslation('newQuestsAvailable'), true,5000);
     }
 }
 
@@ -202,6 +212,7 @@ export function acceptQuest(questId) {
     const questIndex = availableQuests.findIndex(q => q.id === questId);
     if (questIndex !== -1) {
         const quest = availableQuests.splice(questIndex, 1)[0];
+        playSound(activateSoundBuffer);
         addQuest(quest);
         saveQuestsToLocalStorage();
     }
@@ -220,11 +231,11 @@ export function claimQuestReward(questId) {
         addExperience(quest.rewards.exp);
         addGold(quest.rewards.gold);
         quest.rewards.items.forEach(item => {
-            addItemToInventory(createItem(getItemName(item.item), item.count));
-            showMessage("You have obtained: " + "<span style='color: " + getRarityColor(item.item.rarity) + "'>" + item.item.name + "</span>", true);
+            addItemToInventory(createItem(getItemName(item), item.count));
+            showMessage("You have obtained: " + "<span style='color: " + getRarityColor(item.rarity) + "'>" + item.name + "</span>", true);
         });
         playSound(itemSoundBuffer);
-        playSound(successSoundBuffer);
+        playSound(activateSoundBuffer);
 
         // Přidání questu do seznamu dokončených
         completedQuestIds.push(quest.id);

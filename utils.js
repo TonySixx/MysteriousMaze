@@ -782,7 +782,7 @@ export function createBossCastEffect(position, color = 0xff0000, options = {}) {
   return group;
 }
 
- export function showMessage(message,breakLine=false) {
+ export function showMessage(message,breakLine=false,duration=3000) {
   const messageContainer = document.getElementById('message-container');
   const messageElement = document.createElement('div');
   messageElement.className = breakLine ? 'game-message break-line' : 'game-message';
@@ -801,7 +801,7 @@ export function createBossCastEffect(position, color = 0xff0000, options = {}) {
     setTimeout(() => {
       messageElement.remove();
     }, 300);
-  }, 3000);
+  }, duration);
 }
 
 export function loadAndPlayMusic(floor,audioLoader) {

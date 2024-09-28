@@ -33,7 +33,6 @@
     padding: 8px;
     margin-bottom: 8px;
     background-color: rgba(200, 169, 126, 0.1);
-    cursor: pointer;
     transition: background-color 0.3s;
     border-radius: 5px;
 }

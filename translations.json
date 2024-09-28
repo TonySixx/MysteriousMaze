@@ -191,7 +191,9 @@
     "pressFToInteractWithQuestBoard": "Press 'F' to interact with the quest board",
     "questBoard": "Quest board",
     "completeMaze158Quest": "Maze Master",
-    "completeMaze158QuestDescription": "Complete the maze on the first floor with seed '158'."
+    "completeMaze158QuestDescription": "Complete the maze on the first floor with seed '158'.",
+    "questProgressUpdate": "Quest progress '{0}': {1}",
+    "newQuestsAvailable": "New quests are available! Visit the quest board."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -384,7 +386,9 @@
     "claimReward": "Vyzvednout odměnu",
     "pressFToInteractWithQuestBoard": "Stiskněte 'F' pro interakci s nástěnkou úkolů",
     "completeMaze158Quest": "Mistr bludiště",
-    "completeMaze158QuestDescription":"Dokončete bludiště na prvním podlaží se seedem '158'.",
-    "readyToComplete": "Hotovo"
+    "completeMaze158QuestDescription": "Dokončete bludiště na prvním podlaží se seedem '158'.",
+    "readyToComplete": "Hotovo",
+    "questProgressUpdate": "Postup v úkolu '{0}': {1}",
+    "newQuestsAvailable": "K dispozici jsou nové úkoly! Navštivte nástěnku úkolů."
   }
 }

@@ -4,7 +4,7 @@ import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperi
 import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer, manager } from './main.js';
 import { getTranslation } from "./langUtils.js";
 import { BOSS_TYPES } from "./bossTypes.js";
-import { updateQuestProgress, updateQuestsOnEvent } from "./quests.js";
+import { updateQuestsOnEvent } from "./quests.js";
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];

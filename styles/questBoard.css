@@ -33,7 +33,6 @@
     padding: 10px;
     margin-bottom: 10px;
     background-color: rgba(200, 169, 126, 0.1);
-    cursor: pointer;
     transition: background-color 0.3s;
     border-radius: 5px;
 }
@@ -60,7 +59,6 @@ button {
     color: #1e1e1e;
     border: none;
     border-radius: 3px;
-    cursor: pointer;
     transition: background-color 0.3s;
 }
 
