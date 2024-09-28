@@ -60,8 +60,8 @@ const questDefinitions = [
         description: 'defeatShadowDemonQuestDescription',
         level: 7,
         rewards: {
-            exp: 5000,
-            gold: 1000,
+            exp: 3000,
+            gold: 100,
             items: [
                 { item: 'powerLapisia', count: 3 },
                 { item: 'protectorsLapisia', count: 3 },
