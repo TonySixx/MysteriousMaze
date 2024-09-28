@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { getGold, addGold, player } from "./player.js";
 import { addItemToInventory, hideTooltip, inventory, INVENTORY_SIZE, showTooltip } from "./inventory.js";
@@ -977,27 +979,129 @@ function createQuestBoard() {
 }
 
 function createQuestIndicator() {
-  const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-  const indicator = new THREE.Mesh(geometry, material);
+  const group = new THREE.Group();
 
-  // Animace pohupování
-  const animate = () => {
-      indicator.position.y = 2.5 + Math.sin(Date.now() * 0.003) * 0.1;
-      requestAnimationFrame(animate);
-  };
-  animate();
+  const loader = new FontLoader();
 
-  return indicator;
+
+  const exclamationGeometry = new THREE.Group();
+
+  loader.load('helvetiker_regular.typeface.json', function (font) {
+    const textGeometry = new TextGeometry('!', {
+      font: font,
+      size: 0.5,
+      height: 0.1,
+      curveSegments: 12,
+      bevelEnabled: false,
+    });
+
+    // Centrování geometrie
+    textGeometry.center();
+
+    const exclamationMark = new THREE.Mesh(
+      textGeometry,
+      new THREE.MeshStandardMaterial({
+        color: 0xffff00,
+        emissive: 0xffff00,
+        emissiveIntensity: 0.5,
+      })
+    );
+
+    exclamationGeometry.add(exclamationMark);
+  });
+
+  // Vytvoření geometrie pro otazník pomocí TextGeometry
+  const questionGeometry = new THREE.Group();
+
+  loader.load('helvetiker_regular.typeface.json', function (font) {
+    const textGeometry = new TextGeometry('?', {
+      font: font,
+      size: 0.5,
+      height: 0.1,
+      curveSegments: 12,
+      bevelEnabled: false,
+    });
+
+    // Centrování geometrie
+    textGeometry.center();
+
+    const questionMark = new THREE.Mesh(
+      textGeometry,
+      new THREE.MeshStandardMaterial({
+        color: 0x00ff00,
+        emissive: 0x00ff00,
+        emissiveIntensity: 0.5,
+      })
+    );
+
+    questionGeometry.add(questionMark);
+  });
+
+
+  // Přidání geometrií do skupiny
+  group.add(exclamationGeometry);
+  group.add(questionGeometry);
+
+  // Nastavení viditelnosti (zpočátku jsou oba skryté)
+  exclamationGeometry.visible = false;
+  questionGeometry.visible = false;
+
+  // Přidání zářivého efektu
+  const glowMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      color: { value: new THREE.Color(0xffffff) },
+      offset: { value: 0.0 },
+    },
+    vertexShader: `
+      uniform float offset;
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vec3 newPosition = position + vec3(0.0, offset, 0.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 0.9);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 color;
+      varying vec3 vNormal;
+      void main() {
+        float intensity = pow(1.0 - dot(vNormal, vec3(0, 0, 1.0)), 2.0);
+        gl_FragColor = vec4(color, 1.0) * intensity;
+      }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+  });
+
+  const glowSphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.3, 32, 32),
+    glowMaterial
+  );
+  group.add(glowSphere);
+
+  return group;
 }
+
 
 export function updateQuestIndicator(questBoard) {
   const indicator = questBoard.userData.questIndicator;
+  if (!indicator) return;
+
+  const exclamationGeometry = indicator.children[0];
+  const questionGeometry = indicator.children[1];
+  const glowSphere = indicator.children[2];
+
   if (getCompletedQuests().length > 0) {
-      indicator.material.color.setHex(0x00ff00); // Zelená pro hotové úkoly
+    exclamationGeometry.visible = false;
+    questionGeometry.visible = true;
+    glowSphere.material.uniforms.color.value.setHex(0x00ff00);
+    indicator.visible = true;
   } else if (getAvailableQuests().length > 0) {
-      indicator.material.color.setHex(0xffff00); // Žlutá pro nové úkoly
+    exclamationGeometry.visible = true;
+    questionGeometry.visible = false;
+    glowSphere.material.uniforms.color.value.setHex(0xffff00);
+    indicator.visible = true;
   } else {
-      indicator.visible = false;
+    indicator.visible = false;
   }
 }

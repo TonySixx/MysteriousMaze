@@ -347,6 +347,7 @@ export function showCompletionModal(elapsedTime, goldGained, expGained, previous
   document.getElementById('continueButton').addEventListener('click', () => {
     document.body.removeChild(modal);
     goalReached = false;
+    requestPointerLock();
     startGame();
   });
 }
@@ -380,7 +381,6 @@ function openChest(chestElement, floor) {
     playSound(itemSoundBuffer);
     // Povolíme mouseenter a mouseleave pro truhlu s předmětem
     chestElement.style.pointerEvents = 'auto';
-    chestElement.style.cursor = 'default'; // Změníme kurzor, aby neindikoval možnost kliknutí
   }
 
    // Znemožníme klikání na ostatní truhly

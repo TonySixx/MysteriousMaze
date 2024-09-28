@@ -1616,6 +1616,7 @@ async function stopTimer() {
     submitScore(document.getElementById("mazeInput").value, bestTime);
   }
 
+  exitPointerLock();
   showCompletionModal(elapsedTime, goldGained, expGained, previousBestTime, newBestTime);
 }
 

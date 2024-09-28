@@ -152,23 +152,38 @@ export function loadPlayerProgress() {
     MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem("maxVisibleLights")) || 10;
     qualityFactor = parseFloat(localStorage.getItem("qualityFactor")) || 1;
 
-    if (savedVersion !== version) {
+    // Function to extract the major version from a version string
+    function getMajorVersion(versionString) {
+        if (!versionString) return null;
+        const parts = versionString.split('.');
+        return parts[0]; // Assuming version format is 'major.minor.patch'
+    }
+
+    const savedMajorVersion = getMajorVersion(savedVersion);
+    const currentMajorVersion = getMajorVersion(version);
+
+    if (savedMajorVersion !== currentMajorVersion) {
+        // Major version has changed, reset everything except graphics settings
+        // Save graphics settings
+        const savedGraphicsSettings = {
+            maxVisibleLights: localStorage.getItem("maxVisibleLights"),
+            qualityFactor: localStorage.getItem("qualityFactor")
+        };
+
+        // Clear localStorage
         localStorage.clear();
-        // Verze se změnila, resetujeme skillPoints
-        if (savedLevel && savedExp && savedExpToNextLevel) {
-            playerLevel = parseInt(savedLevel);
-            playerExp = parseInt(savedExp);
-            expToNextLevel = parseInt(savedExpToNextLevel);
-            playerGold = parseInt(savedGold);
-            skillPoints = Math.max(0, playerLevel - 1); // Resetujeme skillPoints na (playerLevel - 1)
-        } else {
-            // Pokud nemáme uložená data, nastavíme výchozí hodnoty
-            playerLevel = 1;
-            playerExp = 0;
-            expToNextLevel = 1000;
-            playerGold = 0;
-            skillPoints = 0;
-        }
+
+        // Restore graphics settings
+        localStorage.setItem("maxVisibleLights", savedGraphicsSettings.maxVisibleLights);
+        localStorage.setItem("qualityFactor", savedGraphicsSettings.qualityFactor);
+
+        // Reset player data to default values
+        playerLevel = 1;
+        playerExp = 0;
+        expToNextLevel = 1000;
+        playerGold = 0;
+        skillPoints = 0;
+
         localStorage.setItem('version', version);
         localStorage.setItem('skillPoints', skillPoints);
         localStorage.setItem('playerLevel', playerLevel);
@@ -179,7 +194,7 @@ export function loadPlayerProgress() {
             localStorage.setItem('playerName', playerName);
         }
     } else {
-        // Verze se nezměnila, načteme všechna data včetně skillPoints
+        // Version hasn't changed or only minor version changed, load all data
         const savedSkillPoints = localStorage.getItem('skillPoints');
         if (savedLevel && savedExp && savedExpToNextLevel && savedSkillPoints) {
             playerLevel = parseInt(savedLevel);
@@ -188,7 +203,7 @@ export function loadPlayerProgress() {
             skillPoints = parseInt(savedSkillPoints);
             playerGold = parseInt(savedGold);
         } else {
-            // Pokud nemáme uložená data, nastavíme výchozí hodnoty
+            // If no saved data, set default values
             playerLevel = 1;
             playerExp = 0;
             expToNextLevel = 1000;
@@ -197,8 +212,8 @@ export function loadPlayerProgress() {
         }
     }
 
-    //nastavime vždy
-    localStorage.setItem("maxVisibleLights", MAX_VISIBLE_LIGHTS.toString());  
+    // Always set graphics settings
+    localStorage.setItem("maxVisibleLights", MAX_VISIBLE_LIGHTS.toString());
     localStorage.setItem("qualityFactor", qualityFactor.toString());
 
     updatePlayerLevelStats();
@@ -208,6 +223,7 @@ export function loadPlayerProgress() {
     initQuestSystem();
     initializeQuests();
 }
+
 
 export function addExperience(exp) {
     playerExp += exp;
