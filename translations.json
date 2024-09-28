@@ -207,7 +207,10 @@
     "continue": "Continue",
     "emptyChest": "Empty Chest",
     "chestEmpty": "The chest is empty",
-    "youObtained": "You obtained"
+    "youObtained": "You obtained",
+    "completeMazesQuest": "Maze Explorer",
+    "completeMazesQuestDescription": "Complete 3 different mazes (with unique seeds) to prove your exploration skills.",
+    "uniqueMazesCompleted": "Unique mazes completed"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -417,6 +420,9 @@
     "continue": "Pokračovat",
     "emptyChest": "Prázdná truhla",
     "chestEmpty": "Truhla je prázdná",
-    "youObtained": "Získal jsi"
+    "youObtained": "Získal jsi",
+    "completeMazesQuest": "Průzkumník bludišť",
+    "completeMazesQuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) a prokažte své průzkumnické schopnosti.",
+    "uniqueMazesCompleted": "Dokončená unikátní bludiště"
   }
 }
