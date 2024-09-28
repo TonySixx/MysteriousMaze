@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, isHighWallArea, chainLightningSoundBuffer, playSound, selectedFloor } from './main.js';
-import { player } from "./player.js"
+import { calculatePlayerDamage, player } from "./player.js"
 import { changeStaffColor, fireballSoundBuffer, frostBoltSoundBuffer, magicMissileSoundBuffer } from "./main.js"
 import frostboltIcon from './public/spells/frostbolt-icon.png';
 import arcaneMissileIcon from './public/spells/arcane-missile-icon.png';
@@ -916,7 +916,7 @@ export function createChainExplosion(position) {
   // Poškození nepřátel v dosahu
   bosses.forEach(boss => {
     if (boss.position.distanceTo(position) <= explosionRadius) {
-      boss.takeDamage(100);
+      boss.takeDamage(100 + (calculatePlayerDamage() * 0.2));
     }
   });
 }

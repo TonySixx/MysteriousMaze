@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold, getPlayerLevel } from "./player.js"
+import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold, getPlayerLevel, calculatePlayerDamage } from "./player.js"
 import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer, manager } from './main.js';
 import { getTranslation } from "./langUtils.js";
 import { BOSS_TYPES } from "./bossTypes.js";
@@ -264,7 +264,7 @@ class Boss {
             this.burningTimer -= deltaTime * 1000;
             const currentTime = Date.now();
             if (currentTime - this.lastBurningDamageTime >= 500) { // každých 0.5 sekundy
-                this.takeDamage(20);
+                this.takeDamage(20 + (calculatePlayerDamage()* 0.1));
                 this.lastBurningDamageTime = currentTime;
             }
             if (this.burningTimer <= 0) {

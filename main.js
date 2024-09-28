@@ -1421,6 +1421,7 @@ export function checkObjectInteractions() {
         console.log("Sbírám klíč");
         scene.remove(child);
         keyCount++;
+        playSound(itemSoundBuffer);
         updateKeyCount();
         showKeyMessage(); // Zobrazí zprávu o sebrání klíče
       } else if (child.userData.isTeleport && distance < 1.5) {

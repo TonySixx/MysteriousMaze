@@ -31,7 +31,7 @@ export const skillTree = {
             {
                 name: 'Inferno Touch',
                 systemName: 'infernoTouch',
-                description: 'Zasažený nepřítel hoří 2 sekundy, každých 0.5s ztrácí 20 životů',
+                description: 'Zasažený nepřítel hoří 2 sekundy, každých 0.5s ztrácí 20 životů + 10% z poškození hráče',
                 requiredLevel: 3,
                 cost: 1,
                 unlocked: false,
