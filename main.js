@@ -113,7 +113,7 @@ import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
 import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
 import { initQuestSystem } from "./quests.js";
 
-export const version = "1.3.2";
+export const version = "1.3.3";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
