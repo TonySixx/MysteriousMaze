@@ -236,29 +236,32 @@ export function getCameraDirection() {
 
 
 export function addExperienceForCompletion(floor) {
-  const baseExperience = 2000;
-  const exponent = 1.5;
-  let totalExperience = Math.round(baseExperience * Math.pow(floor, exponent));
+  const playerLevel = getPlayerLevel(); // Předpokládáme, že tato funkce existuje
+  const dungeonLevel = floor * 1; // Každé podlaží odpovídá 5 úrovním
 
-  // Získáme úroveň hráče
-  const playerLevel = getPlayerLevel();
+  // Základní zkušenosti za dokončení bludiště
+  const baseExperience = 1000 * dungeonLevel; // Např. 1000 zkušeností za každou úroveň bludiště
 
-  // Upravíme zkušenosti na základě úrovně hráče a podlaží
-  let expMultiplier = 1;
+  // Modifikátor na základě rozdílu úrovní
+  const levelDifference = dungeonLevel - playerLevel;
+  let levelModifier = 1;
 
-  if (floor === 1 && playerLevel > 7) {
-    expMultiplier = Math.max(0.1, 1 - (playerLevel - 7) * 0.15);
-  } else if (floor === 2 && playerLevel > 12) {
-    expMultiplier = Math.max(0.1, 1 - (playerLevel - 12) * 0.15);
-  } else if (floor === 3 && playerLevel > 16) {
-    expMultiplier = Math.max(0.1, 1 - (playerLevel - 16) * 0.15);
-  } else if (floor === 4 && playerLevel > 20) {
-    expMultiplier = Math.max(0.1, 1 - (playerLevel - 20) * 0.15);
+  if (levelDifference >= 5) {
+    // Pokud je bludiště výrazně těžší než hráč
+    levelModifier += (levelDifference * 0.05);
+  } else if (levelDifference <= -5) {
+    // Pokud je bludiště výrazně lehčí než hráč
+    levelModifier += (levelDifference * 0.1); // levelDifference je záporné číslo
+    levelModifier = Math.max(0.1, levelModifier); // Minimální modifikátor je 0.1
   }
 
-  totalExperience = Math.round(totalExperience * expMultiplier);
+  // Celkové zkušenosti
+  const totalExperience = Math.round(baseExperience * levelModifier);
+
+  // Přidání zkušeností hráči
   addExperience(totalExperience);
 
+  // Aktualizace úkolů po dokončení bludiště
   updateQuestsOnEvent('mazeCompletion', { seed: seed, floor: selectedFloor });
 }
 

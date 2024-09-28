@@ -22,8 +22,8 @@ const questDefinitions = [
         description: 'killFireDragonsQuestDescription',
         level: 1,
         rewards: {
-            exp: 2000,
-            gold: 100,
+            exp: 1000,
+            gold: 20,
             items: [
                 { item: 'healthPotion', count: 5 },
                 { item: 'manaPotion', count: 5 }
@@ -42,7 +42,7 @@ const questDefinitions = [
         level: 5,
         rewards: {
             exp: 2000,
-            gold: 0,
+            gold: 50,
             items: [
                 { item: 'powerLapisia', count: 1 },
                 { item: 'protectorsLapisia', count: 1 }

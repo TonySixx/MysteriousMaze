@@ -448,33 +448,45 @@ class Boss {
             bossHealthElement.remove();
         }
 
-        // Přidání exp za zabití bosse
-        const expGained = this.maxHealth + ((this.floor - 1) * 1000);
-        const exponent = 1.1;
-        let totalExperience = Math.round(expGained * Math.pow(this.floor, exponent));
-
-        // Úprava zkušeností na základě úrovně hráče a podlaží
+        // Výpočet zkušeností za zabití bosse
         const playerLevel = getPlayerLevel(); // Předpokládáme, že tato funkce existuje
-        let expMultiplier = 1;
+        const bossLevel = this.floor * 1; // Každé podlaží odpovídá 1 úrovni bosse
 
-        if (this.floor === 1 && playerLevel > 7) {
-            expMultiplier = Math.max(0.1, 1 - (playerLevel - 7) * 0.15);
-        } else if (this.floor === 2 && playerLevel > 12) {
-            expMultiplier = Math.max(0.1, 1 - (playerLevel - 12) * 0.15);
-        } else if (this.floor === 3 && playerLevel > 16) {
-            expMultiplier = Math.max(0.1, 1 - (playerLevel - 16) * 0.15);
-        } else if (this.floor === 4 && playerLevel > 20) {
-            expMultiplier = Math.max(0.1, 1 - (playerLevel - 20) * 0.15);
+        // Základní zkušenosti na základě HP bosse a úrovně bosse
+        const baseExp = this.maxHealth * Math.pow(bossLevel, 1.1) * 0.8;
+
+        // Modifikátor na základě rozdílu úrovní
+        const levelDifference = bossLevel - playerLevel;
+        let levelModifier = 1;
+
+        if (levelDifference >= 5) {
+            // Pokud je boss výrazně silnější než hráč
+            levelModifier += (levelDifference * 0.05);
+        } else if (levelDifference <= -5) {
+            // Pokud je boss výrazně slabší než hráč
+            levelModifier += (levelDifference * 0.1); // levelDifference je záporné číslo
+            levelModifier = Math.max(0.1, levelModifier); // Minimální modifikátor je 0.1
         }
 
-        totalExperience = Math.round(totalExperience * expMultiplier);
-        addExperience(totalExperience);
-        this.showExpText(totalExperience)
+        // Celkové zkušenosti
+        const totalExperience = Math.round(baseExp * levelModifier);
 
-        // Přidání zlaťáků za zabití bosse
-        const goldGained = Math.round((this.maxHealth / 100) + (this.floor * 10) + (Math.random() * 0.1 * this.maxHealth / 100));
-        addGold(goldGained);
-        this.showGoldText(goldGained);
+        // Přidání zkušeností hráči
+        addExperience(totalExperience);
+        this.showExpText(totalExperience);
+
+        // Základní zisk zlaťáků na základě úrovně bosse
+        const baseGold = bossLevel * 2;
+
+        // Náhodný modifikátor pro variabilitu (±20%)
+        const randomModifier = 1 + (Math.random() * 0.4 - 0.2); // Hodnota mezi 0.8 a 1.2
+
+        // Celkový zisk zlaťáků
+        const totalGold = Math.round(baseGold * randomModifier);
+
+        // Přidání zlaťáků hráči
+        addGold(totalGold);
+        this.showGoldText(totalGold);
     }
 
     attack() {
