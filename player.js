@@ -672,7 +672,7 @@ export function isAnyModalOpen() {
         document.getElementById("skillTreeModal")?.style.display === "block" ||
         document.getElementById("questWindow")?.style.display === "flex" ||
         document.getElementById("floorSelectModal")?.style.display === "block" ||
-        document.getElementById("questBoardWindow") ||
+        (document.getElementById("questBoardWindow") && document.getElementById("questBoardWindow")?.style.display !== "none") ||
         document.getElementsByClassName("shop-modal")?.length > 0;
 }
 

@@ -465,7 +465,7 @@ export function updateIceExplosions(deltaTime) {
         } else {
             interactionText.style.display = "none";
             // Zavřeme quest board, pokud je otevřený a hráč se vzdálil
-            if (questBoardWindow && questBoardWindow.style.display === "flex") {
+            if (questBoardWindow && questBoardWindow?.style.display !== "none") {
                 toggleQuestBoardUI();
             }
         }
