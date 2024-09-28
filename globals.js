@@ -50,6 +50,8 @@ window.bossChestAndPortalAnimationId = null;
 
 window.currentBackgroundMusic = null;
 window.actualSeedText = null;
+window.totalBossesInMaze = 0;
+window.goalReached = false;
 
 export const floorMusic = {
   1: "music/msc_lost.mp3",

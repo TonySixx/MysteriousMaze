@@ -195,7 +195,19 @@
     "questProgressUpdate": "Quest progress '{0}': {1}",
     "newQuestsAvailable": "New quests are available! Visit the quest board.",
     "defeatShadowDemonQuest": "Defeat Shadow Demon",
-    "defeatShadowDemonQuestDescription": "Defeat the Shadow Demon on the first floor."
+    "defeatShadowDemonQuestDescription": "Defeat the Shadow Demon on the first floor.",
+    "currentTime": "Current Time",
+    "newBestTime": "New Best Time",
+    "previousBestTime": "Previous Best Time",
+    "bestTime": "Best Time",
+    "firstBestTime": "First Best Time",
+    "mazeCompleted": "Maze Completed",
+    "goldGained": "Gold Gained",
+    "expGained": "Experience Gained",
+    "continue": "Continue",
+    "emptyChest": "Empty Chest",
+    "chestEmpty": "The chest is empty",
+    "youObtained": "You obtained"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -393,6 +405,18 @@
     "questProgressUpdate": "Postup v úkolu '{0}': {1}",
     "newQuestsAvailable": "K dispozici jsou nové úkoly! Navštivte nástěnku úkolů.",
     "defeatShadowDemonQuest": "Zabijte Stínového démona",
-    "defeatShadowDemonQuestDescription": "Zabijte Stínového démona na prvním podlaží."
+    "defeatShadowDemonQuestDescription": "Zabijte Stínového démona na prvním podlaží.",
+    "currentTime": "Aktuální čas",
+    "newBestTime": "Nový nejlepší čas",
+    "previousBestTime": "Předchozí nejlepší čas",
+    "bestTime": "Nejlepší čas",
+    "firstBestTime": "První nejlepší čas",
+    "mazeCompleted": "Bludiště dokončeno",
+    "goldGained": "Získané zlato",
+    "expGained": "Získané zkušenosti",
+    "continue": "Pokračovat",
+    "emptyChest": "Prázdná truhla",
+    "chestEmpty": "Truhla je prázdná",
+    "youObtained": "Získal jsi"
   }
 }

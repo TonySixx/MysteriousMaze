@@ -240,7 +240,7 @@ export function addExperienceForCompletion(floor) {
   const dungeonLevel = floor * 1; // Každé podlaží odpovídá 5 úrovním
 
   // Základní zkušenosti za dokončení bludiště
-  const baseExperience = 1000 * dungeonLevel; // Např. 1000 zkušeností za každou úroveň bludiště
+  const baseExperience = 300 * dungeonLevel; // Např. 300 zkušeností za každou úroveň bludiště
 
   // Modifikátor na základě rozdílu úrovní
   const levelDifference = dungeonLevel - playerLevel;
@@ -255,14 +255,18 @@ export function addExperienceForCompletion(floor) {
     levelModifier = Math.max(0.1, levelModifier); // Minimální modifikátor je 0.1
   }
 
+  //Bonus za počet bossů v bludišti
+  const bossBonus = totalBossesInMaze * 200;
+
   // Celkové zkušenosti
-  const totalExperience = Math.round(baseExperience * levelModifier);
+  const totalExperience = Math.round((baseExperience + bossBonus) * levelModifier);
 
   // Přidání zkušeností hráči
   addExperience(totalExperience);
   // Aktualizace úkolů po dokončení bludiště
   const seedText = actualSeedText ? actualSeedText.toString() : "";
   updateQuestsOnEvent('mazeCompletion', { seed: seedText, floor: selectedFloor });
+  return totalExperience;
 }
 
 

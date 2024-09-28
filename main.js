@@ -88,6 +88,7 @@ import {
   hideSettingsModal,
   saveSettings,
   setQuality,
+  showCompletionModal,
   showHintModal,
   showNameModal,
   showScoreModal,
@@ -864,6 +865,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     scene.add(floor);
 
     maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed, selectedFloor);
+    totalBossesInMaze = bosses.length;
 
     const wallGeometry = new THREE.BoxGeometry(
       CELL_SIZE,
@@ -1428,18 +1430,17 @@ export function checkObjectInteractions() {
       } else if (child.userData.isTeleport && distance < 1.5) {
         nearTeleport = child;
         showTeleportPrompt();
-      } else if (child.userData.isGoal && distance < 1.5) {
+      } else if (child.userData.isGoal && distance < 1.5 && !goalReached) {
         if (keyCount === totalKeys) {
           console.log("Dosaženo cíle");
           showFinishMessage();
           stopTimer();
-          startGame();
         } else {
           if (!keysAlertShown) {
             console.log(
               "Musíte nasbírat všechny kouzelné klíče, než dosáhnete cíle!"
             );
-            showGoalMessage(keyCount, totalKeys); // Zobrazí zprávu o nesplněném cíli
+            showGoalMessage(keyCount, totalKeys);
             keysAlertShown = true;
           }
         }
@@ -1552,7 +1553,7 @@ function showTeleportPrompt() {
   promptElement.style.display = "block";
 }
 
-async function startGame() {
+ export async function startGame() {
   const inputText = document.getElementById("mazeInput").value;
 
   // Kontrola, zda má hráč dostatečnou úroveň pro zvolené podlaží
@@ -1600,18 +1601,22 @@ function startTimer() {
 }
 
 async function stopTimer() {
+  goalReached = true;
   clearInterval(timerInterval);
   const elapsedTime = Math.floor(cumulativeTime / 1000);
 
-    addExperienceForCompletion(selectedFloor);
-    // Přidání zlaťáků
-    const goldGained = Math.round(selectedFloor * 2 + MAZE_SIZE / 5);
-    addGold(goldGained);
+  const goldGained = Math.round((selectedFloor * 2) + (totalBossesInMaze * selectedFloor));
+  const expGained = addExperienceForCompletion(selectedFloor);
+  addGold(goldGained);
 
-  if (elapsedTime < bestTime) {
+  const newBestTime = elapsedTime < bestTime;
+  const previousBestTime = bestTime === Infinity ? null : bestTime;
+  if (newBestTime) {
     bestTime = elapsedTime;
     submitScore(document.getElementById("mazeInput").value, bestTime);
   }
+
+  showCompletionModal(elapsedTime, goldGained, expGained, previousBestTime, newBestTime);
 }
 
 function updateTimer() {

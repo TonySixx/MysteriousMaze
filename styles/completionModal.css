@@ -1,0 +1,145 @@
+#completionModal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#completionModal .modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin: 5% auto;
+    padding: 20px;
+    border: 2px solid #c8a97e;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 600px;
+    color: #f0e6d2;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+#completionModal h2 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #c8a97e;
+}
+
+#completionModal p {
+    margin: 10px 0;
+    font-size: 18px;
+}
+
+#chestContainer {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+}
+
+.chest {
+    width: 64px;
+    height: 64px;
+    background-image: url('/treasure-chest.png');
+    background-size: cover;
+    transition: all 0.2s ease;
+    margin: 10px
+}
+
+.emptyChest {
+    border: 1px #c8a97e solid;
+    border-radius: 4px;
+    padding: 4px;
+    width: 60px;
+    height: 60px;
+    background: gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #373737;
+}
+
+
+.chest:hover {
+    transform: scale(1.1);
+}
+
+.chest.opened {
+    background-image: none;
+}
+
+#continueButton {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #1e1e1e;
+    color: #c8a97e;
+    border: 1px solid #c8a97e;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(200, 169, 126, 0.3);
+}
+
+#continueButton:hover {
+    background-color: #c8a97e;
+    color: #1e1e1e;
+    box-shadow: 0 0 15px rgba(200, 169, 126, 0.5);
+}
+
+#continueButton:disabled {
+    background-color: #4a4a4a;
+    color: #8a8a8a;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.item-icon {
+    width: 60px;
+    height: 60px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.item-common {
+    border: 1px solid #ffffff;
+    box-shadow: 0 0 5px #ffffff;
+}
+
+.item-uncommon {
+    border: 1px solid #1eff00;
+    box-shadow: 0 0 5px #1eff00;
+}
+
+.item-rare {
+    border: 1px solid #0070dd;
+    box-shadow: 0 0 5px #0070dd;
+}
+
+.item-epic {
+    border: 1px solid #a335ee;
+    box-shadow: 0 0 5px #a335ee;
+}
+
+.item-legendary {
+    border: 1px solid #ff8000;
+    box-shadow: 0 0 5px #ff8000;
+}
+
+.item-mythic {
+    border: 1px solid #ff00ff;
+    box-shadow: 0 0 5px #ff00ff;
+}
