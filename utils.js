@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { equipment } from "./inventory";
 import { bosses } from "./boss";
 import { floorMusic, floorsConfig } from "./globals";
+import { updateQuestsOnEvent } from "./quests";
 
 export function destroyAllSideAnimations() {
   if (merchantAnimationId !== null) {
@@ -258,18 +259,7 @@ export function addExperienceForCompletion(floor) {
   totalExperience = Math.round(totalExperience * expMultiplier);
   addExperience(totalExperience);
 
-
-  //QUESTS
-  if (seed === "158" && selectedFloor === 1) {
-    updateQuestProgress('completeMaze158', (quest) => {
-        quest.objective.current++;
-        quest.progress = `${quest.objective.current}/${quest.objective.count}`;
-        if (quest.objective.current >= quest.objective.count) {
-            quest.isCompleted = true;
-        }
-        return quest;
-    });
-}
+  updateQuestsOnEvent('mazeCompletion', { seed: seed, floor: selectedFloor });
 }
 
 

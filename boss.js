@@ -4,7 +4,7 @@ import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperi
 import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer, manager } from './main.js';
 import { getTranslation } from "./langUtils.js";
 import { BOSS_TYPES } from "./bossTypes.js";
-import { updateQuestProgress } from "./quests.js";
+import { updateQuestProgress, updateQuestsOnEvent } from "./quests.js";
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -432,17 +432,7 @@ class Boss {
 
         playSound(killConfirmationSoundBuffer);
 
-        // Přidáme aktualizaci questu
-        if (this.type.translationKey === "fireDragon") {
-            updateQuestProgress('killFireDragons', (quest) => {
-                quest.objective.current++;
-                quest.progress = `${quest.objective.current}/${quest.objective.count}`;
-                if (quest.objective.current >= quest.objective.count) {
-                    quest.isCompleted = true;
-                }
-                return quest;
-            });
-        }
+        updateQuestsOnEvent('bossDeath', { bossType: this.type.translationKey });
 
         if (!this.dontDropKey) {
             const key = keyModel.clone();

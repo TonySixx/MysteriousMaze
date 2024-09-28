@@ -357,3 +357,33 @@ export function toggleQuestBoardUI() {
         createQuestBoardUI();
     }
 }
+
+export function updateQuestsOnEvent(eventType, eventData) {
+    switch(eventType) {
+        case 'bossDeath':
+            if (eventData.bossType === "fireDragon") {
+                updateQuestProgress('killFireDragons', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            break;
+        case 'mazeCompletion':
+            if (eventData.seed === "158" && eventData.floor === 1) {
+                updateQuestProgress('completeMaze158', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            break;
+        // Zde můžeme přidat další případy pro různé typy událostí
+    }
+}
