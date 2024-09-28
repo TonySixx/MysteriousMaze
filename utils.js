@@ -266,6 +266,7 @@ export function addExperienceForCompletion(floor) {
   // Aktualizace úkolů po dokončení bludiště
   const seedText = actualSeedText ? actualSeedText.toString() : "";
   updateQuestsOnEvent('mazeCompletion', { seed: seedText, floor: selectedFloor });
+  updateQuestsOnEvent('completeMazes', { seed: seedText });
   return totalExperience;
 }
 

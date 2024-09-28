@@ -36,6 +36,24 @@ const questDefinitions = [
         }
     },
     {
+        id: 'completeMazes',
+        name: 'completeMazesQuest',
+        description: 'completeMazesQuestDescription',
+        level: 1,
+        rewards: {
+            exp: 1000,
+            gold: 30,
+            items: [
+                { item: 'powerLapisia', count: 2 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true
+        }
+    },
+    {
         id: 'completeMaze158',
         name: 'completeMaze158Quest',
         description: 'completeMaze158QuestDescription',

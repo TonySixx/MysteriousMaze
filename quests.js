@@ -411,6 +411,22 @@ export function updateQuestsOnEvent(eventType, eventData) {
                 });
             }
             break;
+        case 'completeMazes':
+            updateQuestProgress('completeMazes', (quest) => {
+                if (!quest.objective.completedSeeds) {
+                    quest.objective.completedSeeds = [];
+                }
+                if (!quest.objective.completedSeeds.includes(eventData.seed)) {
+                    quest.objective.completedSeeds.push(eventData.seed);
+                    quest.objective.current = quest.objective.completedSeeds.length;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                }
+                return quest;
+            });
+            break;
         case 'mazeCompletion':
             if (eventData.seed === "158" && eventData.floor === 1) {
                 updateQuestProgress('completeMaze158', (quest) => {
