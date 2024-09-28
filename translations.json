@@ -183,12 +183,15 @@
     "exp": "Exp",
     "progress": "Progress",
     "inProgress": "In progress",
+    "readyToComplete": "Ready to complete",
     "completedQuests": "Completed quests",
     "availableQuests": "Available quests",
     "acceptQuest": "Accept quest",
     "claimReward": "Claim reward",
     "pressFToInteractWithQuestBoard": "Press 'F' to interact with the quest board",
-    "questBoard": "Quest board"
+    "questBoard": "Quest board",
+    "completeMaze158Quest": "Maze Master",
+    "completeMaze158QuestDescription": "Complete the maze on the first floor with seed '158'."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -379,6 +382,9 @@
     "acceptQuest": "Přijmout úkol",
     "questBoard": "Nástěnka úkolů",
     "claimReward": "Vyzvednout odměnu",
-    "pressFToInteractWithQuestBoard": "Stiskněte 'F' pro interakci s nástěnkou úkolů"
+    "pressFToInteractWithQuestBoard": "Stiskněte 'F' pro interakci s nástěnkou úkolů",
+    "completeMaze158Quest": "Mistr bludiště",
+    "completeMaze158QuestDescription":"Dokončete bludiště na prvním podlaží se seedem '158'.",
+    "readyToComplete": "Hotovo"
   }
 }

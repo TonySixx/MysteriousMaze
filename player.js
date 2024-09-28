@@ -1,9 +1,11 @@
 import * as THREE from "three";
-import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor } from './main.js';
+import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, getHash, isFlying, canWalkThroughWalls, checkObjectInteractions, toggleMinimap, nearTeleport, teleportPlayer, version, updateFloorOptions, isHighWallArea, landSoundBuffer, playSound, selectedFloor, levelUpSoundBuffer } from './main.js';
 import { getActiveSpells, inspectStaff, isInspectingStaff, isSwingingStaff, spells } from "./spells.js";
 import seedrandom from "seedrandom";
 import { equipment, initInventory, usePotion } from "./inventory.js";
 import { calculateSpellDamage, skillTree } from "./skillTree.js";
+import { checkQuestAvailability, initQuestSystem } from "./quests.js";
+import { initializeQuests } from "./questDatabase.js";
 
 
 var player;
@@ -203,6 +205,8 @@ export function loadPlayerProgress() {
     updateGoldDisplay();
     updateExpBar();
     initInventory();
+    initQuestSystem();
+    initializeQuests();
 }
 
 export function addExperience(exp) {
@@ -225,12 +229,14 @@ export function getGold() {
 }
 
 function levelUp() {
+    playSound(levelUpSoundBuffer);
     playerLevel++;
     playerExp -= expToNextLevel;
     expToNextLevel = Math.floor(expToNextLevel * 1.2);
     addSkillPoint();
     updatePlayerLevelStats();
-    updateFloorOptions(); // Přidáme toto volání
+    updateFloorOptions();
+    checkQuestAvailability();
 }
 
 
@@ -664,6 +670,9 @@ export function isAnyModalOpen() {
         document.getElementById("settingsModal")?.style.display === "block" ||
         document.getElementById("inventoryModal")?.style.display === "block" ||
         document.getElementById("skillTreeModal")?.style.display === "block" ||
+        document.getElementById("questWindow")?.style.display === "flex" ||
+        document.getElementById("floorSelectModal")?.style.display === "block" ||
+        document.getElementById("questBoardWindow") ||
         document.getElementsByClassName("shop-modal")?.length > 0;
 }
 

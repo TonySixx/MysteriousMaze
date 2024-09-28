@@ -257,6 +257,19 @@ export function addExperienceForCompletion(floor) {
 
   totalExperience = Math.round(totalExperience * expMultiplier);
   addExperience(totalExperience);
+
+
+  //QUESTS
+  if (seed === "158" && selectedFloor === 1) {
+    updateQuestProgress('completeMaze158', (quest) => {
+        quest.objective.current++;
+        quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+        if (quest.objective.current >= quest.objective.count) {
+            quest.isCompleted = true;
+        }
+        return quest;
+    });
+}
 }
 
 

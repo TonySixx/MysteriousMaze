@@ -23,7 +23,7 @@ export const ITEM_TYPES = {
 
   export function getItemName(item) {
     for (let [klic, val] of Object.entries(itemDatabase)) {
-        if (val === item) {
+        if (val.name === item.name) {
           return klic;
         }
       }

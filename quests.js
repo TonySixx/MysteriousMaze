@@ -2,17 +2,49 @@ import { getTranslation } from './langUtils.js';
 import { addExperience, addGold, getPlayerLevel } from './player.js';
 import { addItemToInventory, createItem, createItemElement } from './inventory.js';
 import { getItemName } from './itemDatabase.js';
+import { getAllQuests } from './questDatabase.js';
+import { showMessage } from './utils.js';
+import { itemSoundBuffer, successSoundBuffer } from './main.js';
 
 let quests = [];
 let selectedQuest = null;
 let availableQuests = []; // Nové questy k vyzvednutí
+let completedQuestIds = []; // Již dokončené questy
 
 export function initQuestSystem() {
+    loadQuestsFromLocalStorage();
+    checkQuestAvailability();
     document.addEventListener('keydown', (event) => {
         if (event.key === 'u' || event.key === 'U') {
             toggleQuestWindow();
         }
     });
+}
+
+function saveQuestsToLocalStorage() {
+    localStorage.setItem('quests', JSON.stringify(quests));
+    localStorage.setItem('availableQuests', JSON.stringify(availableQuests));
+    localStorage.setItem('completedQuestIds', JSON.stringify(completedQuestIds));
+}
+
+function loadQuestsFromLocalStorage() {
+    const savedQuests = localStorage.getItem('quests');
+    const savedAvailableQuests = localStorage.getItem('availableQuests');
+    const savedCompletedQuestIds = localStorage.getItem('completedQuestIds');
+
+    if (savedQuests) {
+        quests = JSON.parse(savedQuests);
+    }
+
+    if (savedAvailableQuests) {
+        availableQuests = JSON.parse(savedAvailableQuests);
+    }
+
+    if (savedCompletedQuestIds) {
+        completedQuestIds = JSON.parse(savedCompletedQuestIds);
+    }
+
+    updateQuestList();
 }
 
 function toggleQuestWindow() {
@@ -90,14 +122,9 @@ function updateQuestDetails() {
 
     const questItems = questDetails.querySelector('.quest-items');
     selectedQuest.rewards.items.forEach(item => {
-        const itemElement = createItemElement(item,false,true);
+        const itemElement = createItemElement(item, false, true);
         questItems.appendChild(itemElement);
     });
-}
-
-export function addQuest(quest) {
-    quests.push(quest);
-    updateQuestList();
 }
 
 export function updateQuestProgress(questId, updateCallback) {
@@ -108,6 +135,35 @@ export function updateQuestProgress(questId, updateCallback) {
             updateQuestDetails();
         }
         updateQuestList();
+        saveQuestsToLocalStorage();
+    }
+}
+
+export function addQuest(quest) {
+    quests.push(quest);
+    updateQuestList();
+    saveQuestsToLocalStorage();
+}
+
+export function checkQuestAvailability() {
+    const playerLevel = getPlayerLevel();
+    availableQuests = availableQuests.filter(quest => quest.level <= playerLevel);
+
+    // Přidáme nové questy, pokud jsou k dispozici
+    const allQuests = getAllQuests();
+    allQuests.forEach(quest => {
+        if (quest.level <= playerLevel &&
+            !availableQuests.some(q => q.id === quest.id) &&
+            !quests.some(q => q.id === quest.id) &&
+            !completedQuestIds.includes(quest.id)) {
+            availableQuests.push(quest);
+        }
+    });
+
+    saveQuestsToLocalStorage();
+    const questBoardWindow = document.getElementById('questBoardWindow');
+    if (questBoardWindow) {
+        updateQuestBoardUI();
     }
 }
 
@@ -119,6 +175,7 @@ export function completeQuest(questId) {
         if (quests[questIndex] === selectedQuest) {
             updateQuestDetails();
         }
+        saveQuestsToLocalStorage();
     }
 }
 
@@ -133,7 +190,9 @@ export function removeCompletedQuest(questId) {
 
 export function addAvailableQuest(quest) {
     availableQuests.push(quest);
+    saveQuestsToLocalStorage();
 }
+
 
 export function getAvailableQuests() {
     return availableQuests;
@@ -144,6 +203,7 @@ export function acceptQuest(questId) {
     if (questIndex !== -1) {
         const quest = availableQuests.splice(questIndex, 1)[0];
         addQuest(quest);
+        saveQuestsToLocalStorage();
     }
 }
 
@@ -155,11 +215,19 @@ export function claimQuestReward(questId) {
     const questIndex = quests.findIndex(q => q.id === questId && q.isCompleted);
     if (questIndex !== -1) {
         const quest = quests[questIndex];
-        
+
         // Přidání odměn hráči
         addExperience(quest.rewards.exp);
         addGold(quest.rewards.gold);
-        quest.rewards.items.forEach(item =>  addItemToInventory(createItem(getItemName(drop.item),item.count)));
+        quest.rewards.items.forEach(item => {
+            addItemToInventory(createItem(getItemName(item.item), item.count));
+            showMessage("You have obtained: " + "<span style='color: " + getRarityColor(item.item.rarity) + "'>" + item.item.name + "</span>", true);
+        });
+        playSound(itemSoundBuffer);
+        playSound(successSoundBuffer);
+
+        // Přidání questu do seznamu dokončených
+        completedQuestIds.push(quest.id);
 
         // Odstranění questu z aktivních questů
         quests.splice(questIndex, 1);
@@ -171,6 +239,7 @@ export function claimQuestReward(questId) {
             updateQuestDetails();
         }
 
+        saveQuestsToLocalStorage();
         return true;
     }
     return false;
@@ -219,6 +288,13 @@ function updateQuestBoardUI() {
         const questItem = createQuestListItem(quest, 'claim');
         completedQuestsList.appendChild(questItem);
     });
+
+    // Vyčistíme detail questu
+    const questDetails = document.querySelector(".quest-board-details");
+    if (questDetails) {
+        questDetails.innerHTML = "";
+    }
+
 }
 
 function createQuestListItem(quest, action) {
@@ -228,26 +304,30 @@ function createQuestListItem(quest, action) {
         <span class="quest-name">${quest.name}</span>
         <span class="quest-level">${getTranslation('level')} ${quest.level}</span>
     `;
-    
+
     const actionButton = document.createElement('button');
     actionButton.textContent = getTranslation(action === 'accept' ? 'acceptQuest' : 'claimReward');
-    actionButton.onclick = () => {
+    actionButton.onclick = (e) => {
         if (action === 'accept') {
             acceptQuest(quest.id);
+            e.preventDefault();
+            e.stopPropagation()
         } else {
             claimQuestReward(quest.id);
+            e.preventDefault();
+            e.stopPropagation()
         }
         updateQuestBoardUI();
     };
     questItem.appendChild(actionButton);
 
-    questItem.onclick = () => showQuestDetails(quest);
+    questItem.onclick = () => showQuestDetails(quest, true);
 
     return questItem;
 }
 
-function showQuestDetails(quest) {
-    const questDetails = document.querySelector('.quest-details');
+function showQuestDetails(quest, isQuestBoard) {
+    const questDetails = document.querySelector(isQuestBoard ? '.quest-board-details' : '.quest-details');
     questDetails.innerHTML = `
         <h2>${quest.name}</h2>
         <p>${quest.description}</p>

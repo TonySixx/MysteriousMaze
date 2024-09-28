@@ -112,7 +112,6 @@ import {
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
 import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
 import { initQuestSystem } from "./quests.js";
-import { addFireDragonQuest } from "./questDatabase.js";
 
 export const version = "1.3.2";
 
@@ -202,6 +201,8 @@ export var successSoundBuffer;
 export var activateSoundBuffer;
 export var chestSoundBuffer;
 export var potionSoundBuffer;
+export var levelUpSoundBuffer;
+
 
 export var bossSoundBuffer;
 export var aoeBlastSoundBuffer;
@@ -393,6 +394,10 @@ export async function init() {
     potionSoundBuffer = buffer;
   });
 
+  audioLoader.load("snd_level_up.mp3", function (buffer) {
+    levelUpSoundBuffer = buffer;
+  });
+
   loadPlayerProgress();
   initWeaponModel();
   const floorParam = getUrlParameter("floor");
@@ -423,8 +428,6 @@ export async function init() {
     createPlayer();
     createSkillbar();
     initSkillTree();
-    initQuestSystem();
-    addFireDragonQuest()
     updatePlayerStats(true);
     startTimer();
     const crosshair = createCrosshair();

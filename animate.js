@@ -433,6 +433,7 @@ export function updateIceExplosions(deltaTime) {
     
         const distance = player.position.distanceTo(questBoard.position);
         const interactionText = questBoard.userData.interactionText;
+        const questBoardWindow = document.getElementById('questBoardWindow');
     
         if (distance < 2) {
             // Vytvoříme vektor pro pozici textu nad nástěnkou
@@ -463,6 +464,10 @@ export function updateIceExplosions(deltaTime) {
             }
         } else {
             interactionText.style.display = "none";
+            // Zavřeme quest board, pokud je otevřený a hráč se vzdálil
+            if (questBoardWindow && questBoardWindow.style.display === "flex") {
+                toggleQuestBoardUI();
+            }
         }
     
         updateQuestIndicator(questBoard);
