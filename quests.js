@@ -441,7 +441,7 @@ export function updateQuestsOnEvent(eventType, eventData) {
             }
             break;
         case 'mainBossDeath':
-            if (eventData.bossType === MAIN_BOSS_TYPES[0].translationKey) {
+            if (eventData.bossType === "bossFloor1") {
                 updateQuestProgress('defeatShadowDemon', (quest) => {
                     quest.objective.current++;
                     quest.progress = `${quest.objective.current}/${quest.objective.count}`;
