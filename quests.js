@@ -5,7 +5,6 @@ import { getItemName } from './itemDatabase.js';
 import { getAllQuests } from './questDatabase.js';
 import { showMessage } from './utils.js';
 import { activateSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
-import { MAIN_BOSS_TYPES } from './mainBoss.js';
 
 let quests = [];
 let selectedQuest = null;
