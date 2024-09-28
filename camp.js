@@ -719,7 +719,7 @@ export class Merchant {
   }
 
   buyItem(item) {
-    if (getGold() < item.buyPrice) {
+    if (getGold() < (item.buyPrice * item.count)) {
       playSound(errorSoundBuffer);
       this.showMessage(getTranslation("notEnoughGold"));
       return;
@@ -731,7 +731,7 @@ export class Merchant {
       return;
     }
 
-    addGold(-item.buyPrice);
+    addGold(-item.buyPrice * item.count);
     playSound(itemSoundBuffer);
     addItemToInventory({ ...item, id: crypto.randomUUID() });
     this.updateShopGoldDisplay();
