@@ -49,6 +49,7 @@ window.armorMerchantAnimationId = null;
 window.bossChestAndPortalAnimationId = null;
 
 window.currentBackgroundMusic = null;
+window.actualSeedText = null;
 
 export const floorMusic = {
   1: "music/msc_lost.mp3",

@@ -683,7 +683,7 @@ export class Merchant {
   updateShopGoldDisplay() {
     const goldDisplay = document.getElementById('shopGoldDisplay');
     if (goldDisplay) {
-      goldDisplay.textContent = getGold();
+      goldDisplay.textContent = getGold().toLocaleString();
     }
   }
 

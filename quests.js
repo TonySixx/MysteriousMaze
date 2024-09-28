@@ -4,7 +4,7 @@ import { addItemToInventory, createItem, createItemElement, getRarityColor } fro
 import { getItemName } from './itemDatabase.js';
 import { getAllQuests } from './questDatabase.js';
 import { showMessage } from './utils.js';
-import { activateSoundBuffer, itemSoundBuffer, playSound, successSoundBuffer } from './main.js';
+import { activateSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
 
 let quests = [];
 let selectedQuest = null;
@@ -50,8 +50,15 @@ function loadQuestsFromLocalStorage() {
 function toggleQuestWindow() {
     const questWindow = document.getElementById('questWindow');
     if (questWindow) {
-        questWindow.style.display = questWindow.style.display === 'none' ? 'flex' : 'none';
+        if (questWindow.style.display === 'none') {
+            exitPointerLock();
+            questWindow.style.display = 'flex';
+        } else {
+            requestPointerLock();
+            questWindow.style.display = 'none';
+        }
     } else {
+        exitPointerLock();
         createQuestWindow();
     }
 }
@@ -110,11 +117,15 @@ function updateQuestDetails() {
     questDetails.innerHTML = `
         <h2>${selectedQuest.name}</h2>
         <p>${selectedQuest.description}</p>
-        <h3 style="margin-top: 50px;">${getTranslation('rewards')}:</h3>
-        <ul>
-            <li>${getTranslation('exp')}: ${selectedQuest.rewards.exp}</li>
-            <li>${getTranslation('gold')}: ${selectedQuest.rewards.gold}</li>
-        </ul>
+        <h3 style="margin-top: 40px;">${getTranslation('rewards')}:</h3>
+        <div class="quest-reward">
+            <img src="gold-coin.png" alt="Gold" class="quest-reward-icon">
+            <span class="quest-reward-gold">${selectedQuest.rewards.gold}</span>
+        </div>
+        <div class="quest-reward">
+            <img src="experience.png" alt="EXP" class="quest-reward-icon">
+            <span class="quest-reward-exp">${selectedQuest.rewards.exp}</span>
+        </div>
         <div class="quest-items"></div>
         <h3 style="margin-top: 20px;">${getTranslation('progress')}:</h3>
         <p>${selectedQuest.progress}</p>
@@ -123,6 +134,8 @@ function updateQuestDetails() {
     const questItems = questDetails.querySelector('.quest-items');
     selectedQuest.rewards.items.forEach(item => {
         const itemElement = createItemElement(item, false, true);
+        itemElement.style.width = '64px';
+        itemElement.style.height = '64px';
         questItems.appendChild(itemElement);
     });
 }
@@ -342,17 +355,23 @@ function showQuestDetails(quest, isQuestBoard) {
     questDetails.innerHTML = `
         <h2>${quest.name}</h2>
         <p>${quest.description}</p>
-        <h3>${getTranslation('rewards')}:</h3>
-        <ul>
-            <li>${getTranslation('exp')}: ${quest.rewards.exp}</li>
-            <li>${getTranslation('gold')}: ${quest.rewards.gold}</li>
-        </ul>
+        <h3 style="margin-top: 40px;">${getTranslation('rewards')}:</h3>
+        <div class="quest-reward">
+            <img src="gold-coin.png" alt="Gold" class="quest-reward-icon">
+            <span class="quest-reward-gold">${quest.rewards.gold}</span>
+        </div>
+        <div class="quest-reward">
+            <img src="experience.png" alt="EXP" class="quest-reward-icon">
+            <span class="quest-reward-exp">${quest.rewards.exp}</span>
+        </div>
         <div class="quest-items"></div>
     `;
 
     const questItems = questDetails.querySelector('.quest-items');
     quest.rewards.items.forEach(item => {
         const itemElement = createItemElement(item, false, true);
+        itemElement.style.width = '72px';
+        itemElement.style.height = '72px';
         questItems.appendChild(itemElement);
     });
 }
@@ -362,9 +381,13 @@ export function toggleQuestBoardUI() {
     if (questBoardWindow) {
         questBoardWindow.style.display = questBoardWindow.style.display === 'none' ? 'flex' : 'none';
         if (questBoardWindow.style.display === 'flex') {
+            exitPointerLock();
             updateQuestBoardUI();
+        } else {
+            requestPointerLock();
         }
     } else {
+        exitPointerLock();
         createQuestBoardUI();
     }
 }

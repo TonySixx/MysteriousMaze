@@ -92,6 +92,31 @@ li {
     margin-bottom: 4px;
 }
 
+.quest-reward {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.quest-reward-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+.quest-reward-gold {
+    color: #ffd700;
+}
+
+.quest-reward-exp {
+    color: #a335ee;
+}
+
+.quest-items .item {
+    width: 64px;
+    height: 64px;
+}
+
 ::-webkit-scrollbar {
     width: 6px;
 }

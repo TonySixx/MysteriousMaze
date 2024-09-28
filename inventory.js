@@ -925,7 +925,7 @@ function sellItem(itemId) {
 function updateGoldDisplay() {
   const goldDisplay = document.getElementById('goldDisplay');
   if (goldDisplay) {
-    goldDisplay.textContent = getGold();
+    goldDisplay.textContent = getGold().toLocaleString();
   }
 }
 

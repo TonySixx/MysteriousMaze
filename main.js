@@ -810,6 +810,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
 
   // Set seed for random number generator
   const seed = getHash(inputText);
+  actualSeedText = inputText;
   let rng = new seedrandom(seed);
 
   if (selectedFloor >= 100 && selectedFloor <= 200) {
@@ -1602,13 +1603,10 @@ async function stopTimer() {
   clearInterval(timerInterval);
   const elapsedTime = Math.floor(cumulativeTime / 1000);
 
-  // Kontrola, zda je to první dokončení tohoto bludiště
-  if (bestTime === Infinity) {
     addExperienceForCompletion(selectedFloor);
     // Přidání zlaťáků
     const goldGained = Math.round(selectedFloor * 2 + MAZE_SIZE / 5);
     addGold(goldGained);
-  }
 
   if (elapsedTime < bestTime) {
     bestTime = elapsedTime;
