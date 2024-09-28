@@ -26,6 +26,7 @@ export const skillTree = {
         icon: fireballIcon,
         baseDamage: 100,
         damageIncreasePerLevel: [20, 30, 40, 60, 80, 100, 120],
+        requiredPlayerLevelPerLevel: [1, 2, 5, 7, 9, 11, 13, 15], 
         upgrades: [
             {
                 name: 'Inferno Touch',
@@ -43,7 +44,7 @@ export const skillTree = {
                 requiredLevel: 10,
                 cost: 2,
                 unlocked: false,
-                icon: explosiveCoreIcon // Zde by měla být nová ikona pro vylepšení
+                icon: explosiveCoreIcon
             }
         ]
     },
@@ -56,6 +57,7 @@ export const skillTree = {
         damageIncreasePerLevel: [20, 30, 40, 50],
         description: 'Mrazivý útok, který zmrazí nepřítele na 2 sekundy',
         icon: frostboltIcon,
+        requiredPlayerLevelPerLevel: [1, 4, 7, 10, 13], // Přidáno
         upgrades: [
             {
                 name: 'Ice Explosion',
@@ -64,7 +66,7 @@ export const skillTree = {
                 requiredLevel: 5,
                 cost: 1,
                 unlocked: false,
-                icon: iceExplosionIcon // Zde by měla být nová ikona pro vylepšení
+                icon: iceExplosionIcon
             },
             {
                 name: 'Mrazivá aura',
@@ -73,7 +75,7 @@ export const skillTree = {
                 requiredLevel: 12,
                 cost: 2,
                 unlocked: false,
-                icon: frostAuraIcon // Zde by měla být nová ikona pro vylepšení
+                icon: frostAuraIcon
             }
         ]
     },
@@ -86,6 +88,7 @@ export const skillTree = {
         icon: arcaneMissileIcon,
         baseDamage: 50,
         damageIncreasePerLevel: [10, 20, 30, 40, 50],
+        requiredPlayerLevelPerLevel: [1, 3, 6, 9, 12, 15], // Přidáno
         upgrades: [
             {
                 name: 'Multi-shot',
@@ -94,7 +97,7 @@ export const skillTree = {
                 requiredLevel: 7,
                 unlocked: false,
                 cost: 2,
-                icon: multiShotIcon // Zde by měla být nová ikona pro vylepšení
+                icon: multiShotIcon
             }
         ]
     },
@@ -108,7 +111,8 @@ export const skillTree = {
         description: 'Blesk, který přeskakuje mezi nepřáteli',
         icon: chainLightningIcon,
         requiredLevel: 10,
-        cost: 1, // Cena v dovednostních bodech
+        cost: 1,
+        requiredPlayerLevelPerLevel: [10, 12, 14, 16, 18], // Přidáno
         upgrades: [
             {
                 name: 'Chain Explosion',
@@ -117,7 +121,7 @@ export const skillTree = {
                 requiredLevel: 15,
                 unlocked: false,
                 icon: chainExplosionIcon,
-                cost: 2 // Cena vylepšení v dovednostních bodech
+                cost: 2
             }
         ]
     }
@@ -131,7 +135,6 @@ export function toggleSkillTree() {
     }
 }
 
-// Přidejte tuto funkci na začátek souboru
 function updateSkillPointsDisplay() {
     const skillPointsElement = document.getElementById('skillPoints');
     if (skillPointsElement) {
@@ -201,12 +204,12 @@ function createSpellElement(spellKey, spell) {
     spellIcon.src = spell.icon;
     spellIcon.alt = spell.name;
     spellIcon.className = 'spell-icon';
-    if (spellKey === 'chainLightning' && spell.level === 0) {
+    if (spell.level === 0) {
         spellIcon.classList.add('locked');
     }
     spellElement.appendChild(spellIcon);
 
-    // Přidáme tlačítko pro odemčení nebo vylepšení kouzla hned pod ikonu
+    // Tlačítko pro odemčení nebo vylepšení
     const unlockOrUpgradeButtonDiv = document.createElement('div');
     unlockOrUpgradeButtonDiv.style.textAlign = 'center';
     spellElement.appendChild(unlockOrUpgradeButtonDiv);
@@ -224,26 +227,22 @@ function createSpellElement(spellKey, spell) {
     spellDescription.textContent = getTranslation(spell.systemName + 'Description');
     spellInfo.appendChild(spellDescription);
 
-    // Přidáme podmínku pro zobrazení požadovaného levelu
-    if (spell.level === 0 && spell.requiredLevel) {
-        const requiredLevel = document.createElement('p');
-        requiredLevel.textContent = getTranslation('requiredLevel', spell.requiredLevel);
-        requiredLevel.className = 'required-level';
-        if (playerLevel < spell.requiredLevel) {
-            requiredLevel.classList.add('not-met');
-        }
-        spellInfo.appendChild(requiredLevel);
-    }
+    // Element pro požadovanou úroveň (použijeme existující)
+    const requiredLevelElement = document.createElement('p');
+    requiredLevelElement.className = 'required-level';
+    spellInfo.appendChild(requiredLevelElement);
+
+    updateRequiredLevelElement(spellKey, spell, requiredLevelElement);
 
     const spellLevel = document.createElement('p');
-    spellLevel.className = "spell-level"
+    spellLevel.className = "spell-level";
     spellLevel.textContent = getTranslation('spellLevel', spell.level, spell.maxLevel);
     spellInfo.appendChild(spellLevel);
 
     const spellDamage = document.createElement('p');
-    spellDamage.className = "spell-damage"
+    spellDamage.className = "spell-damage";
     spellDamage.textContent = getTranslation('spellDamage', calculateSpellDamage(spell));
-    spellInfo.appendChild(spellDamage)
+    spellInfo.appendChild(spellDamage);
 
     spellElement.appendChild(spellInfo);
 
@@ -262,6 +261,27 @@ function createSpellElement(spellKey, spell) {
     return spellElement;
 }
 
+function updateRequiredLevelElement(spellKey, spell, requiredLevelElement) {
+    if (spell.level === 0 && spell.requiredLevel) {
+        requiredLevelElement.textContent = getTranslation('requiredLevel', spell.requiredLevel);
+        if (playerLevel < spell.requiredLevel) {
+            requiredLevelElement.classList.add('not-met');
+        } else {
+            requiredLevelElement.classList.remove('not-met');
+        }
+    } else if (spell.level < spell.maxLevel) {
+        const nextRequiredPlayerLevel = spell.requiredPlayerLevelPerLevel[spell.level];
+        requiredLevelElement.textContent = getTranslation('requiredLevel', nextRequiredPlayerLevel);
+        if (playerLevel < nextRequiredPlayerLevel) {
+            requiredLevelElement.classList.add('not-met');
+        } else {
+            requiredLevelElement.classList.remove('not-met');
+        }
+    } else {
+        requiredLevelElement.textContent = '';
+    }
+}
+
 function createUnlockOrUpgradeButton(spellKey, spell) {
     const unlockOrUpgradeButton = document.createElement('button');
     const skillPoints = getSkillPoints();
@@ -271,8 +291,9 @@ function createUnlockOrUpgradeButton(spellKey, spell) {
         unlockOrUpgradeButton.disabled = skillPoints < spell.cost || !canUnlockSpell(spellKey);
         unlockOrUpgradeButton.onclick = () => unlockSpell(spellKey, unlockOrUpgradeButton);
     } else if (spell.level < spell.maxLevel) {
+        const requiredPlayerLevel = spell.requiredPlayerLevelPerLevel[spell.level];
         unlockOrUpgradeButton.textContent = getTranslation('upgrade');
-        unlockOrUpgradeButton.disabled = skillPoints < 1;
+        unlockOrUpgradeButton.disabled = skillPoints < 1 || playerLevel < requiredPlayerLevel;
         unlockOrUpgradeButton.onclick = () => upgradeSpell(spellKey, unlockOrUpgradeButton);
     } else {
         unlockOrUpgradeButton.textContent = getTranslation('maxLevel');
@@ -300,10 +321,18 @@ function updateAllButtons() {
             if (spell.level === 0) {
                 spellButton.disabled = skillPoints < spell.cost || !canUnlockSpell(spellKey);
             } else if (spell.level < spell.maxLevel) {
-                spellButton.disabled = skillPoints < 1;
+                const requiredPlayerLevel = spell.requiredPlayerLevelPerLevel[spell.level];
+                spellButton.disabled = skillPoints < 1 || playerLevel < requiredPlayerLevel;
             }
         }
 
+        // Aktualizace požadované úrovně
+        const requiredLevelElement = spellElement.querySelector('.required-level');
+        if (requiredLevelElement) {
+            updateRequiredLevelElement(spellKey, spell, requiredLevelElement);
+        }
+
+        // Aktualizace tlačítek pro vylepšení
         spell.upgrades.forEach(upgrade => {
             const upgradeElement = spellElement.querySelector(`.upgrade[data-upgrade-name="${upgrade.name}"]`);
             if (!upgradeElement) return;
@@ -341,15 +370,13 @@ function createUpgradeElement(spellKey, upgrade) {
     upgradeDescription.textContent = getTranslation(upgrade.systemName + 'Description');
     upgradeInfo.appendChild(upgradeDescription);
 
-    if (!upgrade.unlocked) {
-        const requiredLevel = document.createElement('p');
-        requiredLevel.textContent = getTranslation('requiredLevel', upgrade.requiredLevel);
-        requiredLevel.className = 'required-level';
-        if (playerLevel < upgrade.requiredLevel) {
-            requiredLevel.classList.add('not-met');
-        }
-        upgradeInfo.appendChild(requiredLevel);
+    const requiredLevel = document.createElement('p');
+    requiredLevel.textContent = getTranslation('requiredLevel', upgrade.requiredLevel);
+    requiredLevel.className = 'required-level';
+    if (playerLevel < upgrade.requiredLevel) {
+        requiredLevel.classList.add('not-met');
     }
+    upgradeInfo.appendChild(requiredLevel);
 
     upgradeElement.appendChild(upgradeInfo);
 
@@ -379,9 +406,7 @@ function unlockUpgrade(spellKey, upgrade, button, icon) {
         button.disabled = true;
         icon.classList.remove('locked');
 
-        if (spellKey === 'fireball' && upgrade.name === 'Inferno Touch') {
-            enableFireballBurningEffect();
-        }
+        // Zde můžete přidat specifické efekty pro odemčené vylepšení
 
         saveSkillTreeProgress();
         updateSpellUpgrades(skillTree);
@@ -396,11 +421,10 @@ function unlockSpell(spellKey, button) {
         spell.level = 1;
         playSound(activateSoundBuffer);
         if (spell.level < spell.maxLevel) {
-            button.innerHTML = getTranslation('upgrade')+"<span class='cost-badge'>1</span>";
-            button.disabled = getSkillPoints() < 1;
+            button.innerHTML = getTranslation('upgrade') + "<span class='cost-badge'>1</span>";
+            button.disabled = getSkillPoints() < 1 || playerLevel < spell.requiredPlayerLevelPerLevel[spell.level];
             button.onclick = () => upgradeSpell(spellKey, button);
-        }
-        else {
+        } else {
             button.textContent = getTranslation('maxLevel');
             button.disabled = true;
         }
@@ -412,16 +436,29 @@ function unlockSpell(spellKey, button) {
 
         // Aktualizace zobrazení úrovně a poškození kouzla
         const spellElement = button.closest('.spell');
-        const levelElement = spellElement.querySelector('.spell-info p:nth-child(3)');
-        const damageElement = spellElement.querySelector('.spell-info p:nth-child(4)');
+        const levelElement = spellElement.querySelector('.spell-info .spell-level');
+        const damageElement = spellElement.querySelector('.spell-info .spell-damage');
 
         if (levelElement) levelElement.textContent = getTranslation('spellLevel', spell.level, spell.maxLevel);
         if (damageElement) damageElement.textContent = getTranslation('spellDamage', calculateSpellDamage(spell));
+
+        // Aktualizace požadované úrovně
+        const requiredLevelElement = spellElement.querySelector('.required-level');
+        if (requiredLevelElement) {
+            updateRequiredLevelElement(spellKey, spell, requiredLevelElement);
+        }
     }
 }
 
 function upgradeSpell(spellKey, button) {
     const spell = skillTree[spellKey];
+    const requiredPlayerLevel = spell.requiredPlayerLevelPerLevel[spell.level];
+
+    if (playerLevel < requiredPlayerLevel) {
+        alert(getTranslation('insufficientPlayerLevel', requiredPlayerLevel));
+        return;
+    }
+
     if (spell.level < spell.maxLevel && useSkillPoint(spell.cost)) {
         spell.level++;
         playSound(activateSoundBuffer);
@@ -430,7 +467,8 @@ function upgradeSpell(spellKey, button) {
             button.textContent = getTranslation('maxLevel');
             button.disabled = true;
         } else {
-            button.disabled = getSkillPoints() < 1;
+            const nextRequiredLevel = spell.requiredPlayerLevelPerLevel[spell.level];
+            button.disabled = getSkillPoints() < 1 || playerLevel < nextRequiredLevel;
         }
 
         saveSkillTreeProgress();
@@ -440,24 +478,22 @@ function upgradeSpell(spellKey, button) {
 
         // Aktualizace zobrazení úrovně a poškození kouzla
         const spellElement = button.closest('.spell');
-        const levelElement = spellElement.querySelector('.spell-info p:nth-child(3)');
-        const damageElement = spellElement.querySelector('.spell-info p:nth-child(4)');
+        const levelElement = spellElement.querySelector('.spell-info .spell-level');
+        const damageElement = spellElement.querySelector('.spell-info .spell-damage');
 
         if (levelElement) levelElement.textContent = getTranslation('spellLevel', spell.level, spell.maxLevel);
         if (damageElement) damageElement.textContent = getTranslation('spellDamage', calculateSpellDamage(spell));
+
+        // Aktualizace požadované úrovně
+        const requiredLevelElement = spellElement.querySelector('.required-level');
+        if (requiredLevelElement) {
+            updateRequiredLevelElement(spellKey, spell, requiredLevelElement);
+        }
     }
 }
 
-// Funkce pro kontrolu, zda je kouzlo odemčené
 export function isSpellUnlocked(spellName) {
     return skillTree[spellName].level > 0;
-}
-
-function enableFireballBurningEffect() {
-    const fireballSpell = spells.find(spell => spell.name === 'Fireball');
-    if (fireballSpell) {
-        fireballSpell.burningEffect = true;
-    }
 }
 
 export function initSkillTree() {
@@ -488,15 +524,11 @@ export function loadSkillTreeProgress() {
     }
 }
 
-
-
-// Nová pomocná funkce pro kontrolu, zda lze odemknout kouzlo
 function canUnlockSpell(spellKey) {
     const spell = skillTree[spellKey];
     return playerLevel >= spell.requiredLevel;
 }
 
-// Nová pomocná funkce pro kontrolu, zda lze odemknout vylepšení
 function canUnlockUpgrade(spellKey, upgrade) {
     const spell = skillTree[spellKey];
     if (spell.level === 0) return false;
@@ -504,7 +536,6 @@ function canUnlockUpgrade(spellKey, upgrade) {
     if (upgradeIndex === 0) return true;
     return spell.upgrades[upgradeIndex - 1].unlocked;
 }
-
 
 export function calculateSpellDamage(spell) {
     let totalDamage = spell.baseDamage + baseAttackBonus;
