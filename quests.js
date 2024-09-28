@@ -1,6 +1,6 @@
 import { getTranslation } from './langUtils.js';
 import { addExperience, addGold, getPlayerLevel } from './player.js';
-import { addItemToInventory, createItem, createItemElement, getRarityColor } from './inventory.js';
+import { addItemToInventory, checkSpaceInInventory, createItem, createItemElement, getRarityColor } from './inventory.js';
 import { getItemName } from './itemDatabase.js';
 import { getAllQuests } from './questDatabase.js';
 import { showMessage } from './utils.js';
@@ -150,9 +150,9 @@ export function updateQuestProgress(questId, updateCallback) {
         }
         updateQuestList();
         saveQuestsToLocalStorage();
-        
+
         // Zobrazení zprávy o postupu v úkolu
-        showMessage(getTranslation('questProgressUpdate', updatedQuest.name, updatedQuest.progress), true,5000);
+        showMessage(getTranslation('questProgressUpdate', updatedQuest.name, updatedQuest.progress), true, 5000);
     }
 }
 
@@ -186,7 +186,7 @@ export function checkQuestAvailability() {
 
     // Zobrazení zprávy o nových dostupných úkolech
     if (availableQuests.length > previousAvailableQuestsCount) {
-        showMessage(getTranslation('newQuestsAvailable'), true,5000);
+        showMessage(getTranslation('newQuestsAvailable'), true, 5000);
     }
 }
 
@@ -239,6 +239,11 @@ export function claimQuestReward(questId) {
     const questIndex = quests.findIndex(q => q.id === questId && q.isCompleted);
     if (questIndex !== -1) {
         const quest = quests[questIndex];
+
+        //kontrola zda má hráč dostatek místa v batohu
+        if (!checkSpaceInInventory(quest.rewards.items.length)) {
+            return;
+        }
 
         // Přidání odměn hráči
         addExperience(quest.rewards.exp);
@@ -393,7 +398,7 @@ export function toggleQuestBoardUI() {
 }
 
 export function updateQuestsOnEvent(eventType, eventData) {
-    switch(eventType) {
+    switch (eventType) {
         case 'bossDeath':
             if (eventData.bossType === "fireDragon") {
                 updateQuestProgress('killFireDragons', (quest) => {
@@ -418,6 +423,17 @@ export function updateQuestsOnEvent(eventType, eventData) {
                 });
             }
             break;
-        // Zde můžeme přidat další případy pro různé typy událostí
+        case 'mainBossDeath':
+            if (eventData.bossType === "shadowDemon") {
+                updateQuestProgress('defeatShadowDemon', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            break;
     }
 }

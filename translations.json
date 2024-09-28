@@ -193,7 +193,9 @@
     "completeMaze158Quest": "Maze Master",
     "completeMaze158QuestDescription": "Complete the maze on the first floor with seed '158'.",
     "questProgressUpdate": "Quest progress '{0}': {1}",
-    "newQuestsAvailable": "New quests are available! Visit the quest board."
+    "newQuestsAvailable": "New quests are available! Visit the quest board.",
+    "defeatShadowDemonQuest": "Defeat Shadow Demon",
+    "defeatShadowDemonQuestDescription": "Defeat the Shadow Demon on the first floor."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -389,6 +391,8 @@
     "completeMaze158QuestDescription": "Dokončete bludiště na prvním podlaží se seedem '158'.",
     "readyToComplete": "Hotovo",
     "questProgressUpdate": "Postup v úkolu '{0}': {1}",
-    "newQuestsAvailable": "K dispozici jsou nové úkoly! Navštivte nástěnku úkolů."
+    "newQuestsAvailable": "K dispozici jsou nové úkoly! Navštivte nástěnku úkolů.",
+    "defeatShadowDemonQuest": "Zabijte Stínového démona",
+    "defeatShadowDemonQuestDescription": "Zabijte Stínového démona na prvním podlaží."
   }
 }

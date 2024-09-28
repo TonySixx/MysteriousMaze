@@ -191,6 +191,9 @@ export class MainBoss extends Boss {
       scene.remove(effect);
     });
 
+    // Aktualizace questu po zabití bosse
+    updateQuestsOnEvent('mainBossDeath', { bossType: this.type.translationKey });
+
     // Přidání truhly po poražení bosse
     const loader = new GLTFLoader(manager);
     loader.load("models/Chest.glb", (gltf) => {

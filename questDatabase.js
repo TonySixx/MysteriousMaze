@@ -53,8 +53,28 @@ const questDefinitions = [
             target: '158',
             count: 1
         }
+    },
+    {
+        id: 'defeatShadowDemon',
+        name: 'defeatShadowDemonQuest',
+        description: 'defeatShadowDemonQuestDescription',
+        level: 7,
+        rewards: {
+            exp: 5000,
+            gold: 1000,
+            items: [
+                { item: 'powerLapisia', count: 3 },
+                { item: 'protectorsLapisia', count: 3 },
+                { item: 'greaterHealthPotion', count: 5 },
+                { item: 'greaterManaPotion', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Stinový démon',
+            count: 1
+        }
     }
-    // Zde můžete přidat další questy
 ];
 
 export function addQuestFromDefiniton(questDef) {
