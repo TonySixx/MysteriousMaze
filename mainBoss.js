@@ -37,6 +37,7 @@ import {
   getRarityColor,
 } from "./inventory.js";
 import { getTranslation } from "./langUtils.js";
+import { updateQuestsOnEvent } from "./quests.js";
 
 export const MAIN_BOSS_TYPES = [
   {
