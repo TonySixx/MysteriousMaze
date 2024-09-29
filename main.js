@@ -203,6 +203,8 @@ export var activateSoundBuffer;
 export var chestSoundBuffer;
 export var potionSoundBuffer;
 export var levelUpSoundBuffer;
+export var seedBurstSoundBuffer;
+export var vineGrabSoundBuffer;
 
 
 export var bossSoundBuffer;
@@ -397,6 +399,14 @@ export async function init() {
 
   audioLoader.load("snd_level_up.mp3", function (buffer) {
     levelUpSoundBuffer = buffer;
+  });
+
+  audioLoader.load("snd_seed_burst.wav", function (buffer) {
+    seedBurstSoundBuffer = buffer;
+  });
+
+  audioLoader.load("snd_vine_grab.wav", function (buffer) {
+    vineGrabSoundBuffer = buffer;
   });
 
   loadPlayerProgress();

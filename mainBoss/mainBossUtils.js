@@ -2,6 +2,7 @@ import { Boss, bossCounter, bosses, canSeePlayer, setBossCounter } from "../boss
 import { player } from "../player";
 import * as THREE from "three";
 import { playerTakeDamage } from "../utils";
+import { playSound, seedBurstSoundBuffer, vineGrabSoundBuffer } from "../main";
 
 export class Ability {
   constructor(boss) {
@@ -226,6 +227,7 @@ export class VineGrabAbility extends Ability {
   }
 
   use() {
+    playSound(vineGrabSoundBuffer);
     const direction = new THREE.Vector3().subVectors(player.position, this.boss.position).normalize();
     const vineLength = this.boss.position.distanceTo(player.position);
     
@@ -271,6 +273,7 @@ export class SeedBurstAbility extends Ability {
 
   use() {
     // Vytvoření vizuálního efektu s animací
+    playSound(seedBurstSoundBuffer);
     const particleCount = 500;
     const particles = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
@@ -293,7 +296,7 @@ export class SeedBurstAbility extends Ability {
     particles.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
 
     const particleMaterial = new THREE.PointsMaterial({
-      color: 0x00FF00,
+      color: 0x9cff38,
       size: 0.2,
       transparent: true,
       opacity: 1.0,
