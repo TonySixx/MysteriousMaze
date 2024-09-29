@@ -448,6 +448,16 @@ export function updateQuestsOnEvent(eventType, eventData) {
                     return quest;
                 });
             }
+            else if (eventData.seed === "444" && eventData.floor === 2 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMaze444WithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
             break;
         case 'mainBossDeath':
             if (eventData.bossType === "bossFloor1") {

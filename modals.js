@@ -8,8 +8,39 @@ import { getBestTime, showMessage } from "./utils";
 export function showHintModal() {
   const hintModal = document.getElementById("hintModal");
   const hintContent = document.getElementById("hintContent");
-  hintContent.innerHTML = generateHintContent() + generateControlsContent();
+  hintContent.innerHTML = `
+    <div class="tab-container">
+      <button class="tab-button active" data-tab="hint">${getTranslation("hint")}</button>
+      <button class="tab-button" data-tab="controls">${getTranslation("controls")}</button>
+    </div>
+    <div id="hintTab" class="tab-content active">
+      ${generateHintContent()}
+    </div>
+    <div id="controlsTab" class="tab-content">
+      ${generateControlsContent()}
+    </div>
+  `;
   hintModal.style.display = "block";
+
+  // Přidáme event listener pro přepínání záložek
+  const tabButtons = hintContent.querySelectorAll('.tab-button');
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const tabName = button.getAttribute('data-tab');
+      switchTab(tabName);
+    });
+  });
+}
+
+function switchTab(tabName) {
+  const tabs = document.querySelectorAll('.tab-content');
+  const buttons = document.querySelectorAll('.tab-button');
+
+  tabs.forEach(tab => tab.classList.remove('active'));
+  buttons.forEach(button => button.classList.remove('active'));
+
+  document.getElementById(`${tabName}Tab`).classList.add('active');
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
 }
 
 export function hideHintModal() {

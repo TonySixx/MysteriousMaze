@@ -613,6 +613,7 @@ export function onKeyDown(event) {
             }
             break;
         case "KeyV":
+            window.minimapUsed = true;
             toggleMinimap();
             break;
         case "KeyG":

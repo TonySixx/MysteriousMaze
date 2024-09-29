@@ -242,7 +242,10 @@
     "questsContent": "Press U to open the quest window. Complete quests to gain experience and rewards.",
     "previous": "Previous",
     "next": "Next",
-    "finish": "Finish"
+    "finish": "Finish",
+    "completeMaze444WithoutMinimapQuest": "Maze Master Challenge",
+    "completeMaze444WithoutMinimapQuestDescription": "Complete the maze on the second floor with seed '444' without using the minimap.",
+    "controls": "Controls"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -487,6 +490,10 @@
     "questsContent": "Stiskněte U pro otevření okna úkolů. Plněním úkolů získáte zkušenosti a odměny.",
     "previous": "Předchozí",
     "next": "Další",
-    "finish": "Dokončit"
+    "finish": "Dokončit",
+    "completeMaze444WithoutMinimapQuest": "Výzva Mistra Bludiště",
+    "completeMaze444WithoutMinimapQuestDescription": "Dokončete bludiště na druhém podlaží se seedem '444' bez použití minimapy.",
+    "controls": "Ovládání"
+    
   }
 }

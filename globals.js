@@ -58,6 +58,8 @@ window.actualSeedText = null;
 window.totalBossesInMaze = 0;
 window.goalReached = false;
 
+window.minimapUsed = false;
+
 export const floorMusic = {
   1: "music/msc_lost.mp3",
   2: "music/msc_magic_in_the_air.mp3",

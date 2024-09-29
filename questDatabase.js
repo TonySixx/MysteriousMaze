@@ -94,6 +94,26 @@ const questDefinitions = [
         }
     },
     {
+        id: 'completeMaze444WithoutMinimap',
+        name: 'completeMaze444WithoutMinimapQuest',
+        description: 'completeMaze444WithoutMinimapQuestDescription',
+        level: 8,
+        rewards: {
+            exp: 3500,
+            gold: 100,
+            items: [
+                { item: 'protectorsLapisia', count: 3 },
+                { item: 'powerLapisia', count: 3 }
+            ]
+        },
+        objective: {
+            type: 'completeMazeWithoutMinimap',
+            target: '444',
+            floor: 2,
+            count: 1
+        }
+    },
+    {
         id: 'defeatJungleGuardian',
         name: 'defeatJungleGuardianQuest',
         description: 'defeatJungleGuardianQuestDescription',
@@ -110,7 +130,8 @@ const questDefinitions = [
             target: 'Strážce Džungle',
             count: 1
         }
-    }
+    },
+   
 ];
 
 export function addQuestFromDefiniton(questDef) {

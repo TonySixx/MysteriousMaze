@@ -265,7 +265,12 @@ export function addExperienceForCompletion(floor) {
   addExperience(totalExperience);
   // Aktualizace úkolů po dokončení bludiště
   const seedText = actualSeedText ? actualSeedText.toString() : "";
-  updateQuestsOnEvent('mazeCompletion', { seed: seedText, floor: selectedFloor });
+  // Aktualizujte volání updateQuestsOnEvent
+  updateQuestsOnEvent('mazeCompletion', {
+    seed: seedText,
+    floor: selectedFloor,
+    usedMinimap: window.minimapUsed
+  });
   updateQuestsOnEvent('completeMazes', { seed: seedText });
   return totalExperience;
 }

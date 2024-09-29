@@ -691,6 +691,8 @@ function clearScene() {
 
   destroyAllSideAnimations();
 
+  window.minimapUsed = false;
+
   // Uvolníme a resetujeme globální proměnné
   walls.forEach((wall) => disposeObject(wall));
   walls = [];

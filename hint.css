@@ -73,3 +73,93 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #e9b266;
 }
+
+.controls-section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.controls-section h3 {
+  color: #e9b266;
+  margin-bottom: 10px;
+}
+
+.controls-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #f0e6d2;
+}
+
+.controls-table th,
+.controls-table td {
+  border: 1px solid #c8a97e;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.controls-table th {
+  background-color: rgba(200, 169, 126, 0.2);
+  color: #e9b266;
+  font-weight: bold;
+}
+
+.controls-table tr:nth-child(even) {
+  background-color: rgba(200, 169, 126, 0.1);
+}
+
+.controls-table tr:hover {
+  background-color: rgba(200, 169, 126, 0.3);
+}
+
+.key {
+  display: inline-block;
+  background-color: rgba(200, 169, 126, 0.3);
+  border: 1px solid #c8a97e;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-right: 4px;
+  font-family: monospace;
+  font-weight: bold;
+  color: #e9b266;
+}
+
+.tab-container {
+  display: flex;
+  border-bottom: 2px solid #c8a97e;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  background-color: transparent;
+  border: none;
+  color: #c8a97e;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.tab-button:hover {
+  background-color: rgba(200, 169, 126, 0.1);
+  color: #e9b266;
+}
+
+.tab-button.active {
+  color: #e9b266;
+  border-bottom: 2px solid #e9b266;
+  margin-bottom: -2px;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Upravíme styl pro scrollování, pokud je obsah příliš dlouhý */
+#hintModal .modal-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
