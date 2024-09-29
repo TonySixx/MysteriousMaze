@@ -2,18 +2,104 @@ import { bosses } from "./boss";
 import { addItemToInventory, checkSpaceInInventory, createItem, createItemElement, getRarityColor } from "./inventory";
 import { getItemName, ITEM_RARITIES, ITEM_TYPES, itemDatabase } from "./itemDatabase";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils";
-import { chestSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, selectedFloor, startGame, supabase, teleportPairsCount, totalKeys } from "./main";
+import { chestSoundBuffer, exitPointerLock, init, itemSoundBuffer, playSound, requestPointerLock, selectedFloor, startGame, supabase, teleportPairsCount, totalKeys } from "./main";
 import { getBestTime, showMessage } from "./utils";
 
 export function showHintModal() {
   const hintModal = document.getElementById("hintModal");
   const hintContent = document.getElementById("hintContent");
-  hintContent.innerHTML = generateHintContent();
+  hintContent.innerHTML = generateHintContent() + generateControlsContent();
   hintModal.style.display = "block";
 }
 
 export function hideHintModal() {
   document.getElementById("hintModal").style.display = "none";
+}
+
+function generateControlsContent() {
+  return `
+    <div class="controls-section">
+      <h3>${getTranslation("gameControls")}</h3>
+      <table class="controls-table">
+        <tr>
+          <th>${getTranslation("key")}</th>
+          <th>${getTranslation("action")}</th>
+        </tr>
+        <tr>
+          <td><span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span></td>
+          <td>${getTranslation("movement")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">${getTranslation("mouseLeft")}</span></td>
+          <td>${getTranslation("fireball")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">${getTranslation("mouseRight")}</span></td>
+          <td>${getTranslation("arcaneMissile")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">E</span></td>
+          <td>${getTranslation("frostbolt")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">R</span></td>
+          <td>${getTranslation("chainLightning")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">F</span></td>
+          <td>${getTranslation("interact")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">G</span></td>
+          <td>${getTranslation("inspectStaff")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">Space</span></td>
+          <td>${getTranslation("jump")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">I</span></td>
+          <td>${getTranslation("toggleInventory")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">K</span></td>
+          <td>${getTranslation("toggleSkillTree")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">U</span></td>
+          <td>${getTranslation("toggleQuestWindow")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">V</span></td>
+          <td>${getTranslation("toggleMinimap")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">C</span></td>
+          <td>${getTranslation("toggleScoreModal")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">H</span></td>
+          <td>${getTranslation("toggleHintModal")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">O</span></td>
+          <td>${getTranslation("toggleSettingsModal")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">B</span></td>
+          <td>${getTranslation("toggleBackgroundMusic")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">1</span></td>
+          <td>${getTranslation("useHealthPotion")}</td>
+        </tr>
+        <tr>
+          <td><span class="key">2</span></td>
+          <td>${getTranslation("useManaPotion")}</td>
+        </tr>
+      </table>
+    </div>
+  `;
 }
 
 function generateHintContent() {
@@ -97,43 +183,43 @@ export function showNameModal(playerName) {
   const nameModal = document.getElementById("nameModal");
   nameModal.innerHTML = `
       <div class="modal-content">
-        <h2>${getTranslation("enterName")}</h2>
-        <input type="text" id="playerNameInput" value="${playerName || ""
-    }" placeholder="${getTranslation("playerName")}">
-        <select id="languageSelect">
-          <option value="en">English</option>
-          <option value="cs">Čeština</option>
-        </select>
-        <button id="submitName" disabled>${getTranslation("confirm")}</button>
+          <h2>${getTranslation("enterName")}</h2>
+          <input type="text" id="playerNameInput" value="${playerName || ""}" placeholder="${getTranslation("playerName")}">
+          <select id="languageSelect">
+              <option value="en">English</option>
+              <option value="cs">Čeština</option>
+          </select>
+          <button id="submitName" disabled>${getTranslation("confirm")}</button>
       </div>
-    `;
-  nameModal.style.display = "block";
+  `;
+  nameModal.style.display = "flex";
 
   const input = document.getElementById("playerNameInput");
   const submitButton = document.getElementById("submitName");
 
   input.addEventListener("input", function () {
-    submitButton.disabled = this.value.trim() === "";
+      submitButton.disabled = this.value.trim() === "";
   });
 
   document.getElementById("languageSelect").value = currentLanguage;
   document.getElementById("languageSelect").addEventListener("change", (e) => {
-    setLanguage(e.target.value);
-    const playerName = document.getElementById("playerNameInput").value;
-    showNameModal(playerName); // Refresh modal with new language
+      setLanguage(e.target.value);
+      const playerName = document.getElementById("playerNameInput").value;
+      showNameModal(playerName); // Refresh modal with new language
   });
 
   submitButton.addEventListener("click", () => {
-    const name = input.value.trim();
-    if (name !== "") {
-      playerName = name;
-      localStorage.setItem("playerName", playerName);
-      document.getElementById("playerName").textContent = playerName;
-      getBestTime();
-      hideNameModal();
-      updateTranslations();
-      updateUITexts();
-    }
+      const name = input.value.trim();
+      if (name !== "") {
+          playerName = name;
+          localStorage.setItem("playerName", playerName);
+          document.getElementById("playerName").textContent = playerName;
+          getBestTime();
+          hideNameModal();
+          updateTranslations();
+          updateUITexts();
+          init(); // Spustíme hru po zadání jména
+      }
   });
 
   // Inicializace stavu tlačítka
@@ -141,7 +227,7 @@ export function showNameModal(playerName) {
 }
 
 export function hideNameModal() {
-  exitPointerLock();
+  requestPointerLock();
   document.getElementById("nameModal").style.display = "none";
 }
 

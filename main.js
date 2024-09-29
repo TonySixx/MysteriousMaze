@@ -78,7 +78,7 @@ import {
   updatePotionCooldowns,
   updateStaffVisibility,
 } from "./inventory.js";
-import { createMainMenu } from "./mainMenu.js";
+import { createMainMenu, stopMainTheme } from "./mainMenu.js";
 import { floorsConfig, textureSets } from "./globals.js";
 import {
   displayScores,
@@ -90,7 +90,6 @@ import {
   setQuality,
   showCompletionModal,
   showHintModal,
-  showNameModal,
   showScoreModal,
   showSettingsModal,
 } from "./modals.js";
@@ -256,6 +255,7 @@ function loadSettings() {
 }
 export var manager;
 export async function init() {
+  stopMainTheme();
   // Create LoadingManager
   manager = new THREE.LoadingManager();
 
@@ -450,12 +450,9 @@ export async function init() {
     updateSpellUpgrades(skillTree);
 
     // Load player name from local storage
-    playerName = localStorage.getItem("playerName");
-    if (!playerName) {
-      showNameModal();
-    } else {
-      document.getElementById("playerName").textContent = playerName;
-    }
+    playerName = localStorage.getItem("playerName");  
+    document.getElementById("playerName").textContent = playerName;
+  
 
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
@@ -545,7 +542,7 @@ export async function init() {
     getBestTime(inputText);
     initFPSCounter();
     updateTranslations();
-    updateUITexts();
+    //updateUITexts();
 
     animate();
   } catch (error) {
@@ -647,10 +644,10 @@ function toggleBackgroundMusic() {
   if (currentBackgroundMusic) {
     if (isMusicPlaying) {
       currentBackgroundMusic.pause();
-      document.getElementById("toggleMusicText").style.color = "red";
+      document.getElementById("toggleMusicIcon").style.color = "red";
     } else {
       currentBackgroundMusic.play();
-      document.getElementById("toggleMusicText").style.color = "white";
+      document.getElementById("toggleMusicIcon").style.color = "white";
     }
     isMusicPlaying = !isMusicPlaying;
   }
@@ -1610,7 +1607,7 @@ export async function startGame() {
   if (minimapCooldownTimer) {
     clearTimeout(minimapCooldownTimer);
   }
-  document.getElementById("showMinimapText").classList.remove("disabled");
+  document.getElementById("showMinimapIcon").classList.remove("disabled");
   document.getElementById("minimap").style.display = "none";
   updatePlayerHealthBar();
 
@@ -1674,7 +1671,7 @@ export function toggleMinimap() {
   isMinimapVisible = !isMinimapVisible;
   const minimap = document.getElementById("minimap");
   const timeCount = document.getElementById("timeCount");
-  const showMinimapText = document.getElementById("showMinimapText");
+  const showMinimapIcon = document.getElementById("showMinimapIcon");
 
   minimap.style.display = isMinimapVisible ? "block" : "none";
   timeCount.classList.toggle("minimap-open", isMinimapVisible);
@@ -1682,10 +1679,10 @@ export function toggleMinimap() {
 
   if (!isMinimapVisible) {
     canOpenMinimap = false;
-    showMinimapText.classList.add("disabled");
+    showMinimapIcon.classList.add("disabled");
     minimapCooldownTimer = setTimeout(() => {
       canOpenMinimap = true;
-      showMinimapText.classList.remove("disabled");
+      showMinimapIcon.classList.remove("disabled");
     }, 3000);
   }
 
@@ -2249,7 +2246,7 @@ let frameCount = 0;
 function initFPSCounter() {
   fpsCounter = document.createElement("div");
   fpsCounter.style.position = "absolute";
-  fpsCounter.style.bottom = "50px";
+  fpsCounter.style.bottom = "90px";
   fpsCounter.style.left = "10px";
   fpsCounter.style.color = "white";
   fpsCounter.style.fontSize = "16px";

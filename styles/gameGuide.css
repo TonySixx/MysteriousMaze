@@ -1,0 +1,195 @@
+#guideOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#guideContent {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #c8a97e;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(200, 169, 126, 0.3);
+    border: 2px solid #c8a97e;
+}
+
+#guideTitle {
+    color: #ffd700;
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+#guideIcon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+}
+
+#guideText {
+    margin-bottom: 30px;
+    line-height: 1.6;
+    font-size: 18px;
+}
+
+#guideControls {
+    display: flex;
+    justify-content: space-between;
+}
+
+#guideControls button {
+    background-color: rgba(200, 169, 126, 0.2);
+    color: #c8a97e;
+    border: 1px solid #c8a97e;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 16px;
+}
+
+#guideControls button:hover {
+    background-color: rgba(200, 169, 126, 0.4);
+    color: #ffffff;
+}
+
+#guideControls button:disabled {
+    background-color: rgba(149, 165, 166, 0.2);
+    color: #95a5a6;
+    cursor: not-allowed;
+    border-color: #95a5a6;
+}
+
+#prevButton {
+    margin-right: auto;
+}
+
+#nextButton {
+    margin-left: auto;
+}
+
+#nameModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#nameModal .modal-content {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #c8a97e;
+    padding: 30px;
+    border-radius: 10px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(200, 169, 126, 0.3);
+    border: 2px solid #c8a97e;
+}
+
+#nameModal h2 {
+    color: #ffd700;
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+#nameModal input, 
+#nameModal select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: rgba(200, 169, 126, 0.1);
+    border: 1px solid #c8a97e;
+    color: #c8a97e;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+#nameModal button {
+    width: 100%;
+    background-color: rgba(200, 169, 126, 0.2);
+    color: #c8a97e;
+    border: 1px solid #c8a97e;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 16px;
+}
+
+#nameModal button:hover {
+    background-color: rgba(200, 169, 126, 0.4);
+    color: #ffffff;
+}
+
+#nameModal button:disabled {
+    background-color: rgba(149, 165, 166, 0.2);
+    color: #95a5a6;
+    cursor: not-allowed;
+    border-color: #95a5a6;
+}
+
+#nameModal select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: rgba(200, 169, 126, 0.1);
+    border: 1px solid #c8a97e;
+    color: #c8a97e;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 16px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23c8a97e' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+}
+
+#nameModal select::-ms-expand {
+    display: none;
+}
+
+#nameModal select option {
+    background-color: #1e1e1e;
+    color: #c8a97e;
+}
+
+#nameModal select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(200, 169, 126, 0.5);
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c8a97e;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #b39169;
+}

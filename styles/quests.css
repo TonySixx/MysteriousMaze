@@ -7,10 +7,26 @@
     max-width: 800px;
     height: 500px;
     background-color: rgba(0, 0, 0, 0.9);
+    flex-direction: column;
     border: 2px solid #c8a97e;
     display: flex;
     z-index: 1000;
     box-shadow: 0 0 20px rgba(200, 169, 126, 0.3);
+    overflow: hidden;
+}
+
+.quest-header {
+    color: #c8a97e;
+    text-align: center;
+    padding: 10px 0;
+    margin: 0;
+    border-bottom: 1px solid #c8a97e;
+}
+
+.quest-content {
+    display: flex;
+    height: calc(100% - 50px); /* Odečteme výšku nadpisu */
+    overflow: hidden;
 }
 
 .quest-list {
@@ -20,6 +36,7 @@
     border-right: 1px solid #c8a97e;
     padding: 15px;
     box-sizing: border-box; /* Zajistí, že padding a border jsou zahrnuty do šířky */
+    padding-right: 10px;
 }
 
 .quest-details {
@@ -28,7 +45,9 @@
     overflow-y: auto;
     padding: 20px;
     box-sizing: border-box; /* Zajistí, že padding je zahrnut do šířky */
+    padding-right: 15px;
 }
+
 .quest-item {
     padding: 8px;
     margin-bottom: 8px;
@@ -123,6 +142,7 @@ li {
 
 ::-webkit-scrollbar-track {
     background: #1e1e1e;
+    border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {

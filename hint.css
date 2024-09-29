@@ -71,7 +71,44 @@
     width: 10px;
   }
   
-
+  .controls-section {
+    background-color: rgba(52, 73, 94, 0.7);
+    border-left: 4px solid #2ecc71;
+    padding: 10px;
+    margin-top: 20px;
+    border-radius: 5px;
+  }
+  
+  .controls-section h3 {
+    color: #2ecc71;
+    border-bottom: 2px solid #2ecc71;
+  }
+  
+  .controls-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .controls-table th, .controls-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #34495e;
+  }
+  
+  .controls-table th {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+  }
+  
+  .key {
+    background-color: #34495e;
+    color: #ecf0f1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-weight: bold;
+  }
   
 
   

@@ -20,14 +20,26 @@ export function setLanguage(lang) {
 
 
 
-export function updateUITexts() {
-    document.getElementById("showScoreText").textContent = `${getTranslation('score')} [C]`;
-    document.getElementById("showMinimapText").textContent = `${getTranslation('minimap')} [V]`;
-    document.getElementById("showSkillTreeText").textContent = `${getTranslation('spells')} [K]`;
-    document.getElementById("showHintText").textContent = `${getTranslation('hint')} [H]`;
-    document.getElementById("showOptions").textContent = `${getTranslation('settings')} [O]`;
-    document.getElementById("toggleMusicText").textContent = `${getTranslation('music')} [B]`;
-    document.getElementById("showInventoryText").textContent = `${getTranslation('inventory')} [I]`;
+  export function updateUITexts() {
+    const menuItems = [
+      { id: "showScoreIcon", key: "C" },
+      { id: "showMinimapIcon", key: "V" },
+      { id: "showSkillTreeIcon", key: "K" },
+      { id: "showInventoryIcon", key: "I" },
+      { id: "showHintIcon", key: "H" },
+      { id: "showOptionsIcon", key: "O" },
+      { id: "toggleMusicIcon", key: "B" },
+      { id: "showQuestsIcon", key: "U" }
+    ];
+  
+    menuItems.forEach(item => {
+      const element = document.getElementById(item.id);
+      if (element) {
+        const translationKey = element.getAttribute("data-translate");
+        element.innerHTML = `${element.innerHTML.split(">")[0]}> [${item.key}]`;
+        element.title = getTranslation(translationKey);
+      }
+    });
   }
 
  export function updateTranslations() {

@@ -1,5 +1,8 @@
 import { init } from "./main";
 import { AudioLoader, Audio, AudioListener } from "three";
+import { showGameGuide } from "./gameGuide.js";
+import { getTranslation } from "./langUtils";
+
 
 let mainTheme;
 
@@ -52,8 +55,7 @@ function createMainMenu() {
   function startNewGame() {
     localStorage.clear();
     hideMainMenu();
-    stopMainTheme()
-    init();
+    showGameGuide();
   }
   
   function loadGame() {
@@ -62,7 +64,7 @@ function createMainMenu() {
     init();
   }
   
-  function stopMainTheme() {
+ export function stopMainTheme() {
     if (mainTheme) {
       mainTheme.stop();
       mainTheme.disconnect();

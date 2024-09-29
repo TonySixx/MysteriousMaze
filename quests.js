@@ -68,14 +68,24 @@ function createQuestWindow() {
     questWindow.id = 'questWindow';
     questWindow.className = 'quest-window';
 
+    const questHeader = document.createElement('h1');
+    questHeader.textContent = getTranslation('quests');
+    questHeader.className = 'quest-header';
+
+    const questContent = document.createElement('div');
+    questContent.className = 'quest-content';
+
     const questList = document.createElement('div');
     questList.className = 'quest-list';
 
     const questDetails = document.createElement('div');
     questDetails.className = 'quest-details';
 
-    questWindow.appendChild(questList);
-    questWindow.appendChild(questDetails);
+    questContent.appendChild(questList);
+    questContent.appendChild(questDetails);
+
+    questWindow.appendChild(questHeader);
+    questWindow.appendChild(questContent);
 
     document.body.appendChild(questWindow);
 
