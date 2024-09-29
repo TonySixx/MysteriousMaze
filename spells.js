@@ -941,7 +941,7 @@ export function createChainLightningVisual(startPosition, endPosition) {
   const chainLightning = new THREE.Line(geometry, material);
 
   scene.add(chainLightning);
-  chainLightnings.push(chainLightning);
+  chainLightningsVisual.push(chainLightning);
 }
 
 export function createFireballExplosion(position) {

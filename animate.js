@@ -309,19 +309,20 @@ export function updateIceExplosions(deltaTime) {
     }
   }
   
-  export function updateChainLightnings(deltaTime) {
-    for (let i = chainLightnings.length - 1; i >= 0; i--) {
-      const lightning = chainLightnings[i];
+  export function updateChainLightningsVisuals(deltaTime) {
+    for (let i = chainLightningsVisual.length - 1; i >= 0; i--) {
+      const lightning = chainLightningsVisual[i];
       lightning.material.opacity -= 0.05 * deltaTime * 60;
       if (lightning.material.opacity <= 0) {
         scene.remove(lightning);
         lightning.geometry.dispose();
         lightning.material.dispose();
-        chainLightnings.splice(i, 1);
+        chainLightningsVisual.splice(i, 1);
       }
     }
   }
-  
+
+
   export function updateFireballExplosions(deltaTime) {
     for (let i = fireballExplosions.length - 1; i >= 0; i--) {
       const explosion = fireballExplosions[i];

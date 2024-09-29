@@ -111,7 +111,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
 import { initQuestSystem } from "./quests.js";
 
 export const version = "2.0.0";
@@ -753,6 +753,7 @@ function clearScene() {
   mainBossEntryData = null;
   chestMixer = null;
   frostAuras = [];
+  chainLightningsVisual = [];
   iceExplosions = [];
   chainExplosions = [];
   fireballExplosions = [];
@@ -2154,7 +2155,7 @@ function animate() {
   updateIceExplosions(deltaTime);
   updateFrostAuras(deltaTime);
   updateChainExplosions(deltaTime);
-  updateChainLightnings(deltaTime);
+  updateChainLightningsVisuals(deltaTime);
   updateFireballExplosions(deltaTime);
   updateStaffSwing(deltaTime);
   animateStaffInspection(currentTime);
