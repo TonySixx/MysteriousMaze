@@ -6,9 +6,10 @@ import {
   setBossCounter,
   bossCounter,
   bosses,
-} from "./boss.js";
-import { player } from "./player.js";
+} from "../boss.js";
+import { player } from "../player.js";
 import {
+  addNebula,
   bossSoundBuffer,
   CELL_SIZE,
   createTeleportModel,
@@ -19,18 +20,19 @@ import {
   setMazeSize,
   teleportSoundBuffer,
   WALL_HEIGHT,
-} from "./main.js";
-import { createTorchOnCenterTower, createTorchOnWall } from "./camp.js";
-import { textureSets } from "./globals.js";
-import { createBossCastEffect, showMessage } from "./utils.js";
-import { getItemName, itemDatabase } from "./itemDatabase.js";
-import { updateQuestsOnEvent } from "./quests.js";
+} from "../main.js";
+import { createTorchOnCenterTower, createTorchOnWall } from "../camp.js";
+import { textureSets } from "../globals.js";
+import { createBossCastEffect, showMessage } from "../utils.js";
+import { getItemName, itemDatabase } from "../itemDatabase.js";
+import { updateQuestsOnEvent } from "../quests.js";
+import { CallOfWildAbility, MultiShotAbility, SeedBurstAbility, SpawnDragonsAbility, StateMachine, VineGrabAbility } from "./mainBossUtils.js";
 
 export const MAIN_BOSS_TYPES = [
   {
     name: "Stinový démon",
     translationKey: "bossFloor1",
-    specialAttacks: ["multiShot", "spawnDragons"],
+    abilities: [MultiShotAbility, SpawnDragonsAbility],
     mainMaterial: new THREE.MeshStandardMaterial({
       color: 0x200f38,
       metalness: 0.4,
@@ -53,25 +55,29 @@ export const MAIN_BOSS_TYPES = [
       { item: itemDatabase.powerLapisia, chance: 0.3 },
       { item: itemDatabase.greaterHealthPotion, chance: 1 },
     ],
+    ambientLightColor: 0xe0b6bf,
+    nebulaColors: ["#FF0000","#FF69B4"]
   },
   {
-    name: "Džunglový Strážce",
+    name: "Strážce Džungle",
     translationKey: "jungleGuardian",
-    abilities: [VineGrab, SeedBurst, CallOfWild],
+    abilities: [VineGrabAbility, SeedBurstAbility, CallOfWildAbility],
     mainMaterial: new THREE.MeshStandardMaterial({
-      color: 0x228B22, // Lesní zelená
-      metalness: 0.2,
-      roughness: 0.8,
+      color: 0x75ba1a, 
+      metalness: 0.8,
+      roughness: 0.1,
+      emissive: 0x75ba1a,
+      emissiveIntensity: 1,
     }),
     secondaryMaterial: new THREE.MeshStandardMaterial({
-      color: 0x8B4513, // Hnědá
-      metalness: 0.3,
-      roughness: 0.7,
+      color: 0x8B4513, 
+      metalness: 0.5,
+      roughness: 0.1,
     }),
-    attackColor: new THREE.Color(0x32CD32),
-    attackCooldown: 1.5,
-    emissiveIntensity: 1.5,
-    maxHealth: 25000,
+    attackColor: new THREE.Color(0x9fff87),
+    attackCooldown: 1,
+    emissiveIntensity: 3,
+    maxHealth: 30000,
     bossHitBoxMarginY: 3.0,
     attackSpeed: 0.7,
     attackSize: 0.6,
@@ -80,8 +86,9 @@ export const MAIN_BOSS_TYPES = [
       { item: itemDatabase.protectorsLapisia, chance: 0.5 },
       { item: itemDatabase.greaterHealthPotion, chance: 1 },
       { item: itemDatabase.greaterManaPotion, chance: 1 },
-
     ],
+    ambientLightColor: 0xb6e0bf,
+    nebulaColors: ["#4ed145","#e4fc8d"]
   },
 ];
 
@@ -93,15 +100,17 @@ export class MainBoss extends Boss {
     this.isMainBoss = true;
     this.lastSpecialAttackTime = Date.now();
     this.specialAttackInterval = 20000; // 20 sekund
-    this.multiShotCount = 0;
-    this.maxMultiShots = 10;
-    this.dragonsSpawned = false;
-    this.isMovingToCenter = false;
     this.centerPosition = new THREE.Vector3(0, 0.5, 0);
-    this.multiShotInterval = 500; // 500 ms mezi výstřely
-    this.lastMultiShotTime = 0;
-    this.activeEffects = [];
     this.dontDropKey = true;
+
+    this.abilities = type.abilities.map((AbilityClass) => new AbilityClass(this, type));
+    this.currentAbilityIndex = 0;
+    this.stateMachine = new StateMachine(this);
+    this.isUsingAbility = false;
+
+    // Iniciace aktivních efektů
+    this.activeEffects = [];
+
     this.loadMainBossModel();
     this.changeDirection();
     this.createHealthUI();
@@ -142,18 +151,12 @@ export class MainBoss extends Boss {
   }
 
   update(deltaTime) {
-    this.updateSlowParticles(deltaTime);
     if (this.isFrozen) return;
 
-    if (Date.now() > this.slowEndTime) {
-      this.slowEffect = 1;
-      this.removeSlowParticles();
-    } else if (this.slowParticles) {
-      this.updateSlowParticles(deltaTime);
-    }
+    // Aktualizace stavového stroje
+    this.stateMachine.update(deltaTime);
 
-    this.updateBurning(deltaTime);
-
+    // Aktualizace mixeru a modelu
     if (this.mixer) {
       this.mixer.update(deltaTime * this.slowEffect);
     }
@@ -162,37 +165,26 @@ export class MainBoss extends Boss {
       this.model.lookAt(player.position);
     }
 
-    const currentTime = Date.now();
-    if (
-      currentTime - this.lastSpecialAttackTime >=
-      this.specialAttackInterval
-    ) {
-      if (!this.isMovingToCenter) {
-        this.isMovingToCenter = true;
-      }
+    // Ostatní aktualizace (stavy, efekty)
+    this.updateStates(deltaTime);
+  }
+
+
+  // Implementace metody updateStates
+  updateStates(deltaTime) {
+    // Aktualizace efektu zpomalení
+    if (Date.now() > this.slowEndTime) {
+      this.slowEffect = 1;
+      this.removeSlowParticles();
+    } else if (this.slowParticles) {
+      this.updateSlowParticles(deltaTime);
     }
 
-    if (this.isMovingToCenter) {
-      this.moveToCenter(deltaTime);
-    } else if (this.multiShotCount > 0) {
-      if (currentTime - this.lastMultiShotTime >= this.multiShotInterval) {
-        this.multiShot();
-        this.lastMultiShotTime = currentTime;
-      }
-    } else {
-      if (canSeePlayer(this.position, player.position)) {
-        this.attack();
-      } else {
-        this.move(deltaTime, 2);
-      }
-    }
+    // Aktualizace hoření (burning effect)
+    this.updateBurning(deltaTime);
 
-    if (this.health <= this.maxHealth / 2 && !this.dragonsSpawned) {
-      this.spawnDragons();
-    }
-
-    // Aktualizace a odstranění efektů
-    this.activeEffects = this.activeEffects?.filter((effect) => {
+    // Aktualizace a odstranění aktivních efektů
+    this.activeEffects = this.activeEffects.filter((effect) => {
       const isActive = effect.userData.update(deltaTime);
       if (!isActive) {
         scene.remove(effect);
@@ -266,6 +258,7 @@ export class MainBoss extends Boss {
       chestOpenAction.clampWhenFinished = true;
 
       bossChestAndPortalData = {
+        items: this.type.dropItems,
         chest: chest,
         portal: portal,
         interactionText: interactionText,
@@ -277,29 +270,53 @@ export class MainBoss extends Boss {
     });
   }
 
-  moveToCenter(deltaTime) {
-    const direction = new THREE.Vector3().subVectors(
-      this.centerPosition,
-      this.position
+  // Nová metoda pro rozhodování o použití schopnosti
+  shouldUseAbility() {
+    const currentTime = Date.now();
+    return (
+      currentTime - this.lastSpecialAttackTime >= this.specialAttackInterval &&
+      !this.isUsingAbility
     );
-    const distance = direction.length();
-
-    if (distance > 0.1) {
-      direction.normalize();
-      const moveStep = direction.multiplyScalar(5 * deltaTime); // Upravte rychlost podle potřeby
-      this.position.add(moveStep);
-      if (this.model) {
-        this.model.position.copy(this.position);
-      }
-    } else {
-      this.isMovingToCenter = false;
-      this.performSpecialAttack();
-    }
   }
 
-  performSpecialAttack() {
-    this.multiShotCount = this.maxMultiShots;
-    this.lastSpecialAttackTime = Date.now();
+  // Metoda pro získání další schopnosti
+  getNextAbility() {
+    for (let i = 0; i < this.abilities.length; i++) {
+      const abilityIndex = (this.currentAbilityIndex + i) % this.abilities.length;
+      const ability = this.abilities[abilityIndex];
+      if (ability.canUse()) {
+        this.currentAbilityIndex = abilityIndex + 1;
+        this.lastSpecialAttackTime = Date.now();
+        return ability;
+      }
+    }
+    // Žádná schopnost není dostupná
+    return null;
+  }
+
+
+  createAttackEffect() {
+    if (this.model) {
+      const effectPosition = this.model.position.clone();
+      const castEffect = createBossCastEffect(
+        effectPosition,
+        this.type.attackColor,
+        {
+          particleCount: 50,
+          duration: 0.5,
+          spread: { x: 0.5, y: 0.3, z: 0.2 },
+          offset: { x: 0, y: 1, z: 0.05 },
+          speedFactor: 2.0,
+          glowIntensity: 1,
+          minSize: 0.2,
+          maxSize: 0.3,
+        }
+      );
+      scene.add(castEffect);
+
+      // Přidáme efekt do seznamu pro aktualizaci a odstranění
+      this.activeEffects.push(castEffect);
+    }
   }
 
   multiShot() {
@@ -334,8 +351,6 @@ export class MainBoss extends Boss {
       scene.add(magicBall);
       magicBalls.push(magicBall);
     }
-
-    this.multiShotCount--;
   }
 
   spawnDragons() {
@@ -389,32 +404,6 @@ export class MainBoss extends Boss {
         startTime: performance.now(),
       });
     });
-
-    this.dragonsSpawned = true;
-  }
-
-  createAttackEffect() {
-    if (this.model) {
-      const effectPosition = this.model.position.clone();
-      const castEffectRightHand = createBossCastEffect(
-        effectPosition,
-        this.type.attackColor,
-        {
-          particleCount: 50,
-          duration: 0.5,
-          spread: { x: 0.5, y: 0.3, z: 0.2 },
-          offset: { x: 0, y: 1, z: 0.05 }, // Upravte tyto hodnoty podle potřeby
-          speedFactor: 2.0,
-          glowIntensity: 1,
-          minSize: 0.2,
-          maxSize: 0.3,
-        }
-      );
-      scene.add(castEffectRightHand);
-
-      // Přidáme efekt do seznamu pro aktualizaci a odstranění
-      this.activeEffects.push(castEffectRightHand);
-    }
   }
 
   attack() {
@@ -428,17 +417,29 @@ export class MainBoss extends Boss {
   }
 }
 
-export function createMainBossRoom(rng) {
-  const roomSize = 10;
+export function createMainBossRoom(rng, options = {}) {
+  const {
+    roomSize = 10,
+    textureSet = textureSets[1],
+    torchColor = 0xffa500,
+    bossType = MAIN_BOSS_TYPES[selectedFloor - 100],
+    spawnDelay = 6000,
+    countdownDuration = 5,
+    roomAmbientLightColor = 0xffffff,
+    roomAmbientLightIntensity = 0.5,
+    nebulaColors = ["#FF0000", "#FF69B4"],
+    fogDensity = 0.05
+  } = options;
+
   setMazeSize(roomSize);
-  const cornerWallSize = 1; // Zmenšeno na polovinu
-  const cornerWallDistance = 2.5; // Posunuto o 2 metry dále od zdi
+  const cornerWallSize = 1;
+  const cornerWallDistance = 2.5;
 
   const room = new THREE.Group();
   const loader = new THREE.TextureLoader(manager);
-  const floorTexture = loader.load(textureSets[1].floorTexture);
+  const floorTexture = loader.load(textureSet.floorTexture);
   floorTexture.colorSpace = THREE.SRGBColorSpace;
-  const wallTexture = loader.load(textureSets[1].wallTexture);
+  const wallTexture = loader.load(textureSet.wallTexture);
   wallTexture.colorSpace = THREE.SRGBColorSpace;
   floorTexture.repeat.set(roomSize, roomSize);
   floorTexture.wrapS = THREE.RepeatWrapping;
@@ -474,7 +475,7 @@ export function createMainBossRoom(rng) {
 
   // Vytvoření hraničních zdí s hradbami
   for (let i = -roomSize / 2; i <= roomSize / 2; i += 1) {
-    const isMerlon = i % 2 === 0; // Každý druhý blok bude mít hradbu
+    const isMerlon = i % 2 === 0;
     createWall(
       i * CELL_SIZE,
       WALL_HEIGHT / 2,
@@ -518,7 +519,6 @@ export function createMainBossRoom(rng) {
     const cornerX = x * (roomSize / 2 - cornerWallDistance) * CELL_SIZE;
     const cornerZ = z * (roomSize / 2 - cornerWallDistance) * CELL_SIZE;
 
-    // Vytvoření dvou bloků zdí postavených na sobě
     for (let i = 0; i < 2; i++) {
       const cornerWall = new THREE.Mesh(cornerWallGeometry, wallMaterial);
       cornerWall.position.set(
@@ -526,11 +526,10 @@ export function createMainBossRoom(rng) {
         WALL_HEIGHT / 2 + i * WALL_HEIGHT,
         cornerZ
       );
-      WALL_HEIGHT / 2 + i * WALL_HEIGHT, room.add(cornerWall);
+      room.add(cornerWall);
       walls.push(cornerWall);
     }
 
-    // Přidání pochodní ke každé straně rohového sloupu
     const directions = [
       { dx: 1, dz: 0 },
       { dx: -1, dz: 0 },
@@ -539,26 +538,25 @@ export function createMainBossRoom(rng) {
     ];
 
     directions.forEach((dir) => {
-      createTorchOnCenterTower(cornerX, cornerZ, 1, dir);
+      createTorchOnCenterTower(cornerX, cornerZ, 1, dir, torchColor);
     });
   });
 
   // Přidáme časovač pro spawn bosse
   const spawnTimeout = setTimeout(() => {
-    const mainBossStartPosition = new THREE.Vector3(0, 20, 0); // Začátek vysoko nad místností
-    const mainBossTargetPosition = new THREE.Vector3(0, 0.5, 0); // Cílová pozice na zemi
+    const mainBossStartPosition = new THREE.Vector3(0, 20, 0);
+    const mainBossTargetPosition = new THREE.Vector3(0, 0.5, 0);
     setBossCounter(bossCounter + 1);
     const mainBoss = new MainBoss(
       mainBossStartPosition,
       bossCounter,
       rng,
       selectedFloor - 100 + 2,
-      MAIN_BOSS_TYPES[selectedFloor - 100]
+      bossType
     );
     document.getElementById("bossHealthContainer").style = "display:block";
     bosses.push(mainBoss);
 
-    // Animace příletu bosse
     mainBossEntryData = {
       mainBoss,
       startPosition: mainBossStartPosition.clone(),
@@ -567,11 +565,18 @@ export function createMainBossRoom(rng) {
       flyDuration: 3,
     };
     playSound(teleportSoundBuffer);
-  }, 6000);
-  // Spustíme odpočet a uložíme interval
-  const countdownInterval = showCountdown(5);
+  }, spawnDelay);
 
-  // Vracíme objekt s časovačem a intervalem
+  const countdownInterval = showCountdown(countdownDuration);
+
+  // Přidání mlhoviny a mlhy
+  nebulaMaterial = addNebula(...nebulaColors);
+  scene.fog = new THREE.FogExp2(0x000000, fogDensity);
+
+  // Přidání ambientního světla
+  const ambientLight = new THREE.AmbientLight(roomAmbientLightColor, roomAmbientLightIntensity);
+  scene.add(ambientLight);
+
   return { room, spawnTimeout, countdownInterval };
 }
 

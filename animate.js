@@ -4,7 +4,7 @@ import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor }
 import { getItemName } from "./itemDatabase";
 import { getTranslation } from "./langUtils";
 import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
-import { MAIN_BOSS_TYPES } from "./mainBoss";
+import { MAIN_BOSS_TYPES } from "./mainBoss/mainBoss";
 import { player } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
@@ -90,13 +90,13 @@ export function updateTeleportParticles(deltaTime, currentTime) {
     for (let i = teleportParticles.length - 1; i >= 0; i--) {
         const particleSystem = teleportParticles[i];
         const positions = particleSystem.particles.geometry.attributes.position.array;
-        
+
         for (let j = 0; j < positions.length; j += 3) {
             positions[j] += (Math.random() - 0.5) * 0.1;
             positions[j + 1] += 0.1;
             positions[j + 2] += (Math.random() - 0.5) * 0.1;
         }
-        
+
         particleSystem.particles.geometry.attributes.position.needsUpdate = true;
         particleSystem.material.opacity -= 0.02;
 
@@ -109,23 +109,23 @@ export function updateTeleportParticles(deltaTime, currentTime) {
 
 export function updateTeleportParticleSystems(deltaTime, currentTime) {
     for (let i = teleportParticleSystems.length - 1; i >= 0; i--) {
-      const particleSystem = teleportParticleSystems[i];
-      
-      particleSystem.rotation.x += 0.01 * deltaTime;
-      particleSystem.rotation.y += 0.01 * deltaTime;
-      
-      const scale = 1 + 0.1 * Math.sin(currentTime * 0.005);
-      particleSystem.scale.set(scale, scale, scale);
-  
-      // Zde můžete přidat logiku pro odstranění částic po určitém čase
-      if (currentTime - particleSystem.creationTime > 2000) { // například po 2 sekundách
-        scene.remove(particleSystem);
-        teleportParticleSystems.splice(i, 1);
-      }
-    }
-  }
+        const particleSystem = teleportParticleSystems[i];
 
-  export function updateMainBossDragons(deltaTime, currentTime) {
+        particleSystem.rotation.x += 0.01 * deltaTime;
+        particleSystem.rotation.y += 0.01 * deltaTime;
+
+        const scale = 1 + 0.1 * Math.sin(currentTime * 0.005);
+        particleSystem.scale.set(scale, scale, scale);
+
+        // Zde můžete přidat logiku pro odstranění částic po určitém čase
+        if (currentTime - particleSystem.creationTime > 2000) { // například po 2 sekundách
+            scene.remove(particleSystem);
+            teleportParticleSystems.splice(i, 1);
+        }
+    }
+}
+
+export function updateMainBossDragons(deltaTime, currentTime) {
     for (let i = mainBossDragons.length - 1; i >= 0; i--) {
         const dragonData = mainBossDragons[i];
         const elapsedTime = (currentTime - dragonData.startTime) / 1000;
@@ -142,12 +142,12 @@ export function updateTeleportParticleSystems(deltaTime, currentTime) {
         }
     }
 }
- 
+
 export function updateBossChestAndPortal(deltaTime) {
     const { chest, portal, interactionText, portalInteractionText, chestOpened, chestMixer } = bossChestAndPortalData;
 
-      // Aktualizace mixeru truhly
-      if (chestMixer) {
+    // Aktualizace mixeru truhly
+    if (chestMixer) {
         chestMixer.update(deltaTime);
     }
 
@@ -179,14 +179,14 @@ export function updateBossChestAndPortal(deltaTime) {
 
 function openChest(chest) {
     playSound(chestSoundBuffer);
-    
+
     // Použití uloženého mixeru a akce pro otevření truhly
     const { chestMixer, chestOpenAction } = bossChestAndPortalData;
     chestOpenAction.play();
 
     let gotItem = false;
     // Přidání předmětů do inventáře na základě pravděpodobnosti
-    MAIN_BOSS_TYPES[0].dropItems.forEach(drop => {
+    bossChestAndPortalData.items.forEach(drop => {
         if (Math.random() < drop.chance) {
             addItemToInventory(createItem(getItemName(drop.item)));
             gotItem = true;
@@ -206,7 +206,7 @@ function openChest(chest) {
     bossChestAndPortalData.chestOpened = true;
 }
 
-  export function teleportToCamp() {
+export function teleportToCamp() {
     // Implementace teleportace do kempu
     setSelectedFloor(999);
     showFloorSelectBtn.textContent = getTranslation("floorCamp");
@@ -265,232 +265,277 @@ export function updateExplosions(deltaTime, currentTime) {
 
 export function updateIceExplosions(deltaTime) {
     for (let i = iceExplosions.length - 1; i >= 0; i--) {
-      const explosion = iceExplosions[i];
-      explosion.scale.multiplyScalar(1.05);
-      explosion.material.opacity -= 0.05 * deltaTime*50;
-      if (explosion.material.opacity <= 0) {
-        scene.remove(explosion);    
-        iceExplosions.splice(i, 1);
-      }
+        const explosion = iceExplosions[i];
+        explosion.scale.multiplyScalar(1.05);
+        explosion.material.opacity -= 0.05 * deltaTime * 50;
+        if (explosion.material.opacity <= 0) {
+            scene.remove(explosion);
+            iceExplosions.splice(i, 1);
+        }
     }
-  }
-  
-  export function updateFrostAuras(deltaTime) {
+}
+
+export function updateFrostAuras(deltaTime) {
     for (let i = frostAuras.length - 1; i >= 0; i--) {
-      const aura = frostAuras[i];
-      aura.position.copy(player.position);
-      aura.scale.multiplyScalar(1.01);
-      aura.material.opacity -= 0.005 * deltaTime *50;
-      if (aura.material.opacity <= 0) {
-        scene.remove(aura);
-        frostAuras.splice(i, 1);
-      } else {
-        // Zpomalení nepřátel v dosahu aury
-        bosses.forEach(boss => {
-          if (boss.position.distanceTo(player.position) <= 7) {
-            boss.slow(0.7, 5000);
-          }
-        });
-      }
+        const aura = frostAuras[i];
+        aura.position.copy(player.position);
+        aura.scale.multiplyScalar(1.01);
+        aura.material.opacity -= 0.005 * deltaTime * 50;
+        if (aura.material.opacity <= 0) {
+            scene.remove(aura);
+            frostAuras.splice(i, 1);
+        } else {
+            // Zpomalení nepřátel v dosahu aury
+            bosses.forEach(boss => {
+                if (boss.position.distanceTo(player.position) <= 7) {
+                    boss.slow(0.7, 5000);
+                }
+            });
+        }
     }
-  }
+}
 
-  export function updateChainExplosions(deltaTime) {
+export function updateChainExplosions(deltaTime) {
     for (let i = chainExplosions.length - 1; i >= 0; i--) {
-      const explosion = chainExplosions[i];
-      explosion.scale.multiplyScalar(1.05);
-      explosion.material.opacity -= 0.05 * deltaTime *60;
-      if (explosion.material.opacity <= 0) {
-        scene.remove(explosion);
-        explosion.geometry.dispose();
-        explosion.material.dispose();
-        chainExplosions.splice(i, 1);
-      }
+        const explosion = chainExplosions[i];
+        explosion.scale.multiplyScalar(1.05);
+        explosion.material.opacity -= 0.05 * deltaTime * 60;
+        if (explosion.material.opacity <= 0) {
+            scene.remove(explosion);
+            explosion.geometry.dispose();
+            explosion.material.dispose();
+            chainExplosions.splice(i, 1);
+        }
     }
-  }
-  
-  export function updateChainLightningsVisuals(deltaTime) {
+}
+
+export function updateChainLightningsVisuals(deltaTime) {
     for (let i = chainLightningsVisual.length - 1; i >= 0; i--) {
-      const lightning = chainLightningsVisual[i];
-      lightning.material.opacity -= 0.05 * deltaTime * 60;
-      if (lightning.material.opacity <= 0) {
-        scene.remove(lightning);
-        lightning.geometry.dispose();
-        lightning.material.dispose();
-        chainLightningsVisual.splice(i, 1);
-      }
+        const lightning = chainLightningsVisual[i];
+        lightning.material.opacity -= 0.05 * deltaTime * 60;
+        if (lightning.material.opacity <= 0) {
+            scene.remove(lightning);
+            lightning.geometry.dispose();
+            lightning.material.dispose();
+            chainLightningsVisual.splice(i, 1);
+        }
     }
-  }
+}
 
 
-  export function updateFireballExplosions(deltaTime) {
+export function updateFireballExplosions(deltaTime) {
     for (let i = fireballExplosions.length - 1; i >= 0; i--) {
-      const explosion = fireballExplosions[i];
-      const positions = explosion.geometry.attributes.position.array;
-      const colors = explosion.geometry.attributes.color.array;
-  
-      for (let j = 0; j < positions.length; j += 3) {
-        positions[j] += (Math.random() - 0.5) * 0.1;
-        positions[j + 1] += (Math.random() - 0.5) * 0.1;
-        positions[j + 2] += (Math.random() - 0.5) * 0.1;
-  
-        colors[j + 1] *= 0.99;  // Postupné ztmavování částic
-      }
-  
-      explosion.geometry.attributes.position.needsUpdate = true;
-      explosion.geometry.attributes.color.needsUpdate = true;
-  
-      explosion.material.opacity -= 0.02 * deltaTime;
-  
-      if (explosion.material.opacity <= 0) {
-        scene.remove(explosion);
-        explosion.geometry.dispose();
-        explosion.material.dispose();
-        fireballExplosions.splice(i, 1);
-      }
+        const explosion = fireballExplosions[i];
+        const positions = explosion.geometry.attributes.position.array;
+        const colors = explosion.geometry.attributes.color.array;
+
+        for (let j = 0; j < positions.length; j += 3) {
+            positions[j] += (Math.random() - 0.5) * 0.1;
+            positions[j + 1] += (Math.random() - 0.5) * 0.1;
+            positions[j + 2] += (Math.random() - 0.5) * 0.1;
+
+            colors[j + 1] *= 0.99;  // Postupné ztmavování částic
+        }
+
+        explosion.geometry.attributes.position.needsUpdate = true;
+        explosion.geometry.attributes.color.needsUpdate = true;
+
+        explosion.material.opacity -= 0.02 * deltaTime;
+
+        if (explosion.material.opacity <= 0) {
+            scene.remove(explosion);
+            explosion.geometry.dispose();
+            explosion.material.dispose();
+            fireballExplosions.splice(i, 1);
+        }
     }
-  }
-  
-  export function updateStaffSwing(deltaTime) {
+}
+
+export function updateStaffSwing(deltaTime) {
     if (!staffSwing) return;
     staffSwing.progress += 0.045 * deltaTime * 60;
-      if (staffSwing.progress <= 1) {
+    if (staffSwing.progress <= 1) {
         const currentAngle = Math.sin(staffSwing.progress * Math.PI) * staffSwing.swingAngle;
         staffModel.rotation.x = staffSwing.originalRotation.x + currentAngle;
-      } else {
+    } else {
         staffModel.rotation.copy(originalStaffRotation);
         setIsSwingingStaff(false);
         staffSwing = null;
-      }
     }
-  
-    export function animateStaffInspection(currentTime) {
-        if (!isInspectingStaff || !staffModel) return;
-    
-        const progress = (currentTime - inspectionStartTime) / inspectionDuration;
-    
-    
-        if (progress < 1) {
-            const startRotation = originalStaffRotation.clone();
-            const maxRotationY = Math.PI / 2;
-            const maxRotationX = Math.PI / 24;
-    
-            const rotationOffsetY = Math.sin(progress * Math.PI * 2) * maxRotationY;
-            const rotationOffsetX = Math.sin(progress * Math.PI) * maxRotationX;
-    
-            staffModel.rotation.set(
-                startRotation.x - rotationOffsetX,
-                startRotation.y + rotationOffsetY,
-                startRotation.z
-            );
-        } else {
-            staffModel.rotation.copy(originalStaffRotation);
-            setIsInspectingStaff(false);
-        }
-    }
+}
+
+export function animateStaffInspection(currentTime) {
+    if (!isInspectingStaff || !staffModel) return;
+
+    const progress = (currentTime - inspectionStartTime) / inspectionDuration;
 
 
-    export function checkQuestBoardInteraction(questBoard) {
-        const distance = player.position.distanceTo(questBoard.position);
-        const interactionText = questBoard.userData.interactionText;
-    
-        if (distance < 2) {
-            // Vytvoříme vektor pro pozici textu nad nástěnkou
-            const textPosition = questBoard.position.clone().add(new THREE.Vector3(0, 2, 0));
-    
-            // Projektujeme pozici textu do prostoru kamery
-            const vector = textPosition.project(camera);
-    
-            // Zkontrolujeme, zda je nástěnka v záběru kamery
-            const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
-    
-            if (isInView) {
-                interactionText.style.display = "block";
-                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-                const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
-    
-                interactionText.style.left = `${x}px`;
-                interactionText.style.top = `${y}px`;
-    
-                if (keys.f) {
-                    toggleQuestBoardUI();
-                    keys.f = false; // Resetujeme stav klávesy
-                }
-            } else {
-                interactionText.style.display = "none";
-            }
-        } else {
-            interactionText.style.display = "none";
-        }
-    
-        // Aktualizace indikátoru questů
-        updateQuestIndicator(questBoard);
-    }
-      
+    if (progress < 1) {
+        const startRotation = originalStaffRotation.clone();
+        const maxRotationY = Math.PI / 2;
+        const maxRotationX = Math.PI / 24;
 
-    export function updateQuestBoardInteraction(deltaTime) {
-        const questBoard = scene.getObjectByName("questBoard");
-        if (!questBoard) return;
-    
-        const distance = player.position.distanceTo(questBoard.position);
-        const interactionText = questBoard.userData.interactionText;
-        const questBoardWindow = document.getElementById('questBoardWindow');
-    
-        if (distance < 2) {
-            // Vytvoříme vektor pro pozici textu nad nástěnkou
-            const textPosition = questBoard.position.clone().add(new THREE.Vector3(0, 2, 0));
-    
-            // Projektujeme pozici textu do prostoru kamery
-            const vector = textPosition.project(camera);
-    
-            // Zkontrolujeme, zda je nástěnka v záběru kamery
-            const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
-    
-            if (isInView) {
-                interactionText.style.display = "block";
-                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-                const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
-    
-                interactionText.style.left = `${x}px`;
-                interactionText.style.top = `${y}px`;
-                interactionText.style.bottom = "unset";
-                interactionText.style.minWidth = "150px";
-    
-                if (keys.f) {
-                    toggleQuestBoardUI();
-                    keys.f = false; // Resetujeme stav klávesy
-                }
-            } else {
-                interactionText.style.display = "none";
-            }
-        } else {
-            interactionText.style.display = "none";
-            // Zavřeme quest board, pokud je otevřený a hráč se vzdálil
-            if (questBoardWindow && questBoardWindow?.style.display !== "none") {
+        const rotationOffsetY = Math.sin(progress * Math.PI * 2) * maxRotationY;
+        const rotationOffsetX = Math.sin(progress * Math.PI) * maxRotationX;
+
+        staffModel.rotation.set(
+            startRotation.x - rotationOffsetX,
+            startRotation.y + rotationOffsetY,
+            startRotation.z
+        );
+    } else {
+        staffModel.rotation.copy(originalStaffRotation);
+        setIsInspectingStaff(false);
+    }
+}
+
+
+export function checkQuestBoardInteraction(questBoard) {
+    const distance = player.position.distanceTo(questBoard.position);
+    const interactionText = questBoard.userData.interactionText;
+
+    if (distance < 2) {
+        // Vytvoříme vektor pro pozici textu nad nástěnkou
+        const textPosition = questBoard.position.clone().add(new THREE.Vector3(0, 2, 0));
+
+        // Projektujeme pozici textu do prostoru kamery
+        const vector = textPosition.project(camera);
+
+        // Zkontrolujeme, zda je nástěnka v záběru kamery
+        const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
+
+        if (isInView) {
+            interactionText.style.display = "block";
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+
+            interactionText.style.left = `${x}px`;
+            interactionText.style.top = `${y}px`;
+
+            if (keys.f) {
                 toggleQuestBoardUI();
+                keys.f = false; // Resetujeme stav klávesy
             }
+        } else {
+            interactionText.style.display = "none";
         }
-    
-        updateQuestIndicator(questBoard);
+    } else {
+        interactionText.style.display = "none";
     }
-    
-    export function animateQuestIndicator(deltaTime) {
-        const questBoard = scene.getObjectByName("questBoard");
-        if (!questBoard || !questBoard.userData.questIndicator) return;
+
+    // Aktualizace indikátoru questů
+    updateQuestIndicator(questBoard);
+}
+
+
+export function updateQuestBoardInteraction(deltaTime) {
+    const questBoard = scene.getObjectByName("questBoard");
+    if (!questBoard) return;
+
+    const distance = player.position.distanceTo(questBoard.position);
+    const interactionText = questBoard.userData.interactionText;
+    const questBoardWindow = document.getElementById('questBoardWindow');
+
+    if (distance < 2) {
+        // Vytvoříme vektor pro pozici textu nad nástěnkou
+        const textPosition = questBoard.position.clone().add(new THREE.Vector3(0, 2, 0));
+
+        // Projektujeme pozici textu do prostoru kamery
+        const vector = textPosition.project(camera);
+
+        // Zkontrolujeme, zda je nástěnka v záběru kamery
+        const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
+
+        if (isInView) {
+            interactionText.style.display = "block";
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+
+            interactionText.style.left = `${x}px`;
+            interactionText.style.top = `${y}px`;
+            interactionText.style.bottom = "unset";
+            interactionText.style.minWidth = "150px";
+
+            if (keys.f) {
+                toggleQuestBoardUI();
+                keys.f = false; // Resetujeme stav klávesy
+            }
+        } else {
+            interactionText.style.display = "none";
+        }
+    } else {
+        interactionText.style.display = "none";
+        // Zavřeme quest board, pokud je otevřený a hráč se vzdálil
+        if (questBoardWindow && questBoardWindow?.style.display !== "none") {
+            toggleQuestBoardUI();
+        }
+    }
+
+    updateQuestIndicator(questBoard);
+}
+
+export function animateQuestIndicator(deltaTime) {
+    const questBoard = scene.getObjectByName("questBoard");
+    if (!questBoard || !questBoard.userData.questIndicator) return;
+
+    const indicator = questBoard.userData.questIndicator;
+    const time = performance.now() * 0.001;
+
+    // Animace pohupování
+    indicator.position.y = 2.5 + Math.sin(time * 2) * 0.1;
+
+    // Animace rotace
+    indicator.rotation.y += 0.01 * deltaTime;
+
+    // Aktualizace efektu záře
+    const glowSphere = indicator.children[2];
+    const scale = 1 + 0.1 * Math.sin(time * 5);
+    glowSphere.scale.set(scale, scale, scale);
+
+    updateQuestIndicator(questBoard);
+}
+
+
+export function updateSeedBurst(deltaTime) {
+    for (let i = seedBurstParticleSystems.length - 1; i >= 0; i--) {
+      const particleSystem = seedBurstParticleSystems[i];
+      const elapsedTime = Date.now() - particleSystem.startTime;
       
-        const indicator = questBoard.userData.questIndicator;
-        const time = performance.now() * 0.001;
-      
-        // Animace pohupování
-        indicator.position.y = 2.5 + Math.sin(time * 2) * 0.1;
-      
-        // Animace rotace
-        indicator.rotation.y += 0.01 * deltaTime;
-      
-        // Aktualizace efektu záře
-        const glowSphere = indicator.children[2];
-        const scale = 1 + 0.1 * Math.sin(time * 5);
-        glowSphere.scale.set(scale, scale, scale);
-      
-        updateQuestIndicator(questBoard);
+      if (elapsedTime < particleSystem.duration) {
+        const positions = particleSystem.geometry.attributes.position.array;
+        const velocities = particleSystem.geometry.attributes.velocity.array;
+  
+        for (let j = 0; j < positions.length; j += 3) {
+          positions[j] += velocities[j] * deltaTime*60;
+          positions[j + 1] += velocities[j + 1] * deltaTime*60;
+          positions[j + 2] += velocities[j + 2] * deltaTime*60;
+  
+          // Postupné zpomalování částic
+          velocities[j] *= 0.98;
+          velocities[j + 1] *= 0.98;
+          velocities[j + 2] *= 0.98;
+        }
+  
+        particleSystem.geometry.attributes.position.needsUpdate = true;
+      } else {
+        scene.remove(particleSystem);
+        seedBurstParticleSystems.splice(i, 1);
       }
+    }
+  }
+  
+  export function updateVineGrab(deltaTime) {
+    for (let i = activeVines.length - 1; i >= 0; i--) {
+      const vine = activeVines[i];
+      const elapsedTime = Date.now() - vine.startTime;
+      const progress = Math.min(elapsedTime / vine.duration, 1);
+      
+      // Aktualizace pozice hráče
+      player.position.lerpVectors(vine.startPosition, vine.endPosition, progress);
+      
+      if (progress >= 1) {
+        scene.remove(vine.mesh);
+        activeVines.splice(i, 1);
+      }
+    }
+  }

@@ -300,7 +300,6 @@ export function setQuality(factor) {
 }
 
 export function showCompletionModal(elapsedTime, goldGained, expGained, previousBestTime, newBestTime) {
-  debugger;
   const modal = document.createElement('div');
   modal.id = 'completionModal';
   modal.className = 'modal';
@@ -363,7 +362,6 @@ function openChest(chestElement, floor) {
   playSound(chestSoundBuffer);
   if (item === null) {
     // Pokud je item null, hráč nic nedostane
-    debugger;
     chestElement.outerHTML = `<div class="emptyChest">${getTranslation('emptyChest')}</div>`;
     showMessage(getTranslation('chestEmpty'), true);
   } else {

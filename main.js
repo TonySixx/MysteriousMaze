@@ -110,8 +110,8 @@ import {
   updateFreezeEffect,
   updateMagicBalls,
 } from "./utils.js";
-import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems } from "./animate.js";
+import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss/mainBoss.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab } from "./animate.js";
 import { initQuestSystem } from "./quests.js";
 
 export const version = "2.0.0";
@@ -183,7 +183,7 @@ let minimapCooldownTimer = null;
 
 export let teleportPairsCount = 0;
 
-let nebula, nebulaMaterial;
+let nebula
 
 export var fireballSoundBuffer;
 export var frostBoltSoundBuffer;
@@ -761,7 +761,10 @@ function clearScene() {
   setIsSwingingStaff(false);
   setIsInspectingStaff(false);
   staffModel.rotation.copy(originalStaffRotation)
-  
+
+  activeVines = [];
+  seedBurstParticleSystems = [];
+
 
   // Vyčistíme kontejner pro zdraví bosse
   const bossHealthContainer = document.getElementById("bossHealthContainer");
@@ -810,20 +813,30 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
 
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
 
-  // Set seed for random number generator
   const seed = getHash(inputText);
   actualSeedText = inputText;
   let rng = new seedrandom(seed);
 
   if (selectedFloor >= 100 && selectedFloor <= 200) {
-    const { room, spawnTimeout, countdownInterval } = createMainBossRoom(rng);
+    const bossIndex = selectedFloor - 100;
+    const bossType = MAIN_BOSS_TYPES[bossIndex];
+    const bossRoomOptions = {
+      roomSize: 10,
+      textureSet: textureSets[bossIndex+ 1],
+      torchColor: textureSets[bossIndex % textureSets.length].torchColor.light,
+      bossType: bossType,
+      spawnDelay: 5000,
+      countdownDuration: 5,
+      roomAmbientLightColor: new THREE.Color(bossType.ambientLightColor),
+      roomAmbientLightIntensity: 0.5,
+      nebulaColors: bossType.nebulaColors,
+      fogDensity: 0.03
+    };
+
+    const { room, spawnTimeout, countdownInterval } = createMainBossRoom(rng, bossRoomOptions);
     scene.add(room);
     window.bossSpawnTimeout = spawnTimeout;
     window.bossCountdownInterval = countdownInterval;
-
-    nebulaMaterial = addNebula("#FF0000", "#FF69B4"); // Červená až růžová
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
   } else {
     // Adjust textureSets selection based on the floor
     let availableTextureSets;
@@ -1023,12 +1036,14 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
+
+    // Přidejte mlhu
+    scene.fog = new THREE.FogExp2(0x000000, 0.05); // Zvýšili jsme hustotu mlhy
   }
 
   addStarsToNebula();
 
-  // Přidejte mlhu
-  scene.fog = new THREE.FogExp2(0x000000, 0.05); // Zvýšili jsme hustotu mlhy
+
 
   keyCount = 0;
   updateKeyCount();
@@ -1554,7 +1569,7 @@ function showTeleportPrompt() {
   promptElement.style.display = "block";
 }
 
- export async function startGame() {
+export async function startGame() {
   const inputText = document.getElementById("mazeInput").value;
 
   // Kontrola, zda má hráč dostatečnou úroveň pro zvolené podlaží
@@ -2018,7 +2033,7 @@ function addStarsToNebula() {
   stars.userData.animate = () => { };
 }
 
-function addNebula(color1, color2) {
+ export function addNebula(color1, color2) {
   const geometry = new THREE.SphereGeometry(1500, 32, 32);
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -2160,13 +2175,16 @@ function animate() {
   updateStaffSwing(deltaTime);
   animateStaffInspection(currentTime);
 
+  updateSeedBurst(deltaTime);
+  updateVineGrab(deltaTime);
+
   animateMerchants();
   updateQuestBoardInteraction(deltaTime);
   animateQuestIndicator(deltaTime);
 
   if (bossChestAndPortalData) {
     updateBossChestAndPortal(deltaTime);
-}
+  }
 
   if (staffModel && staffModel.userData.enchantParticles) {
     staffModel.userData.enchantParticles.userData.update(deltaTime);

@@ -14,6 +14,7 @@ window.renderer = undefined;
 window.camera = undefined;
 window.maze = undefined;
 window.composer = undefined;
+window.nebulaMaterial = undefined;
 
 window.bestTime = Infinity;
 
@@ -37,6 +38,10 @@ window.chainLightningsVisual = [];
 window.fireballExplosions = [];
 window.interactiveObjects = [];
 window.staffSwing = null;
+
+window.activeVines = [];
+window.seedBurstParticleSystems = [];
+
 
 
 window.bossSpawnTimeout = undefined;

@@ -338,7 +338,7 @@ export function createCastEffect(position, color = 0xffa500) {
 
 export function createExplosion(position, color = 0xff8f45) {
   const explosionGroup = new THREE.Group();
-  
+
   const particleCount = 100;
   const particles = new THREE.Points(
     new THREE.BufferGeometry(),
@@ -397,13 +397,22 @@ export function createExplosion(position, color = 0xff8f45) {
 
   // Místo volání animateExplosion zde, přidáme explozi do pole
   explosions.push({
-      group: explosionGroup,
-      particles: particles,
-      startTime: startTime,
-      duration: duration
+    group: explosionGroup,
+    particles: particles,
+    startTime: startTime,
+    duration: duration
   });
 
   return explosionGroup;
+}
+
+export function playerTakeDamage(damage) {
+
+  setPlayerHealth(playerHealth - damage);
+  updatePlayerHealthBar();
+  if (playerHealth <= 0) {
+    playerDeath();
+  }
 }
 
 export function updateMagicBalls(deltaTime) {
@@ -425,11 +434,7 @@ export function updateMagicBalls(deltaTime) {
       if (magicBall.isFrostbolt) {
         freezePlayer();
       } else {
-        setPlayerHealth(playerHealth - 20);
-        updatePlayerHealthBar();
-        if (playerHealth <= 0) {
-          playerDeath();
-        }
+        playerTakeDamage(20);
       }
       createExplosion(magicBall.position, magicBall.material.color.getHex());
       scene.remove(magicBall);
@@ -787,7 +792,7 @@ export function createBossCastEffect(position, color = 0xff0000, options = {}) {
   return group;
 }
 
- export function showMessage(message,breakLine=false,duration=3000) {
+export function showMessage(message, breakLine = false, duration = 3000) {
   const messageContainer = document.getElementById('message-container');
   const messageElement = document.createElement('div');
   messageElement.className = breakLine ? 'game-message break-line' : 'game-message';
@@ -809,7 +814,7 @@ export function createBossCastEffect(position, color = 0xff0000, options = {}) {
   }, duration);
 }
 
-export function loadAndPlayMusic(floor,audioLoader) {
+export function loadAndPlayMusic(floor, audioLoader) {
   if (currentBackgroundMusic) {
     currentBackgroundMusic.stop();
     currentBackgroundMusic.buffer = null;
