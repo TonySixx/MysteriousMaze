@@ -11,18 +11,12 @@ import { player } from "./player.js";
 import {
   bossSoundBuffer,
   CELL_SIZE,
-  chestSoundBuffer,
   createTeleportModel,
-  generateNewMaze,
-  itemSoundBuffer,
-  keys,
   manager,
   MAZE_SIZE,
   playSound,
   selectedFloor,
   setMazeSize,
-  setSelectedFloor,
-  showFloorSelectBtn,
   teleportSoundBuffer,
   WALL_HEIGHT,
 } from "./main.js";
@@ -30,13 +24,6 @@ import { createTorchOnCenterTower, createTorchOnWall } from "./camp.js";
 import { textureSets } from "./globals.js";
 import { createBossCastEffect, showMessage } from "./utils.js";
 import { getItemName, itemDatabase } from "./itemDatabase.js";
-import {
-  addItemToInventory,
-  checkSpaceInInventory,
-  createItem,
-  getRarityColor,
-} from "./inventory.js";
-import { getTranslation } from "./langUtils.js";
 import { updateQuestsOnEvent } from "./quests.js";
 
 export const MAIN_BOSS_TYPES = [
@@ -67,6 +54,35 @@ export const MAIN_BOSS_TYPES = [
       { item: itemDatabase.greaterHealthPotion, chance: 1 },
     ],
   },
+  {
+    name: "Džunglový Strážce",
+    translationKey: "jungleGuardian",
+    abilities: [VineGrab, SeedBurst, CallOfWild],
+    mainMaterial: new THREE.MeshStandardMaterial({
+      color: 0x228B22, // Lesní zelená
+      metalness: 0.2,
+      roughness: 0.8,
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x8B4513, // Hnědá
+      metalness: 0.3,
+      roughness: 0.7,
+    }),
+    attackColor: new THREE.Color(0x32CD32),
+    attackCooldown: 1.5,
+    emissiveIntensity: 1.5,
+    maxHealth: 25000,
+    bossHitBoxMarginY: 3.0,
+    attackSpeed: 0.7,
+    attackSize: 0.6,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 0.5 },
+      { item: itemDatabase.protectorsLapisia, chance: 0.5 },
+      { item: itemDatabase.greaterHealthPotion, chance: 1 },
+      { item: itemDatabase.greaterManaPotion, chance: 1 },
+
+    ],
+  },
 ];
 
 export class MainBoss extends Boss {
@@ -75,7 +91,6 @@ export class MainBoss extends Boss {
     this.maxHealth = type.maxHealth;
     this.health = type.maxHealth;
     this.isMainBoss = true;
-    this.chaseDistance = 15;
     this.lastSpecialAttackTime = Date.now();
     this.specialAttackInterval = 20000; // 20 sekund
     this.multiShotCount = 0;
@@ -544,9 +559,6 @@ export function createMainBossRoom(rng) {
     bosses.push(mainBoss);
 
     // Animace příletu bosse
-    const flyDuration = 3; // Doba letu v sekundách
-    const startTime = Date.now();
-    var animateBossEntryRequestId = null;
     mainBossEntryData = {
       mainBoss,
       startPosition: mainBossStartPosition.clone(),
