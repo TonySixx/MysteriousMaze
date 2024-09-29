@@ -450,9 +450,9 @@ export async function init() {
     updateSpellUpgrades(skillTree);
 
     // Load player name from local storage
-    playerName = localStorage.getItem("playerName");  
+    playerName = localStorage.getItem("playerName");
     document.getElementById("playerName").textContent = playerName;
-  
+
 
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
@@ -829,7 +829,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     const bossType = MAIN_BOSS_TYPES[bossIndex];
     const bossRoomOptions = {
       roomSize: 10,
-      textureSet: textureSets[bossIndex+ 1],
+      textureSet: textureSets[bossIndex + 1],
       torchColor: textureSets[bossIndex % textureSets.length].torchColor.light,
       bossType: bossType,
       spawnDelay: 5000,
@@ -2040,7 +2040,7 @@ function addStarsToNebula() {
   stars.userData.animate = () => { };
 }
 
- export function addNebula(color1, color2) {
+export function addNebula(color1, color2) {
   const geometry = new THREE.SphereGeometry(1500, 32, 32);
   const material = new THREE.ShaderMaterial({
     uniforms: {

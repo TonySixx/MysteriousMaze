@@ -50,10 +50,10 @@
         <div id="playerManaFill"></div>
         <span id="playerManaText"></span>
       </div>
-      <p><span data-translate="time">Čas</span>: <span id="timeCount">0:00</span></p>
+      <p style="margin:0;margin-bottom:8px;margin-top: 8px;"><span data-translate="time">Čas</span>: <span id="timeCount">0:00</span></p>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
         <p style="margin:0;"><span data-translate="magicKeys">Kouzelné klíče</span>: <span id="keyCount">0/3</span></p>
-        <p class="gold-container">
+        <p style="margin:0;" class="gold-container">
           <span id="goldCount">0</span>
           <img src="/gold-coin.png" alt="Zlaťák" class="gold-icon">
         </p>
@@ -215,7 +215,7 @@
     </div>
   </div>
 
-  <div id="nameModal" class="modal">
+  <div id="nameModal" class="modal" style="display: none;">
     <div class="modal-content">
       <h2 data-translate="enterName">Zadejte své jméno</h2>
       <input type="text" id="playerNameInput" data-translate="yourName" placeholder="Vaše jméno">

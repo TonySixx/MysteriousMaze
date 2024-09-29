@@ -297,7 +297,7 @@ export async function displayScores(floor = null) {
       groupCell.colSpan = 4;
       groupCell.textContent = levelName;
       groupCell.style.fontWeight = "bold";
-      groupCell.style.backgroundColor = "#34495e";
+      groupCell.style.backgroundColor = "rgb(40 34 26)";
 
       levelScores.forEach((score, index) => {
         const row = tbody.insertRow();

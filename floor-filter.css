@@ -1,50 +1,50 @@
 #floorFilter {
-    padding: 10px;
-    margin-left: 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: #34495e;
-    color: #ecf0f1;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-    margin-bottom: 10px;
-  }
-  
-  #floorFilter:hover {
-    background-color: #2c3e50;
-  }
-  
-  #floorFilter:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px #3498db;
-  }
-  
-  #floorFilter option {
-    background-color: #2c3e50;
-    color: #ecf0f1;
-  }
-  
-  .filter-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  #mazeSearchInput {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: #34495e;
-    color: #ecf0f1;
-    font-size: 14px;
-  }
-  
-  #mazeSearchInput:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px #3498db;
-  }
-  
-  #mazeSearchInput::placeholder {
-    color: #bdc3c7;
-  }
+  padding: 10px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #2c2c2c;
+  color: #c8a97e;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+#floorFilter:hover {
+  background-color: #3c3c3c;
+}
+
+#floorFilter:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #c8a97e;
+}
+
+#floorFilter option {
+  background-color: #2c2c2c;
+  color: #c8a97e;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+#mazeSearchInput {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #2c2c2c;
+  color: #c8a97e;
+  font-size: 14px;
+}
+
+#mazeSearchInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #c8a97e;
+}
+
+#mazeSearchInput::placeholder {
+  color: #8e7a5e;
+}
