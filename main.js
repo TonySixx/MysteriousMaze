@@ -401,11 +401,11 @@ export async function init() {
     levelUpSoundBuffer = buffer;
   });
 
-  audioLoader.load("snd_seed_burst.wav", function (buffer) {
+  audioLoader.load("sounds/snd_seed_burst.wav", function (buffer) {
     seedBurstSoundBuffer = buffer;
   });
 
-  audioLoader.load("snd_vine_grab.wav", function (buffer) {
+  audioLoader.load("sounds/snd_vine_grab.wav", function (buffer) {
     vineGrabSoundBuffer = buffer;
   });
 
