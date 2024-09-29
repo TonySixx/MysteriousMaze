@@ -170,7 +170,7 @@
     "powerLapisia": "Power Lapisia",
     "loading": "Loading...",
     "bossFloor1": "Shadow Demon",
-    "bossFloor2": "Celestial Guardian",
+    "bossFloor2": "Jungle Guardian",
     "bossFloor3": "Ethereal Demon",
     "bossFloor4": "Quantum Guardian",
     "mazeFloors": "Maze floors",
@@ -210,7 +210,9 @@
     "youObtained": "You obtained",
     "completeMazesQuest": "Maze Explorer",
     "completeMazesQuestDescription": "Complete 3 different mazes (with unique seeds) to prove your exploration skills.",
-    "uniqueMazesCompleted": "Unique mazes completed"
+    "uniqueMazesCompleted": "Unique mazes completed",
+    "defeatJungleGuardianQuest": "Defeat the Jungle Guardian",
+    "defeatJungleGuardianQuestDescription": "Defeat the Jungle Guardian on the second floor and claim your reward."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -383,7 +385,7 @@
     "powerLapisia": "Lapísia Síly",
     "loading": "Načítání...",
     "bossFloor1": "Stínový démon",
-    "bossFloor2": "Nebeský strážce",
+    "bossFloor2": "Strážce Džungle",
     "bossFloor3": "Eternální démon",
     "bossFloor4": "Kvantový strážce",
     "mazeFloors": "Podlaží bludiště",
@@ -423,6 +425,8 @@
     "youObtained": "Získal jsi",
     "completeMazesQuest": "Průzkumník bludišť",
     "completeMazesQuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) a prokažte své průzkumnické schopnosti.",
-    "uniqueMazesCompleted": "Dokončená unikátní bludiště"
+    "uniqueMazesCompleted": "Dokončená unikátní bludiště",
+    "defeatJungleGuardianQuest": "Poraž Strážce Džungle",
+    "defeatJungleGuardianQuestDescription": "Poraž Strážce Džungle na druhém podlaží a získej svou odměnu."
   }
 }

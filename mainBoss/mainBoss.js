@@ -60,7 +60,7 @@ export const MAIN_BOSS_TYPES = [
   },
   {
     name: "Strážce Džungle",
-    translationKey: "jungleGuardian",
+    translationKey: "bossFloor2",
     abilities: [VineGrabAbility, SeedBurstAbility, CallOfWildAbility],
     mainMaterial: new THREE.MeshStandardMaterial({
       color: 0x75ba1a, 

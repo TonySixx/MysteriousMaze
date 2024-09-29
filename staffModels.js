@@ -224,7 +224,7 @@ export const enchantEffectsOpt = {
     enchantEffectOffsetY: 0.65
   },
   emeraldVineStaff: {
-    spread: { x: 0.09, y: 0.13, z: 0.09 },
+    spread: { x: 0.15, y: 0.3, z: 0.2 },
     lifeTimeMin: 1.6,
     lifeTimeMax: 2.4,
     speedMin: 0.012,
@@ -236,7 +236,7 @@ export const enchantEffectsOpt = {
     minSize: 4,
     maxSize: 10,
     horizontalDamping: 0.9,
-    enchantEffectOffsetY: 0.5
+    enchantEffectOffsetY: 0.6
   },
   celestialLightbringer: {
     spread: { x: 0.45, y: 0.35 , z: 0.5},

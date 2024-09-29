@@ -92,6 +92,24 @@ const questDefinitions = [
             target: 'Stinový démon',
             count: 1
         }
+    },
+    {
+        id: 'defeatJungleGuardian',
+        name: 'defeatJungleGuardianQuest',
+        description: 'defeatJungleGuardianQuestDescription',
+        level: 12,
+        rewards: {
+            exp: 8000,
+            gold: 150,
+            items: [
+                { item: 'emeraldVineStaff', count: 1 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Strážce Džungle',
+            count: 1
+        }
     }
 ];
 
