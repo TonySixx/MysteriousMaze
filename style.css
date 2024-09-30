@@ -218,7 +218,30 @@ canvas {
   font-size: 1.2em;
 }
 
+.input-wrapper, .button-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.key-badge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #f0e6d2;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 10px;
+  z-index: 1;
+  
+
+}
+
+
 #mazeInput {
+  margin-top: 10px;
+  position: relative;
   width: 200px;
   padding: 10px;
   margin-bottom: 10px;
@@ -244,6 +267,7 @@ canvas {
 }
 
 #generateMaze {
+  position: relative;
   padding: 10px 20px;
   border-radius: 5px;
 }

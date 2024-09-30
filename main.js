@@ -112,6 +112,7 @@ import {
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
 import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
+import { toggleQuestWindow } from "./quests.js";
 
 export const version = "3.0.0";
 
@@ -520,6 +521,25 @@ export async function init() {
           } else {
             openInventory();
           }
+        }
+      } else if (event.key === "u" || event.key === "U") {
+        if (!isInput) {
+          toggleQuestWindow();
+        }
+      }
+      else if (event.code === "Numpad1") {
+        if (!isInput) {
+          document.getElementById('mazeInput').focus();
+        }
+      }
+      else if (event.code === "Numpad2") {
+        if (!isInput) {
+          document.getElementById('showFloorSelect').click();
+        }
+      }
+      else if (event.code === "Numpad3") {
+        if (!isInput) {
+          document.getElementById('generateMaze').click();
         }
       }
     });

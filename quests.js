@@ -14,11 +14,6 @@ let completedQuestIds = []; // Již dokončené questy
 export function initQuestSystem() {
     loadQuestsFromLocalStorage();
     checkQuestAvailability();
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'u' || event.key === 'U') {
-            toggleQuestWindow();
-        }
-    });
 }
 
 function saveQuestsToLocalStorage() {
@@ -47,7 +42,7 @@ function loadQuestsFromLocalStorage() {
     updateQuestList();
 }
 
-function toggleQuestWindow() {
+ export function toggleQuestWindow() {
     const questWindow = document.getElementById('questWindow');
     if (questWindow) {
         if (questWindow.style.display === 'none') {
