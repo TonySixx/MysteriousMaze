@@ -69,7 +69,8 @@ const questDefinitions = [
         objective: {
             type: 'completeMaze',
             target: '158',
-            count: 1
+            count: 1,
+            floor: 1,
         }
     },
     {
@@ -114,6 +115,27 @@ const questDefinitions = [
         }
     },
     {
+        id: 'defeatEliteDragons',
+        name: 'defeatEliteDragonsQuest',
+        description: 'defeatEliteDragonsQuestDescription',
+        level: 8,
+        rewards: {
+            exp: 3000,
+            gold: 80,
+            items: [
+                { item: 'powerLapisia', count: 4 }
+            ]
+        },
+        objective: {
+            type: 'killMultiple',
+            targets: [
+                { translationKey: 'stormDragon', count: 2 },
+                { translationKey: 'shadowDragon', count: 2 },
+                { translationKey: 'crystalDragon', count: 2 }
+            ]
+        }
+    },
+    {
         id: 'defeatJungleGuardian',
         name: 'defeatJungleGuardianQuest',
         description: 'defeatJungleGuardianQuestDescription',
@@ -131,30 +153,30 @@ const questDefinitions = [
             count: 1
         }
     },
-   
-];
-
-export function addQuestFromDefiniton(questDef) {
-    const quest = {
-        ...questDef,
-        name: getTranslation(questDef.name),
-        description: getTranslation(questDef.description),
-        isCompleted: false,
-        progress: `0/${questDef.objective.count}`,
+    {
+        id: 'completeMazeBlackWithoutMinimap',
+        name: 'completeMazeBlackWithoutMinimapQuest',
+        description: 'completeMazeBlackWithoutMinimapQuestDescription',
+        level: 12,
         rewards: {
-            ...questDef.rewards,
-            items: questDef.rewards.items.map(item => ({
-                ...itemDatabase[item.item],
-                count: item.count
-            }))
+            exp: 5000,
+            gold: 100,
+            items: [
+                { item: 'protectorsLapisia', count: 4 },
+                { item: 'powerLapisia', count: 4 },
+                { item: 'greaterHealthPotion', count: 5 },
+                { item: 'greaterManaPotion', count: 5 }
+            ]
         },
         objective: {
-            ...questDef.objective,
-            current: 0
+            type: 'completeMazeWithoutMinimap',
+            target: 'Black',
+            floor: 3,
+            count: 1
         }
-    };
-    addAvailableQuest(quest);
-}
+    },
+
+];
 
 export function getAllQuests() {
     return questDefinitions.map(questDef => ({
@@ -162,7 +184,7 @@ export function getAllQuests() {
         name: getTranslation(questDef.name),
         description: getTranslation(questDef.description),
         isCompleted: false,
-        progress: `0/${questDef.objective.count}`,
+        progress: getInitialProgress(questDef.objective),
         rewards: {
             ...questDef.rewards,
             items: questDef.rewards.items.map(item => ({
@@ -170,9 +192,52 @@ export function getAllQuests() {
                 count: item.count
             }))
         },
-        objective: {
-            ...questDef.objective,
-            current: 0
-        }
+        objective: getInitialObjective(questDef.objective)
     }));
+}
+
+export function addQuestFromDefiniton(questDef) {
+    const quest = {
+        ...questDef,
+        name: getTranslation(questDef.name),
+        description: getTranslation(questDef.description),
+        isCompleted: false,
+        progress: getInitialProgress(questDef.objective),
+        rewards: {
+            ...questDef.rewards,
+            items: questDef.rewards.items.map(item => ({
+                ...itemDatabase[item.item],
+                count: item.count
+            }))
+        },
+        objective: getInitialObjective(questDef.objective)
+    };
+    addAvailableQuest(quest);
+}
+
+function getInitialProgress(objective) {
+    if (objective.type === 'killMultiple') {
+        return objective.targets.map(target =>
+            `${getTranslation(target.translationKey)}: 0/${target.count}`
+        ).join(', ');
+    } else {
+        return `0/${objective.count}`;
+    }
+}
+
+function getInitialObjective(objective) {
+    if (objective.type === 'killMultiple') {
+        return {
+            ...objective,
+            targets: objective.targets.map(target => ({
+                ...target,
+                current: 0
+            }))
+        };
+    } else {
+        return {
+            ...objective,
+            current: 0
+        };
+    }
 }

@@ -245,7 +245,12 @@
     "finish": "Finish",
     "completeMaze444WithoutMinimapQuest": "Maze Master Challenge",
     "completeMaze444WithoutMinimapQuestDescription": "Complete the maze on the second floor with seed '444' without using the minimap.",
-    "controls": "Controls"
+    "defeatEliteDragonsQuest": "Defeat Elite Dragons",
+    "defeatEliteDragonsQuestDescription": "Defeat 2 Storm Dragons, 2 Shadow Dragons, and 2 Crystal Dragons to prove your mastery.",
+    "controls": "Controls",
+    "completeMazeBlackWithoutMinimapQuest": "Shadow Maze Master",
+    "completeMazeBlackWithoutMinimapQuestDescription": "Complete the maze on the third floor with seed 'Black' without using the minimap.",
+    "goToMaze": "Go to Maze"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -493,7 +498,11 @@
     "finish": "Dokončit",
     "completeMaze444WithoutMinimapQuest": "Výzva Mistra Bludiště",
     "completeMaze444WithoutMinimapQuestDescription": "Dokončete bludiště na druhém podlaží se seedem '444' bez použití minimapy.",
-    "controls": "Ovládání"
-    
+    "defeatEliteDragonsQuest": "Poražte elitní draky",
+    "defeatEliteDragonsQuestDescription": "Porazte 2 Bouřkové draky, 2 Stínové draky a 2 Krystalové draky, abyste prokázali své mistrovství.",
+    "controls": "Ovládání",
+    "completeMazeBlackWithoutMinimapQuest": "Mistr stínového bludiště",
+    "completeMazeBlackWithoutMinimapQuestDescription": "Dokončete bludiště na třetím podlaží se seedem 'Black' bez použití minimapy.",
+     "goToMaze": "Jít do bludiště"
   }
 }

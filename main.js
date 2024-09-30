@@ -2298,6 +2298,13 @@ function toggleConsole() {
   }
 }
 
+export function generateSpecificMaze(seed, floor) {
+  selectedFloor = floor;
+  document.getElementById('mazeInput').value = seed;
+  showFloorSelectBtn.textContent = `${getTranslation("floor")} ${selectedFloor}`;
+  generateNewMaze();
+}
+
 export function generateNewMaze() {
   requestPointerLock();
   const inputText = document.getElementById("mazeInput").value;

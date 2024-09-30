@@ -6,6 +6,7 @@ import { chestSoundBuffer, exitPointerLock, init, itemSoundBuffer, playSound, re
 import { getBestTime, showMessage } from "./utils";
 
 export function showHintModal() {
+  exitPointerLock();
   const hintModal = document.getElementById("hintModal");
   const hintContent = document.getElementById("hintContent");
   hintContent.innerHTML = `
@@ -44,6 +45,7 @@ function switchTab(tabName) {
 }
 
 export function hideHintModal() {
+  requestPointerLock();
   document.getElementById("hintModal").style.display = "none";
 }
 

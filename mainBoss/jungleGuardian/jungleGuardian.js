@@ -1,4 +1,9 @@
+import { playSound, seedBurstSoundBuffer, vineGrabSoundBuffer } from "../../main";
+import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
+import { player } from "../../player";
+import { Boss, bossCounter, bosses, setBossCounter } from "../../boss";
+import { playerTakeDamage } from "../../utils";
 
 export class VineGrabAbility extends Ability {
     constructor(boss) {
@@ -49,7 +54,7 @@ export class VineGrabAbility extends Ability {
       this.lastUseTime = 0;
       this.duration = 5000; // 5 sekund trvání DoT
       this.damagePerSecond = 10;
-      this.radius = 10;
+      this.radius = 12;
     }
   
     canUse() {

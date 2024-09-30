@@ -4,7 +4,7 @@ import { addItemToInventory, checkSpaceInInventory, createItem, createItemElemen
 import { getItemName } from './itemDatabase.js';
 import { getAllQuests } from './questDatabase.js';
 import { showMessage } from './utils.js';
-import { activateSoundBuffer, exitPointerLock, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
+import { activateSoundBuffer, exitPointerLock, generateSpecificMaze, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
 
 let quests = [];
 let selectedQuest = null;
@@ -54,14 +54,23 @@ function toggleQuestWindow() {
             exitPointerLock();
             questWindow.style.display = 'flex';
         } else {
-            requestPointerLock();
-            questWindow.style.display = 'none';
+            closeQuestWindow();
         }
     } else {
         exitPointerLock();
         createQuestWindow();
     }
 }
+
+export function closeQuestWindow() {
+    const questWindow = document.getElementById('questWindow');
+    if (questWindow) {
+        requestPointerLock();
+        questWindow.style.display = 'none';
+    }
+}
+
+
 
 function createQuestWindow() {
     const questWindow = document.createElement('div');
@@ -125,20 +134,23 @@ function updateQuestDetails() {
     }
 
     questDetails.innerHTML = `
-        <h2>${selectedQuest.name}</h2>
-        <p>${selectedQuest.description}</p>
-        <h3 style="margin-top: 40px;">${getTranslation('rewards')}:</h3>
-        <div class="quest-reward">
-            <img src="gold-coin.png" alt="Gold" class="quest-reward-icon">
-            <span class="quest-reward-gold">${selectedQuest.rewards.gold}</span>
+        <div class="quest-details-content">
+            <h2>${selectedQuest.name}</h2>
+            <p>${selectedQuest.description}</p>
+            <h3 style="margin-top: 40px;">${getTranslation('rewards')}:</h3>
+            <div class="quest-reward">
+                <img src="gold-coin.png" alt="Gold" class="quest-reward-icon">
+                <span class="quest-reward-gold">${selectedQuest.rewards.gold}</span>
+            </div>
+            <div class="quest-reward">
+                <img src="experience.png" alt="EXP" class="quest-reward-icon">
+                <span class="quest-reward-exp">${selectedQuest.rewards.exp}</span>
+            </div>
+            <div class="quest-items"></div>
+            <h3 style="margin-top: 20px;">${getTranslation('progress')}:</h3>
+            <p>${selectedQuest.progress}</p>
         </div>
-        <div class="quest-reward">
-            <img src="experience.png" alt="EXP" class="quest-reward-icon">
-            <span class="quest-reward-exp">${selectedQuest.rewards.exp}</span>
-        </div>
-        <div class="quest-items"></div>
-        <h3 style="margin-top: 20px;">${getTranslation('progress')}:</h3>
-        <p>${selectedQuest.progress}</p>
+        <div class="quest-details-footer"></div>
     `;
 
     const questItems = questDetails.querySelector('.quest-items');
@@ -148,6 +160,18 @@ function updateQuestDetails() {
         itemElement.style.height = '64px';
         questItems.appendChild(itemElement);
     });
+
+    // Přidáme tlačítko pro přesun do konkrétního bludiště, pokud je to relevantní
+    if (selectedQuest.objective.type === 'completeMazeWithoutMinimap' || selectedQuest.objective.type === "completeMaze") {
+        const goToMazeButton = document.createElement('button');
+        goToMazeButton.textContent = getTranslation('goToMaze');
+        goToMazeButton.className = 'go-to-maze-button';
+        goToMazeButton.onclick = () => {
+            generateSpecificMaze(selectedQuest.objective.target, selectedQuest.objective.floor);
+            toggleQuestWindow(); // Zavřeme okno úkolů
+        };
+        questDetails.querySelector('.quest-details-footer').appendChild(goToMazeButton);
+    }
 }
 
 export function updateQuestProgress(questId, updateCallback) {
@@ -360,13 +384,13 @@ function createQuestListItem(quest, action) {
     };
     questItem.appendChild(actionButton);
 
-    questItem.onclick = () => showQuestDetails(quest, true);
+    questItem.onclick = () => showQuestDetails(quest);
 
     return questItem;
 }
 
-function showQuestDetails(quest, isQuestBoard) {
-    const questDetails = document.querySelector(isQuestBoard ? '.quest-board-details' : '.quest-details');
+function showQuestDetails(quest) {
+    const questDetails = document.querySelector('.quest-board-details');
     questDetails.innerHTML = `
         <h2>${quest.name}</h2>
         <p>${quest.description}</p>
@@ -420,6 +444,19 @@ export function updateQuestsOnEvent(eventType, eventData) {
                     return quest;
                 });
             }
+            quests.forEach(quest => {
+                if (quest.objective.type === 'killMultiple') {
+                    const target = quest.objective.targets.find(t => t.translationKey === eventData.bossType);
+                    if (target) {
+                        target.current = Math.min(target.current + 1, target.count);
+                        quest.progress = quest.objective.targets.map(t =>
+                            `${getTranslation(t.translationKey)}: ${t.current}/${t.count}`
+                        ).join(', ');
+                        quest.isCompleted = quest.objective.targets.every(t => t.current >= t.count);
+                        updateQuestProgress(quest.id, () => quest);
+                    }
+                }
+            });
             break;
         case 'completeMazes':
             updateQuestProgress('completeMazes', (quest) => {
@@ -450,6 +487,16 @@ export function updateQuestsOnEvent(eventType, eventData) {
             }
             else if (eventData.seed === "444" && eventData.floor === 2 && !eventData.usedMinimap) {
                 updateQuestProgress('completeMaze444WithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "Black" && eventData.floor === 3 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeBlackWithoutMinimap', (quest) => {
                     quest.objective.current++;
                     quest.progress = `${quest.objective.current}/${quest.objective.count}`;
                     if (quest.objective.current >= quest.objective.count) {
