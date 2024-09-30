@@ -160,7 +160,7 @@ const questDefinitions = [
         description: 'completeMazeBlackWithoutMinimapQuestDescription',
         level: 12,
         rewards: {
-            exp: 5000,
+            exp: 6000,
             gold: 100,
             items: [
                 { item: 'protectorsLapisia', count: 4 },
@@ -174,6 +174,25 @@ const questDefinitions = [
             target: 'Black',
             floor: 3,
             count: 1
+        }
+    },
+    {
+        id: 'completeMazesFloor3',
+        name: 'completeMazesFloor3Quest',
+        description: 'completeMazesFloor3QuestDescription',
+        level: 13,
+        rewards: {
+            exp: 8000,
+            gold: 100,
+            items: [
+                { item: 'powerLapisia', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 3
         }
     },
 

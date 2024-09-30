@@ -42,7 +42,7 @@ function loadQuestsFromLocalStorage() {
     updateQuestList();
 }
 
- export function toggleQuestWindow() {
+export function toggleQuestWindow() {
     const questWindow = document.getElementById('questWindow');
     if (questWindow) {
         if (questWindow.style.display === 'none') {
@@ -454,19 +454,22 @@ export function updateQuestsOnEvent(eventType, eventData) {
             });
             break;
         case 'completeMazes':
-            updateQuestProgress('completeMazes', (quest) => {
-                if (!quest.objective.completedSeeds) {
-                    quest.objective.completedSeeds = [];
-                }
-                if (!quest.objective.completedSeeds.includes(eventData.seed)) {
-                    quest.objective.completedSeeds.push(eventData.seed);
-                    quest.objective.current = quest.objective.completedSeeds.length;
-                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
-                    if (quest.objective.current >= quest.objective.count) {
-                        quest.isCompleted = true;
+            quests.forEach(quest => {
+                if (quest.objective.type === 'completeMazes') {
+                    if (!quest.objective.completedSeeds) {
+                        quest.objective.completedSeeds = [];
+                    }
+                    if (!quest.objective.completedSeeds.includes(eventData.seed) &&
+                        (!quest.objective.floor || quest.objective.floor === eventData.floor)) {
+                        quest.objective.completedSeeds.push(eventData.seed);
+                        quest.objective.current = quest.objective.completedSeeds.length;
+                        quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                        if (quest.objective.current >= quest.objective.count) {
+                            quest.isCompleted = true;
+                        }
+                        updateQuestProgress(quest.id, () => quest);
                     }
                 }
-                return quest;
             });
             break;
         case 'mazeCompletion':

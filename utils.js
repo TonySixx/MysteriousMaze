@@ -271,7 +271,7 @@ export function addExperienceForCompletion(floor) {
     floor: selectedFloor,
     usedMinimap: window.minimapUsed
   });
-  updateQuestsOnEvent('completeMazes', { seed: seedText });
+  updateQuestsOnEvent('completeMazes', { seed: seedText, floor: selectedFloor });
   return totalExperience;
 }
 
