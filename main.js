@@ -109,8 +109,9 @@ import {
   updateFreezeEffect,
   updateMagicBalls,
 } from "./utils.js";
-import { createMainBossRoom, MAIN_BOSS_TYPES, MainBoss } from "./mainBoss/mainBoss.js";
+import { createMainBossRoom } from "./mainBoss/mainBoss.js";
 import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab } from "./animate.js";
+import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 
 export const version = "3.0.0";
 

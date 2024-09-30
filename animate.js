@@ -4,7 +4,6 @@ import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor }
 import { getItemName } from "./itemDatabase";
 import { getTranslation } from "./langUtils";
 import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
-import { MAIN_BOSS_TYPES } from "./mainBoss/mainBoss";
 import { player } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
