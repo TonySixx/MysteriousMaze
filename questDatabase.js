@@ -128,6 +128,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'killMultiple',
+            hasMultipleObjectives: true,
             targets: [
                 { translationKey: 'stormDragon', count: 2 },
                 { translationKey: 'shadowDragon', count: 2 },
@@ -216,7 +217,7 @@ export function addQuestFromDefiniton(questDef) {
 }
 
 function getInitialProgress(objective) {
-    if (objective.type === 'killMultiple') {
+    if (objective.hasMultipleObjectives) {
         return objective.targets.map(target =>
             `${getTranslation(target.translationKey)}: 0/${target.count}`
         ).join(', ');
@@ -226,7 +227,7 @@ function getInitialProgress(objective) {
 }
 
 function getInitialObjective(objective) {
-    if (objective.type === 'killMultiple') {
+    if (objective.hasMultipleObjectives) {
         return {
             ...objective,
             targets: objective.targets.map(target => ({
