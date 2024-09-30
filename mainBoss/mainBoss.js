@@ -18,6 +18,7 @@ import {
   playSound,
   selectedFloor,
   setMazeSize,
+  spell1SoundBuffer,
   teleportSoundBuffer,
   WALL_HEIGHT,
 } from "../main.js";
@@ -321,7 +322,7 @@ export class MainBoss extends Boss {
 
   multiShot() {
     this.createAttackEffect();
-    playSound(bossSoundBuffer);
+    playSound(spell1SoundBuffer);
     const playerDirection = new THREE.Vector3()
       .subVectors(player.position, this.position)
       .normalize();

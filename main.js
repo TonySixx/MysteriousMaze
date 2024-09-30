@@ -203,6 +203,8 @@ export var potionSoundBuffer;
 export var levelUpSoundBuffer;
 export var seedBurstSoundBuffer;
 export var vineGrabSoundBuffer;
+export var spell1SoundBuffer;
+
 
 
 export var bossSoundBuffer;
@@ -406,6 +408,10 @@ export async function init() {
 
   audioLoader.load("sounds/snd_vine_grab.wav", function (buffer) {
     vineGrabSoundBuffer = buffer;
+  });
+
+  audioLoader.load("sounds/snd_spell1.mp3", function (buffer) {
+    spell1SoundBuffer = buffer;
   });
 
   loadPlayerProgress();
