@@ -98,7 +98,6 @@ export const MAIN_BOSS_TYPES = [
       { item: itemDatabase.protectorsLapisia, chance: 0.7 },
       { item: itemDatabase.greaterHealthPotion, chance: 1 },
       { item: itemDatabase.greaterManaPotion, chance: 1 },
-      { item: itemDatabase.obsidianAmulet, chance: 0.3 },
     ],
     ambientLightColor: 0x544275,
     nebulaColors: ["#8B00FF", "#4B0082"],
