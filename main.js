@@ -110,7 +110,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab, updateVoidRifts } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 
@@ -799,6 +799,8 @@ function clearScene() {
 
   activeVines = [];
   seedBurstParticleSystems = [];
+  voidRifts = [];
+  
 
 
   // Vyčistíme kontejner pro zdraví bosse
@@ -2214,6 +2216,7 @@ function animate() {
   updateSeedBurst(deltaTime);
   updateVineGrab(deltaTime);
   updateObsidianBlast(deltaTime);
+  updateVoidRifts(deltaTime);
 
   animateMerchants();
   updateQuestBoardInteraction(deltaTime);

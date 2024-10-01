@@ -137,14 +137,14 @@ export class VoidRiftAbility extends Ability {
   use() {
     playSound(spell1SoundBuffer);
     const rifts = [];
-
+  
     for (let i = 0; i < this.riftCount; i++) {
       const riftPosition = new THREE.Vector3(
         (Math.random() - 0.5) * 20,
         0.5,
         (Math.random() - 0.5) * 20
       ).add(this.boss.position);
-
+  
       const riftGeometry = new THREE.SphereGeometry(1, 32, 32);
       const riftMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -174,50 +174,26 @@ export class VoidRiftAbility extends Ability {
         depthWrite: false,
         blending: THREE.AdditiveBlending
       });
-
+  
       const rift = new THREE.Mesh(riftGeometry, riftMaterial);
       rift.position.copy(riftPosition);
       scene.add(rift);
-
+  
       // Přidáme náhodný směr pohybu pro každý rift
       const moveDirection = new THREE.Vector3(
         Math.random() - 0.5,
         0,
         Math.random() - 0.5
       ).normalize();
-
-      rifts.push({ rift, moveDirection });
+  
+      voidRifts.push({
+        rift,
+        moveDirection,
+        startTime: Date.now(),
+        duration: this.duration
+      });
     }
-
-    const startTime = Date.now();
-    const updateRifts = () => {
-      const elapsedTime = Date.now() - startTime;
-      if (elapsedTime < this.duration) {
-        rifts.forEach(({ rift, moveDirection }) => {
-          const scale = 2 + Math.sin(elapsedTime / 200) * 0.5;
-          rift.scale.set(scale, scale, scale);
-          rift.material.uniforms.time.value = elapsedTime / 1000;
-
-          // Pohyb riftu
-          rift.position.add(moveDirection.clone().multiplyScalar(0.05));
-
-          const playerToRift = new THREE.Vector3().subVectors(rift.position, player.position);
-          const distance = playerToRift.length();
-          if (distance < this.radius) {
-            const pullStrength = (1 - distance / this.radius) * this.pullForce;
-            player.position.add(playerToRift.normalize().multiplyScalar(pullStrength * 0.016));
-            playerTakeDamage(this.damagePerSecond * 0.016 / this.riftCount);
-          }
-        });
-
-        requestAnimationFrame(updateRifts);
-      } else {
-        rifts.forEach(({ rift }) => scene.remove(rift));
-      }
-    };
-
-    updateRifts();
-
+  
     this.lastUseTime = Date.now();
     this.boss.isUsingAbility = false;
   }

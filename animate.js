@@ -7,7 +7,7 @@ import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, se
 import { player } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
-import { showMessage } from "./utils";
+import { playerTakeDamage, showMessage } from "./utils";
 import * as THREE from "three";
 
 export function animateMerchants() {
@@ -559,3 +559,32 @@ export function updateObsidianBlast(deltaTime) {
     });
 
 }
+
+export function updateVoidRifts(deltaTime) {
+    if (!voidRifts || voidRifts.length === 0) return;
+  
+    const currentTime = Date.now();
+    voidRifts = voidRifts.filter(({ rift, moveDirection, startTime, duration }) => {
+      const elapsedTime = currentTime - startTime;
+      if (elapsedTime < duration) {
+        const scale = 2 + Math.sin(elapsedTime / 200) * 0.5;
+        rift.scale.set(scale, scale, scale);
+        rift.material.uniforms.time.value = elapsedTime / 1000;
+  
+        // Pohyb riftu
+        rift.position.add(moveDirection.clone().multiplyScalar(0.05 * deltaTime * 60));
+  
+        const playerToRift = new THREE.Vector3().subVectors(rift.position, player.position);
+        const distance = playerToRift.length();
+        if (distance < 6) { // Použijeme fixní radius 6, který můžete upravit podle potřeby
+          const pullStrength = (1 - distance / 6) * 10; // Použijeme fixní pullForce 10
+          player.position.add(playerToRift.normalize().multiplyScalar(pullStrength * deltaTime));
+          playerTakeDamage(10 * deltaTime / voidRifts.length); // Použijeme fixní damagePerSecond 10
+        }
+        return true;
+      } else {
+        scene.remove(rift);
+        return false;
+      }
+    });
+  }
