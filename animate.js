@@ -497,44 +497,65 @@ export function animateQuestIndicator(deltaTime) {
 
 export function updateSeedBurst(deltaTime) {
     for (let i = seedBurstParticleSystems.length - 1; i >= 0; i--) {
-      const particleSystem = seedBurstParticleSystems[i];
-      const elapsedTime = Date.now() - particleSystem.startTime;
-      
-      if (elapsedTime < particleSystem.duration) {
-        const positions = particleSystem.geometry.attributes.position.array;
-        const velocities = particleSystem.geometry.attributes.velocity.array;
-  
-        for (let j = 0; j < positions.length; j += 3) {
-          positions[j] += velocities[j] * deltaTime*60;
-          positions[j + 1] += velocities[j + 1] * deltaTime*60;
-          positions[j + 2] += velocities[j + 2] * deltaTime*60;
-  
-          // Postupné zpomalování částic
-          velocities[j] *= 0.98;
-          velocities[j + 1] *= 0.98;
-          velocities[j + 2] *= 0.98;
+        const particleSystem = seedBurstParticleSystems[i];
+        const elapsedTime = Date.now() - particleSystem.startTime;
+
+        if (elapsedTime < particleSystem.duration) {
+            const positions = particleSystem.geometry.attributes.position.array;
+            const velocities = particleSystem.geometry.attributes.velocity.array;
+
+            for (let j = 0; j < positions.length; j += 3) {
+                positions[j] += velocities[j] * deltaTime * 60;
+                positions[j + 1] += velocities[j + 1] * deltaTime * 60;
+                positions[j + 2] += velocities[j + 2] * deltaTime * 60;
+
+                // Postupné zpomalování částic
+                velocities[j] *= 0.98;
+                velocities[j + 1] *= 0.98;
+                velocities[j + 2] *= 0.98;
+            }
+
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+        } else {
+            scene.remove(particleSystem);
+            seedBurstParticleSystems.splice(i, 1);
         }
-  
-        particleSystem.geometry.attributes.position.needsUpdate = true;
-      } else {
-        scene.remove(particleSystem);
-        seedBurstParticleSystems.splice(i, 1);
-      }
     }
-  }
-  
-  export function updateVineGrab(deltaTime) {
+}
+
+export function updateVineGrab(deltaTime) {
     for (let i = activeVines.length - 1; i >= 0; i--) {
-      const vine = activeVines[i];
-      const elapsedTime = Date.now() - vine.startTime;
-      const progress = Math.min(elapsedTime / vine.duration, 1);
-      
-      // Aktualizace pozice hráče
-      player.position.lerpVectors(vine.startPosition, vine.endPosition, progress);
-      
-      if (progress >= 1) {
-        scene.remove(vine.mesh);
-        activeVines.splice(i, 1);
-      }
+        const vine = activeVines[i];
+        const elapsedTime = Date.now() - vine.startTime;
+        const progress = Math.min(elapsedTime / vine.duration, 1);
+
+        // Aktualizace pozice hráče
+        player.position.lerpVectors(vine.startPosition, vine.endPosition, progress);
+
+        if (progress >= 1) {
+            scene.remove(vine.mesh);
+            activeVines.splice(i, 1);
+        }
     }
-  }
+}
+
+export function updateObsidianBlast(deltaTime) {
+    obsidianBlastParticleSystems = obsidianBlastParticleSystems.filter((system) => {
+        const elapsedTime = Date.now() - system.startTime;
+        if (elapsedTime < system.duration) {
+            const positions = system.geometry.attributes.position.array;
+            const velocities = system.geometry.attributes.velocity.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                positions[i] += velocities[i];
+                positions[i + 1] += velocities[i + 1];
+                positions[i + 2] += velocities[i + 2];
+            }
+            system.geometry.attributes.position.needsUpdate = true;
+            return true;
+        } else {
+            scene.remove(system);
+            return false;
+        }
+    });
+
+}

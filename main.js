@@ -110,7 +110,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 
@@ -857,15 +857,16 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     const bossType = MAIN_BOSS_TYPES[bossIndex];
     const bossRoomOptions = {
       roomSize: 10,
-      textureSet: textureSets[bossIndex + 1],
-      torchColor: textureSets[bossIndex % textureSets.length].torchColor.light,
-      bossType: bossType,
+      textureSet: textureSets[bossType.textureSetIndex || bossIndex + 1],
+      torchColor: textureSets[bossType.torchSetIndex || 1].torchColor.light,
+      bossType: bossType, 
       spawnDelay: 5000,
       countdownDuration: 5,
       roomAmbientLightColor: new THREE.Color(bossType.ambientLightColor),
       roomAmbientLightIntensity: 0.5,
       nebulaColors: bossType.nebulaColors,
-      fogDensity: 0.03
+      fogDensity: 0.03,
+      flyDuration: bossType.flyDuration || 3
     };
 
     const { room, spawnTimeout, countdownInterval } = createMainBossRoom(rng, bossRoomOptions);
@@ -2212,6 +2213,7 @@ function animate() {
 
   updateSeedBurst(deltaTime);
   updateVineGrab(deltaTime);
+  updateObsidianBlast(deltaTime);
 
   animateMerchants();
   updateQuestBoardInteraction(deltaTime);

@@ -485,7 +485,7 @@ function createCenterTower() {
   });
 }
 
-export function createTorchOnCenterTower(x, z, towerHeight, dir) {
+export function createTorchOnCenterTower(x, z, towerHeight, dir, torchColor) {
   const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
   const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
   const torch = new THREE.Mesh(torchGeometry, torchMaterial);
@@ -501,12 +501,12 @@ export function createTorchOnCenterTower(x, z, towerHeight, dir) {
 
   scene.add(torch);
 
-  const fire = createFireParticles(textureSets[1].torchColor.particles);
+  const fire = createFireParticles(torchColor || textureSets[1].torchColor.particles);
   fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
   scene.add(fire);
 
   const light = new THREE.PointLight(
-    textureSets[1].torchColor.light,
+    torchColor || textureSets[1].torchColor.light,
     1.5,
     CELL_SIZE * 4
   );

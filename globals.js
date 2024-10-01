@@ -41,6 +41,7 @@ window.staffSwing = null;
 
 window.activeVines = [];
 window.seedBurstParticleSystems = [];
+window.obsidianBlastParticleSystems = [];
 
 
 
