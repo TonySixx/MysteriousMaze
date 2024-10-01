@@ -114,7 +114,7 @@ import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaff
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 
-export const version = "3.0.0";
+export const version = "3.0.1";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
