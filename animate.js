@@ -564,22 +564,29 @@ export function updateVoidRifts(deltaTime) {
     if (!voidRifts || voidRifts.length === 0) return;
   
     const currentTime = Date.now();
-    voidRifts = voidRifts.filter(({ rift, moveDirection, startTime, duration }) => {
+    voidRifts = voidRifts.filter(({ rift, moveDirection, startTime, duration, roomCenter, roomSize,pullForce,radius,damagePerSecond }) => {
       const elapsedTime = currentTime - startTime;
       if (elapsedTime < duration) {
         const scale = 2 + Math.sin(elapsedTime / 200) * 0.5;
         rift.scale.set(scale, scale, scale);
         rift.material.uniforms.time.value = elapsedTime / 1000;
   
-        // Pohyb riftu
-        rift.position.add(moveDirection.clone().multiplyScalar(0.05 * deltaTime * 60));
+        // Pohyb riftu s omezením na místnost
+        const newPosition = rift.position.clone().add(moveDirection.clone().multiplyScalar(deltaTime * 60));
+        const distanceFromCenter = newPosition.distanceTo(roomCenter);
+        if (distanceFromCenter <= roomSize / 2) {
+          rift.position.copy(newPosition);
+        } else {
+          // Pokud by se rift dostal mimo místnost, odrazíme ho
+          moveDirection.negate();
+        }
   
         const playerToRift = new THREE.Vector3().subVectors(rift.position, player.position);
         const distance = playerToRift.length();
-        if (distance < 6) { // Použijeme fixní radius 6, který můžete upravit podle potřeby
-          const pullStrength = (1 - distance / 6) * 10; // Použijeme fixní pullForce 10
+        if (distance < radius) { 
+          const pullStrength = (1 - distance / radius) * pullForce;
           player.position.add(playerToRift.normalize().multiplyScalar(pullStrength * deltaTime));
-          playerTakeDamage(10 * deltaTime / voidRifts.length); // Použijeme fixní damagePerSecond 10
+          playerTakeDamage(damagePerSecond * deltaTime / 1000);
         }
         return true;
       } else {

@@ -24,34 +24,34 @@ export class ObsidianBlastAbility extends Ability {
     playSound(spell1SoundBuffer);
     const roomSize = 10 * CELL_SIZE; // Předpokládáme, že velikost místnosti je 10x10
     const possiblePositions = [
-      new THREE.Vector3(-roomSize/2, 0.5, -roomSize/2),
-      new THREE.Vector3(roomSize/2, 0.5, -roomSize/2),
-      new THREE.Vector3(-roomSize/2, 0.5, roomSize/2),
-      new THREE.Vector3(roomSize/2, 0.5, roomSize/2),
+      new THREE.Vector3(-roomSize / 2, 0.5, -roomSize / 2),
+      new THREE.Vector3(roomSize / 2, 0.5, -roomSize / 2),
+      new THREE.Vector3(-roomSize / 2, 0.5, roomSize / 2),
+      new THREE.Vector3(roomSize / 2, 0.5, roomSize / 2),
       new THREE.Vector3(0, 0.5, 0)
     ];
     const blastPosition = possiblePositions[Math.floor(Math.random() * possiblePositions.length)];
-  
+
     const particleCount = 1000;
     const particles = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
     const velocities = new Float32Array(particleCount * 3);
-  
+
     for (let i = 0; i < particleCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = Math.random() * this.radius;
       positions[i * 3] = Math.cos(angle) * radius + blastPosition.x;
       positions[i * 3 + 1] = Math.random() * 5 + blastPosition.y;
       positions[i * 3 + 2] = Math.sin(angle) * radius + blastPosition.z;
-  
+
       velocities[i * 3] = (Math.random() - 0.5) * 0.1;
       velocities[i * 3 + 1] = Math.random() * 0.1;
       velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
     }
-  
+
     particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     particles.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
-  
+
     const particleMaterial = new THREE.PointsMaterial({
       color: 0x8B00FF,
       size: 0.2,
@@ -60,14 +60,14 @@ export class ObsidianBlastAbility extends Ability {
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
-  
+
     const particleSystem = new THREE.Points(particles, particleMaterial);
     scene.add(particleSystem);
-  
+
     particleSystem.startTime = Date.now();
     particleSystem.duration = this.duration;
     obsidianBlastParticleSystems.push(particleSystem);
-  
+
     const startTime = Date.now();
     const applyDamage = () => {
       const elapsedTime = Date.now() - startTime;
@@ -78,9 +78,9 @@ export class ObsidianBlastAbility extends Ability {
         setTimeout(applyDamage, 100);
       }
     };
-  
+
     applyDamage();
-  
+
     this.lastUseTime = Date.now();
     this.boss.isUsingAbility = false;
   }
@@ -124,10 +124,11 @@ export class VoidRiftAbility extends Ability {
     this.cooldown = 10000;
     this.lastUseTime = 0;
     this.duration = 8000; // 8 sekund
-    this.damagePerSecond = 10;
-    this.pullForce = 10;
+    this.damagePerSecond = 20;
+    this.pullForce = 5;
     this.radius = 6;
     this.riftCount = 3 + Math.floor(Math.random() * 2); // 3 až 4 rifty
+    this.roomSize = 10 * CELL_SIZE; // Předpokládáme, že velikost místnosti je 10x10
   }
 
   canUse() {
@@ -136,15 +137,14 @@ export class VoidRiftAbility extends Ability {
 
   use() {
     playSound(spell1SoundBuffer);
-    const rifts = [];
-  
+
     for (let i = 0; i < this.riftCount; i++) {
       const riftPosition = new THREE.Vector3(
-        (Math.random() - 0.5) * 20,
+        (Math.random() - 0.5) * (this.roomSize/2),
         0.5,
-        (Math.random() - 0.5) * 20
+        (Math.random() - 0.5) * (this.roomSize/2)
       ).add(this.boss.position);
-  
+
       const riftGeometry = new THREE.SphereGeometry(1, 32, 32);
       const riftMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -174,26 +174,31 @@ export class VoidRiftAbility extends Ability {
         depthWrite: false,
         blending: THREE.AdditiveBlending
       });
-  
+
       const rift = new THREE.Mesh(riftGeometry, riftMaterial);
       rift.position.copy(riftPosition);
       scene.add(rift);
-  
-      // Přidáme náhodný směr pohybu pro každý rift
+
+      // Upravíme směr pohybu, aby se rift pohyboval pouze v rámci místnosti
       const moveDirection = new THREE.Vector3(
         Math.random() - 0.5,
         0,
         Math.random() - 0.5
-      ).normalize();
-  
+      ).normalize().multiplyScalar(0.05); // Snížíme rychlost pohybu
+
       voidRifts.push({
         rift,
         moveDirection,
         startTime: Date.now(),
-        duration: this.duration
+        duration: this.duration,
+        pullForce: this.pullForce,
+        radius: this.radius,
+        roomCenter: this.boss.position.clone(), // Přidáme střed místnosti
+        roomSize: this.roomSize, // Přidáme velikost místnosti
+        damagePerSecond: this.damagePerSecond
       });
     }
-  
+
     this.lastUseTime = Date.now();
     this.boss.isUsingAbility = false;
   }

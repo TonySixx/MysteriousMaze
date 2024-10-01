@@ -412,9 +412,9 @@ export function createExplosion(position, color = 0xff8f45) {
 }
 
 export function showDamageEffect() {
-  const damageOverlay = document.getElementById('damageOverlay');
+  var damageOverlay = document.getElementById('damageOverlay');
   if (!damageOverlay) {
-    createDamageOverlay();
+    damageOverlay = createDamageOverlay();
   }
   
   damageOverlay.style.opacity = '0.7';
@@ -456,6 +456,7 @@ function createDamageOverlay() {
   overlay.style.opacity = '0';
   overlay.style.zIndex = '1000';
   document.body.appendChild(overlay);
+  return overlay;
 }
 
 export function updateMagicBalls(deltaTime) {
