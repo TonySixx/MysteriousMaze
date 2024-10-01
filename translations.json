@@ -252,7 +252,9 @@
     "completeMazeBlackWithoutMinimapQuestDescription": "Complete the maze on the third floor with seed 'Black' without using the minimap.",
     "goToMaze": "Go to Maze",
     "completeMazesFloor3Quest": "Floor 3 Maze Explorer",
-    "completeMazesFloor3QuestDescription": "Complete 3 different mazes (with unique seeds) on the third floor to prove your advanced exploration skills."
+    "completeMazesFloor3QuestDescription": "Complete 3 different mazes (with unique seeds) on the third floor to prove your advanced exploration skills.",
+    "defeatObsidarothQuest": "Defeat Obsidaroth",
+    "defeatObsidarothQuestDescription": "Defeat Obsidaroth, the powerful boss of the third floor, and claim a significant reward."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -507,6 +509,8 @@
     "completeMazeBlackWithoutMinimapQuestDescription": "Dokončete bludiště na třetím podlaží se seedem 'Black' bez použití minimapy.",
     "goToMaze": "Jít do bludiště",
     "completeMazesFloor3Quest": "Průzkumník 3. podlaží",
-    "completeMazesFloor3QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na třetím podlaží a prokažte své pokročilé průzkumnické schopnosti."
+    "completeMazesFloor3QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na třetím podlaží a prokažte své pokročilé průzkumnické schopnosti.",
+    "defeatObsidarothQuest": "Poraž Obsidarotha",
+    "defeatObsidarothQuestDescription": "Poraž Obsidarotha, mocného bosse třetího podlaží, a získej významnou odměnu."
   }
 }

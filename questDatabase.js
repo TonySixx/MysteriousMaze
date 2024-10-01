@@ -195,6 +195,25 @@ const questDefinitions = [
             floor: 3
         }
     },
+    {
+        id: 'defeatObsidaroth',
+        name: 'defeatObsidarothQuest',
+        description: 'defeatObsidarothQuestDescription',
+        level: 16,
+        rewards: {
+            exp: 20000,
+            gold: 150,
+            items: [
+                { item: 'protectorsLapisia', count: 5 },
+                { item: 'powerLapisia', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Obsidaroth',
+            count: 1
+        }
+    },
 
 ];
 
