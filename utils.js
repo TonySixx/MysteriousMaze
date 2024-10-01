@@ -423,11 +423,20 @@ export function showDamageEffect() {
   }, 300);
 }
 
+let lastDamageEffectTime = 0;
+const damageEffectCooldown = 500; // 500 ms cooldown
+
 export function playerTakeDamage(damage) {
-  playSound(hurtSoundBuffer, 0.7);
   setPlayerHealth(playerHealth - damage);
   updatePlayerHealthBar();
-  showDamageEffect();
+  
+  const currentTime = Date.now();
+  if (currentTime - lastDamageEffectTime >= damageEffectCooldown) {
+    showDamageEffect();
+    playSound(hurtSoundBuffer, 0.7); // Předpokládám, že máte funkci pro přehrání zvuku zranění
+    lastDamageEffectTime = currentTime;
+  }
+  
   if (playerHealth <= 0) {
     playerDeath();
   }
