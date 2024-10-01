@@ -71,7 +71,7 @@ export const floorMusic = {
   999: "music/msc_camp.mp3",
   100: "music/msc_boss_fight.mp3",
   101: "music/msc_boss_fight.mp3",
-  102: "music/msc_boss_fight.mp3",
+  102: "music/msc_boss_fight2.mp3",
   103: "music/msc_boss_fight.mp3"
 };
 

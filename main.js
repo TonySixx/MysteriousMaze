@@ -207,6 +207,8 @@ export var seedBurstSoundBuffer;
 export var vineGrabSoundBuffer;
 export var spell1SoundBuffer;
 export var hurtSoundBuffer;
+export var voidRiftSoundBuffer;
+
 
 
 
@@ -421,7 +423,9 @@ export async function init() {
     hurtSoundBuffer = buffer;
   })
 
- 
+  audioLoader.load("sounds/snd_void_rift.wav", function (buffer) {
+    voidRiftSoundBuffer = buffer;
+  });
 
   loadPlayerProgress();
   initWeaponModel();

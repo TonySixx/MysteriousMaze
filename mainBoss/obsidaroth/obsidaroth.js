@@ -1,4 +1,4 @@
-import { CELL_SIZE, playSound, spell1SoundBuffer } from "../../main";
+import { CELL_SIZE, playSound, spell1SoundBuffer, voidRiftSoundBuffer } from "../../main";
 import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { player } from "../../player";
@@ -136,8 +136,7 @@ export class VoidRiftAbility extends Ability {
   }
 
   use() {
-    playSound(spell1SoundBuffer);
-
+    playSound(voidRiftSoundBuffer,0.8);
     for (let i = 0; i < this.riftCount; i++) {
       const riftPosition = new THREE.Vector3(
         (Math.random() - 0.5) * (this.roomSize/2),
