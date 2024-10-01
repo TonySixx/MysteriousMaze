@@ -5,6 +5,7 @@ import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBu
 import { getTranslation } from "./langUtils.js";
 import { BOSS_TYPES } from "./bossTypes.js";
 import { updateQuestsOnEvent } from "./quests.js";
+import { playerTakeDamage } from "./utils.js";
 
 export var bossCounter = 0; // Globální počítadlo pro ID bossů
 export let bosses = [];
@@ -615,7 +616,7 @@ class Boss {
 
         // Damage player if within blast radius
         if (player.position.distanceTo(this.position) < blastRadius) {
-            setPlayerHealth(playerHealth - 20);
+           playerTakeDamage(20);
             updatePlayerHealthBar();
             if (playerHealth <= 0) {
                 playerDeath();

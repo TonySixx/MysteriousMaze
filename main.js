@@ -206,6 +206,7 @@ export var levelUpSoundBuffer;
 export var seedBurstSoundBuffer;
 export var vineGrabSoundBuffer;
 export var spell1SoundBuffer;
+export var hurtSoundBuffer;
 
 
 
@@ -415,6 +416,12 @@ export async function init() {
   audioLoader.load("sounds/snd_spell1.mp3", function (buffer) {
     spell1SoundBuffer = buffer;
   });
+
+  audioLoader.load("sounds/snd_hurt.mp3", function (buffer) {
+    hurtSoundBuffer = buffer;
+  })
+
+ 
 
   loadPlayerProgress();
   initWeaponModel();
@@ -800,7 +807,7 @@ function clearScene() {
   activeVines = [];
   seedBurstParticleSystems = [];
   voidRifts = [];
-  
+
 
 
   // Vyčistíme kontejner pro zdraví bosse

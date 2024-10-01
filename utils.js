@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { BLOCKING_WALL, CELL_SIZE, frostBoltHitSoundBuffer, MAZE_SIZE, playerDeath, playSound, selectedFloor, supabase } from "./main";
+import { BLOCKING_WALL, CELL_SIZE, frostBoltHitSoundBuffer, hurtSoundBuffer, MAZE_SIZE, playerDeath, playSound, selectedFloor, supabase } from "./main";
 import { addExperience, getPlayerLevel, player, playerHealth, setPlayerHealth, updatePlayerHealthBar } from "./player";
 import * as THREE from 'three';
 import { equipment } from "./inventory";
@@ -411,13 +411,42 @@ export function createExplosion(position, color = 0xff8f45) {
   return explosionGroup;
 }
 
-export function playerTakeDamage(damage) {
+export function showDamageEffect() {
+  const damageOverlay = document.getElementById('damageOverlay');
+  if (!damageOverlay) {
+    createDamageOverlay();
+  }
+  
+  damageOverlay.style.opacity = '0.7';
+  setTimeout(() => {
+    damageOverlay.style.opacity = '0';
+  }, 300);
+}
 
+export function playerTakeDamage(damage) {
+  playSound(hurtSoundBuffer, 0.7);
   setPlayerHealth(playerHealth - damage);
   updatePlayerHealthBar();
+  showDamageEffect();
   if (playerHealth <= 0) {
     playerDeath();
   }
+}
+
+function createDamageOverlay() {
+  const overlay = document.createElement('div');
+  overlay.id = 'damageOverlay';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.boxShadow = 'inset 0 0 50px 20px rgba(255, 0, 0, 0.5)';
+  overlay.style.pointerEvents = 'none';
+  overlay.style.transition = 'opacity 0.3s ease-out';
+  overlay.style.opacity = '0';
+  overlay.style.zIndex = '1000';
+  document.body.appendChild(overlay);
 }
 
 export function updateMagicBalls(deltaTime) {
