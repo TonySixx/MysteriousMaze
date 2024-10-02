@@ -10,7 +10,7 @@ import chainExplosionIcon from './public/spells/chain-explosion-icon.png';
 import frostAuraIcon from './public/spells/frost-aura-icon.png';
 import explosiveCoreIcon from './public/spells/explosive-core-icon.png';
 import teleportIcon from './public/spells/teleport-icon.png';
-import { spells, updateSkillbar, updateSpellUpgrades } from './spells.js';
+import { updateSkillbar, updateSpellUpgrades } from './spells.js';
 import { getSkillPoints } from './player.js';
 import { activateSoundBuffer, exitPointerLock, playSound, requestPointerLock } from './main.js';
 import { getTranslation } from './langUtils.js';
@@ -22,12 +22,12 @@ export const skillTree = {
         name: 'Fireball',
         systemName: 'fireball',
         level: 1,
-        maxLevel: 8,
+        maxLevel: 18,
         description: 'Základní ohnivý útok',
         icon: fireballIcon,
         baseDamage: 100,
-        damageIncreasePerLevel: [20, 30, 40, 60, 80, 100, 120],
-        requiredPlayerLevelPerLevel: [1, 2, 5, 7, 9, 11, 13, 15], 
+        damageIncreasePerLevel: [20, 30, 40, 60, 80, 100, 120, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65],
+        requiredPlayerLevelPerLevel: [1, 2, 5, 7, 9, 11, 13, 15, 17, 20, 24, 28, 33, 39, 45, 51, 57, 60],
         upgrades: [
             {
                 name: 'Inferno Touch',
@@ -53,12 +53,12 @@ export const skillTree = {
         name: 'Frostbolt',
         systemName: 'frostbolt',
         level: 1,
-        maxLevel: 5,
-        baseDamage: 0,
-        damageIncreasePerLevel: [20, 30, 40, 50],
+        maxLevel: 16,
+        baseDamage: 50,
+        damageIncreasePerLevel: [20, 30, 40, 50, 35, 35, 35, 35, 35, 35, 35],
         description: 'Mrazivý útok, který zmrazí nepřítele na 2 sekundy',
         icon: frostboltIcon,
-        requiredPlayerLevelPerLevel: [1, 4, 7, 10, 13], // Přidáno
+        requiredPlayerLevelPerLevel: [1, 4, 7, 10, 13, 16, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55],
         upgrades: [
             {
                 name: 'Ice Explosion',
@@ -84,12 +84,12 @@ export const skillTree = {
         name: 'Arcane Missile',
         systemName: 'arcaneMissile',
         level: 1,
-        maxLevel: 6,
+        maxLevel: 15,
         description: 'Rychlý magický projektil',
         icon: arcaneMissileIcon,
         baseDamage: 50,
-        damageIncreasePerLevel: [10, 20, 30, 40, 50],
-        requiredPlayerLevelPerLevel: [1, 3, 6, 9, 12, 15], // Přidáno
+        damageIncreasePerLevel: [10, 20, 30, 40, 50, 25, 25, 25, 25, 25, 25, 25, 25, 25],
+        requiredPlayerLevelPerLevel: [1, 3, 6, 9, 12, 15, 18, 22, 26, 30, 34, 38, 42, 46, 50],
         upgrades: [
             {
                 name: 'Multi-shot',
@@ -97,7 +97,7 @@ export const skillTree = {
                 description: 'Při seslání kouzla se vytvoří 3 magické střely místo jedné. Každá střela má 70% síly původního kouzla a může zasáhnout různé cíle',
                 requiredLevel: 7,
                 unlocked: false,
-                cost: 2,
+                cost: 3,
                 icon: multiShotIcon
             }
         ]
@@ -106,14 +106,14 @@ export const skillTree = {
         name: 'Chain Lightning',
         systemName: 'chainLightning',
         level: 0,
-        maxLevel: 5,
+        maxLevel: 17,
         baseDamage: 300,
-        damageIncreasePerLevel: [50, 100, 150, 200, 250],
+        damageIncreasePerLevel: [50, 100, 150, 200, 250, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75],
         description: 'Blesk, který přeskakuje mezi nepřáteli',
         icon: chainLightningIcon,
         requiredLevel: 10,
         cost: 1,
-        requiredPlayerLevelPerLevel: [10, 12, 14, 16, 18], // Přidáno
+        requiredPlayerLevelPerLevel: [10, 12, 14, 16, 18, 21, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 60],
         upgrades: [
             {
                 name: 'Chain Explosion',
@@ -132,15 +132,16 @@ export const skillTree = {
         level: 0,
         maxLevel: 1,
         description: 'Teleportuje hráče na krátkou vzdálenost ve směru pohybu',
-        icon: teleportIcon, // Musíte přidat ikonu pro teleport
+        icon: teleportIcon,
         requiredLevel: 21,
         cost: 3,
-        damageIncreasePerLevel:[0],
+        damageIncreasePerLevel: [0],
         requiredPlayerLevelPerLevel: [21],
-        upgrades: [], // Prozatím bez vylepšení
-        baseDamage:0
+        upgrades: [],
+        baseDamage: 0
     },
 };
+
 
 export function toggleSkillTree() {
     if (skillTreeModal && skillTreeModal.style.display === 'block') {
@@ -477,6 +478,8 @@ function unlockSpell(spellKey, button) {
         const spellElement = button.closest('.spell');
         const levelElement = spellElement.querySelector('.spell-info .spell-level');
         const damageElement = spellElement.querySelector('.spell-info .spell-damage');
+        const spellIcon = spellElement.querySelector('.spell-icon');
+        spellIcon.classList.remove('locked');   
 
         if (levelElement) levelElement.textContent = getTranslation('spellLevel', spell.level, spell.maxLevel);
         if (damageElement) damageElement.textContent = getTranslation('spellDamage', calculateSpellDamage(spell));
