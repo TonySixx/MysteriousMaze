@@ -9,6 +9,7 @@ import chainLightningIcon from './public/spells/chain-lightning-icon.png';
 import chainExplosionIcon from './public/spells/chain-explosion-icon.png';
 import frostAuraIcon from './public/spells/frost-aura-icon.png';
 import explosiveCoreIcon from './public/spells/explosive-core-icon.png';
+import teleportIcon from './public/spells/teleport-icon.png';
 import { spells, updateSkillbar, updateSpellUpgrades } from './spells.js';
 import { getSkillPoints } from './player.js';
 import { activateSoundBuffer, exitPointerLock, playSound, requestPointerLock } from './main.js';
@@ -124,7 +125,21 @@ export const skillTree = {
                 cost: 2
             }
         ]
-    }
+    },
+    teleport: {
+        name: 'Teleport',
+        systemName: 'teleport',
+        level: 0,
+        maxLevel: 1,
+        description: 'Teleportuje hráče na krátkou vzdálenost ve směru pohybu',
+        icon: teleportIcon, // Musíte přidat ikonu pro teleport
+        requiredLevel: 21,
+        cost: 3,
+        damageIncreasePerLevel:[0],
+        requiredPlayerLevelPerLevel: [21],
+        upgrades: [], // Prozatím bez vylepšení
+        baseDamage:0
+    },
 };
 
 export function toggleSkillTree() {
@@ -173,6 +188,19 @@ function showSkillTree() {
     const skillTreeContainer = document.createElement('div');
     skillTreeContainer.className = 'skill-tree-container';
 
+    const leftArrow = document.createElement('button');
+    leftArrow.className = 'scroll-arrow left';
+    leftArrow.innerHTML = '&lt;';
+    leftArrow.onclick = () => scrollSkillTree('left');
+
+    const rightArrow = document.createElement('button');
+    rightArrow.className = 'scroll-arrow right';
+    rightArrow.innerHTML = '&gt;';
+    rightArrow.onclick = () => scrollSkillTree('right');
+
+    content.appendChild(leftArrow);
+    content.appendChild(rightArrow);
+
     for (const [spellKey, spell] of Object.entries(skillTree)) {
         const spellElement = createSpellElement(spellKey, spell);
         skillTreeContainer.appendChild(spellElement);
@@ -185,6 +213,17 @@ function showSkillTree() {
     skillTreeModal.style.display = 'block';
     updateSkillPointsDisplay();
 }
+
+function scrollSkillTree(direction) {
+    const container = document.querySelector('.skill-tree-container');
+    const scrollAmount = 250; // Můžete upravit podle potřeby
+    if (direction === 'left') {
+        container.scrollLeft -= scrollAmount;
+    } else {
+        container.scrollLeft += scrollAmount;
+    }
+}
+
 
 function closeSkillTree() {
     requestPointerLock();

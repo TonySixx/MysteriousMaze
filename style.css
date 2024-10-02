@@ -284,7 +284,7 @@ canvas {
 
 .modal-content {
   background-color: rgba(0, 0, 0, 0.9);
-  margin: 5% auto;
+  margin: 2% auto;
   padding: 20px;
   border: 2px solid #c8a97e;
   border-radius: 10px;
@@ -520,8 +520,19 @@ canvas {
   color: #ffd700;
 }
 
+#skillPoints {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
 
 .skill-tree {
+  position: relative;
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   padding: 20px;
@@ -532,9 +543,45 @@ canvas {
 
 .skill-tree-container {
   display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  overflow-x: auto; 
+  padding-bottom: 15px;
+  scroll-behavior: smooth;  /* Pro plynulé scrollování */
 }
+
+.scroll-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(200, 169, 126, 0.7);
+  color: white;
+  font-size: 22px;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.3s;
+  border-radius: 9999px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scroll-arrow:hover {
+  background-color: rgba(200, 169, 126, 0.9);
+}
+
+.scroll-arrow.left {
+  left: 4px;
+}
+
+.scroll-arrow.right {
+  right: 4px;
+}
+
+
 
 .spell {
   background-color: rgba(50, 50, 50, 0.7);
@@ -543,6 +590,7 @@ canvas {
   margin: 10px;
   text-align: center;
   width: 200px;
+  flex-shrink: 0;  /* Přidáno, aby se kouzla nesmršťovala */
 }
 
 .spell-header {
@@ -677,6 +725,25 @@ button:disabled {
   margin: 5px 0;
   color: #57aae9;
   font-style:italic;
+}
+
+/* Stylizace scrollbaru pro webkit prohlížeče */
+.skill-tree-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.skill-tree-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.skill-tree-container::-webkit-scrollbar-thumb {
+  background: rgba(200, 169, 126, 0.5);
+  border-radius: 4px;
+}
+
+.skill-tree-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 169, 126, 0.7);
 }
 
 

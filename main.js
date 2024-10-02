@@ -110,11 +110,11 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab, updateVoidRifts } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateVineGrab, updateVoidRifts } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 
-export const version = "3.0.1";
+export const version = "3.1.1";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -2223,6 +2223,9 @@ function animate() {
   updateFireballExplosions(deltaTime);
   updateStaffSwing(deltaTime);
   animateStaffInspection(currentTime);
+
+  updateTeleportMove(deltaTime);
+  updateTeleportEffects(deltaTime);
 
   updateSeedBurst(deltaTime);
   updateVineGrab(deltaTime);

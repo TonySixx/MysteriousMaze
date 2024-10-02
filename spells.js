@@ -1,15 +1,17 @@
 import * as THREE from "three";
-import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, isHighWallArea, chainLightningSoundBuffer, playSound, selectedFloor } from './main.js';
-import { calculatePlayerDamage, player } from "./player.js"
+import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, isHighWallArea, chainLightningSoundBuffer, playSound, selectedFloor, teleportSoundBuffer } from './main.js';
+import { calculatePlayerDamage, checkCollisions, player } from "./player.js"
 import { changeStaffColor, fireballSoundBuffer, frostBoltSoundBuffer, magicMissileSoundBuffer } from "./main.js"
 import frostboltIcon from './public/spells/frostbolt-icon.png';
 import arcaneMissileIcon from './public/spells/arcane-missile-icon.png';
 import fireballIcon from './public/spells/fireball-icon.png';
 import chainLightningIcon from './public/spells/chain-lightning-icon.png';
+import teleportIcon from './public/spells/teleport-icon.png';
 import { setPlayerMana, updatePlayerManaBar, playerMana } from "./player.js"
 import { bosses } from "./boss.js";
 import { calculateSpellDamage, isSpellUnlocked } from "./skillTree.js";
 import { checkProjectileCollisionWithBosses, createCastEffect, createExplosion, getCameraDirection } from "./utils.js";
+import { initiateTeleportMove } from "./animate.js";
 
 export let fireBalls = [];
 export let frostBalls = [];
@@ -48,7 +50,8 @@ var spells = [
   new Spell('Fireball', fireballIcon, 'LMB', 500, "fireball", castFireball, 100),
   new Spell('Arcane Missile', arcaneMissileIcon, 'RMB', 200, "arcaneMissile", castArcaneMissile, 50),
   new Spell('Frostbolt', frostboltIcon, 'E', 5000, "frostbolt", castFrostbolt, 0),
-  new Spell('Chain Lightning', chainLightningIcon, 'R', 8000, "chainLightning", castChainLightning, 300)
+  new Spell('Chain Lightning', chainLightningIcon, 'R', 8000, "chainLightning", castChainLightning, 300),
+  new Spell('Teleport', teleportIcon, 'Q', 7000, "teleport", castTeleport, 0),
 ];
 
 // Funkce pro získání aktivních kouzel
@@ -57,7 +60,8 @@ export function getActiveSpells() {
     spell.name === 'Fireball' ||
     spell.name === 'Arcane Missile' ||
     spell.name === 'Frostbolt' ||
-    (spell.name === 'Chain Lightning' && isSpellUnlocked('chainLightning'))
+    (spell.name === 'Chain Lightning' && isSpellUnlocked('chainLightning')) ||
+    (spell.name === 'Teleport' && isSpellUnlocked('teleport'))
   );
 }
 
@@ -841,6 +845,87 @@ export function createFrostAura() {
   frostAuras.push(aura);
 }
 
+// Přidejte novou funkci pro seslání teleportu
+function castTeleport() {
+  if (playerMana >= 20) {
+    setPlayerMana(playerMana - 20);
+    updatePlayerManaBar();
+    lastSpellCastTime = Date.now();
+    changeStaffColor(0x6f03fc);
+
+    playSound(teleportSoundBuffer);
+    const teleportDistance = 7; // Vzdálenost teleportu v jednotkách
+    const playerDirection = getCameraDirection();
+
+    // Ignorujeme Y složku směru
+    playerDirection.y = 0;
+    playerDirection.normalize();
+
+    const destination = new THREE.Vector3().addVectors(
+      player.position,
+      playerDirection.multiplyScalar(teleportDistance)
+    );
+
+    // Zachováme původní Y souřadnici hráče
+    destination.y = player.position.y;
+
+    // Inicializace teleportačního pohybu
+    initiateTeleportMove(player.position.clone(), destination);
+
+    return true;
+  }
+  return false;
+}
+
+// Přidejte funkci pro vytvoření efektu teleportu
+export function createTeleportEffect(position) {
+  const particleCount = 300;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+  const velocities = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI;
+    const r = Math.random() * 1; // Zvětšili jsme počáteční rozptyl
+
+    positions[i * 3] = position.x + r * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = position.y + r * Math.sin(phi) * Math.sin(theta) + 0.5; // Posunuli jsme částice o 1 jednotku výše
+    positions[i * 3 + 2] = position.z + r * Math.cos(phi);
+
+    colors[i * 3] = 0.4 + Math.random() * 0.2;     // R (trochu červené pro fialový nádech)
+    colors[i * 3 + 1] = 0.1 + Math.random() * 0.2; // G (méně zelené)
+    colors[i * 3 + 2] = 0.8 + Math.random() * 0.2; // B (hodně modré)
+
+    // Zvětšili jsme rychlost částic pro větší rozptyl
+    velocities[i * 3] = (Math.random() - 0.5) * 0.15;
+    velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.15;
+    velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.15;
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const material = new THREE.PointsMaterial({
+    size: 0.05,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    opacity: 1
+  });
+
+  const particles = new THREE.Points(geometry, material);
+  scene.add(particles);
+
+  // Přidáme částice do seznamu pro aktualizaci
+  teleportEffects.push({
+    particles,
+    velocities,
+    startTime: Date.now(),
+    duration: 1800
+  });
+}
 
 function findNearestUnhitBoss(position, maxDistance, hitBosses) {
   let nearestBoss = null;
@@ -864,36 +949,38 @@ export function createSkillbar() {
   spells.forEach(spell => {
     const spellElement = document.createElement('div');
     spellElement.className = 'spell-icon';
+    spellElement.id = `spell-${spell.id}`; // Přidáme ID pro snadnou identifikaci
     spellElement.style.backgroundImage = `url(${spell.icon})`;
     spellElement.style.backgroundSize = 'cover';
     spellElement.innerHTML = `
       <div class="spell-key">${spell.key}</div>
       <div class="spell-cooldown" style="display: none;"></div>
     `;
+    spellElement.style.display = 'none'; // Začneme se skrytými kouzly
     skillbar.appendChild(spellElement);
   });
 }
 
 export function updateSkillbar() {
-  spells.forEach((spell, index) => {
+  spells.forEach(spell => {
+    const spellElement = document.getElementById(`spell-${spell.id}`);
+    if (!spellElement) return; // Pokud element neexistuje, přeskočíme
 
-    if (spell.name === 'Chain Lightning' && !isSpellUnlocked('chainLightning')) {
-      const spellElement = document.querySelectorAll('.spell-icon')[index];
-      spellElement.style.display = 'none';
-    }
-    else if (isSpellUnlocked('chainLightning')) {
-      const spellElement = document.querySelectorAll('.spell-icon')[index];
+    // Zobrazíme kouzlo pouze pokud je odemčené
+    if (isSpellUnlocked(spell.id)) {
       spellElement.style.display = 'block';
-    }
-
-    const spellElement = document.querySelectorAll('.spell-icon')[index];
-    const cooldownElement = spellElement.querySelector('.spell-cooldown');
-    if (!spell.isReady()) {
-      const remainingCooldown = Math.ceil((spell.cooldown - (Date.now() - spell.lastCastTime)) / 1000);
-      cooldownElement.textContent = remainingCooldown;
-      cooldownElement.style.display = 'flex';
+      
+      // Aktualizace cooldownu
+      const cooldownElement = spellElement.querySelector('.spell-cooldown');
+      if (!spell.isReady()) {
+        const remainingCooldown = Math.ceil((spell.cooldown - (Date.now() - spell.lastCastTime)) / 1000);
+        cooldownElement.textContent = remainingCooldown;
+        cooldownElement.style.display = 'flex';
+      } else {
+        cooldownElement.style.display = 'none';
+      }
     } else {
-      cooldownElement.style.display = 'none';
+      spellElement.style.display = 'none';
     }
   });
 }

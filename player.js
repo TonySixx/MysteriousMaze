@@ -152,32 +152,28 @@ export function loadPlayerProgress() {
     MAX_VISIBLE_LIGHTS = parseInt(localStorage.getItem("maxVisibleLights")) || 10;
     qualityFactor = parseFloat(localStorage.getItem("qualityFactor")) || 1;
 
-    // Function to extract the major version from a version string
-    function getMajorVersion(versionString) {
-        if (!versionString) return null;
+    // Funkce pro extrakci major a minor verze z řetězce verze
+    function getVersionParts(versionString) {
+        if (!versionString) return [null, null];
         const parts = versionString.split('.');
-        return parts[0]; // Assuming version format is 'major.minor.patch'
+        return [parts[0], parts[1]]; // Předpokládáme formát verze 'major.minor.patch'
     }
 
-    const savedMajorVersion = getMajorVersion(savedVersion);
-    const currentMajorVersion = getMajorVersion(version);
+    const [savedMajorVersion, savedMinorVersion] = getVersionParts(savedVersion);
+    const [currentMajorVersion, currentMinorVersion] = getVersionParts(version);
 
     if (savedMajorVersion !== currentMajorVersion) {
-        // Major version has changed, reset everything except graphics settings
-        // Save graphics settings
+        // Hlavní verze se změnila, resetujeme vše kromě grafických nastavení
         const savedGraphicsSettings = {
             maxVisibleLights: localStorage.getItem("maxVisibleLights"),
             qualityFactor: localStorage.getItem("qualityFactor")
         };
 
-        // Clear localStorage
         localStorage.clear();
 
-        // Restore graphics settings
         localStorage.setItem("maxVisibleLights", savedGraphicsSettings.maxVisibleLights);
         localStorage.setItem("qualityFactor", savedGraphicsSettings.qualityFactor);
 
-        // Reset player data to default values
         playerLevel = 1;
         playerExp = 0;
         expToNextLevel = 1000;
@@ -193,8 +189,23 @@ export function loadPlayerProgress() {
         if (playerName) {
             localStorage.setItem('playerName', playerName);
         }
+    } else if (savedMinorVersion !== currentMinorVersion) {
+        // Minoritní verze se změnila, resetujeme skillTree a skillPoints
+        localStorage.removeItem('skillTree');
+        playerLevel = parseInt(savedLevel) || 1;
+        playerExp = parseInt(savedExp) || 0;
+        expToNextLevel = parseInt(savedExpToNextLevel) || 1000;
+        playerGold = parseInt(savedGold) || 0;
+        skillPoints = calculateTotalSkillPoints(playerLevel);
+
+        localStorage.setItem('version', version);
+        localStorage.setItem('skillPoints', skillPoints);
+        localStorage.setItem('playerLevel', playerLevel);
+        localStorage.setItem('playerExp', playerExp);
+        localStorage.setItem('expToNextLevel', expToNextLevel);
+        localStorage.setItem('playerGold', playerGold);
     } else {
-        // Version hasn't changed or only minor version changed, load all data
+        // Verze se nezměnila, načteme všechna data
         const savedSkillPoints = localStorage.getItem('skillPoints');
         if (savedLevel && savedExp && savedExpToNextLevel && savedSkillPoints) {
             playerLevel = parseInt(savedLevel);
@@ -203,7 +214,7 @@ export function loadPlayerProgress() {
             skillPoints = parseInt(savedSkillPoints);
             playerGold = parseInt(savedGold);
         } else {
-            // If no saved data, set default values
+            // Pokud nejsou uložená data, nastavíme výchozí hodnoty
             playerLevel = 1;
             playerExp = 0;
             expToNextLevel = 1000;
@@ -211,6 +222,9 @@ export function loadPlayerProgress() {
             playerGold = 0;
         }
     }
+
+    // Aktualizujeme verzi v localStorage
+    localStorage.setItem('version', version);
 
     // Always set graphics settings
     localStorage.setItem("maxVisibleLights", MAX_VISIBLE_LIGHTS.toString());
@@ -222,6 +236,12 @@ export function loadPlayerProgress() {
     initInventory();
     initQuestSystem();
     initializeQuests();
+
+}
+
+// Pomocná funkce pro výpočet celkového počtu skillPoints na základě úrovně hráče
+function calculateTotalSkillPoints(level) {
+    return level - 1;
 }
 
 
@@ -336,7 +356,7 @@ function createPlayer() {
         return;
     }
 
-    if (selectedFloor >= 100  && selectedFloor <= 200) { //Boss floor
+    if (selectedFloor >= 100 && selectedFloor <= 200) { //Boss floor
         player.position.set(0, 0, 10 - (CELL_SIZE / 2));
         return;
     }
@@ -652,6 +672,15 @@ export function onKeyDown(event) {
             let fired = chainLightningSpell.cast();
             if (fired) {
                 chainLightningSpell.lastCastTime = Date.now();
+            }
+        }
+    }
+    else if (event.key === 'q' || event.key === 'Q') {
+        const teleportSpell = getActiveSpells().find(spell => spell.name === 'Teleport');
+        if (teleportSpell && teleportSpell.isReady()) {
+            let fired = teleportSpell.cast();
+            if (fired) {
+                teleportSpell.lastCastTime = Date.now();
             }
         }
     }

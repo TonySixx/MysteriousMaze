@@ -4,9 +4,9 @@ import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor }
 import { getItemName } from "./itemDatabase";
 import { getTranslation } from "./langUtils";
 import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
-import { player } from "./player";
+import { checkCollisions, player } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
-import { inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
+import { createTeleportEffect, inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
 import { playerTakeDamage, showMessage } from "./utils";
 import * as THREE from "three";
 
@@ -601,3 +601,69 @@ export function updateVoidRifts(deltaTime) {
         }
     });
 }
+
+
+export function initiateTeleportMove(startPosition, destination) {
+  activeTeleport = {
+    startPosition,
+    destination,
+    totalDistance: startPosition.distanceTo(destination),
+    distanceTraveled: 0,
+    teleportSpeed: 40
+  };
+}
+
+export function updateTeleportMove(deltaTime) {
+  if (!activeTeleport) return;
+
+  const step = Math.min(activeTeleport.teleportSpeed * deltaTime, activeTeleport.totalDistance - activeTeleport.distanceTraveled);
+  const newPosition = new THREE.Vector3().lerpVectors(
+    activeTeleport.startPosition,
+    activeTeleport.destination,
+    (activeTeleport.distanceTraveled + step) / activeTeleport.totalDistance
+  );
+
+  // Použijeme funkci checkCollisions pro kontrolu kolize s novou pozicí
+  const { collision } = checkCollisions(newPosition);
+
+  if (collision) {
+    // Pokud dojde ke kolizi, zastavíme teleport
+    createTeleportEffect(player.position);
+    activeTeleport = null;
+    return;
+  }
+
+  // Aktualizujeme pozici hráče
+  player.position.copy(newPosition);
+  activeTeleport.distanceTraveled += step;
+
+  if (activeTeleport.distanceTraveled >= activeTeleport.totalDistance) {
+    // Teleport dokončen
+    createTeleportEffect(player.position);
+    activeTeleport = null;
+  }
+}
+
+export function updateTeleportEffects(deltaTime) {
+    const currentTime = Date.now();
+    teleportEffects = teleportEffects.filter(effect => {
+      const elapsedTime = currentTime - effect.startTime;
+      if (elapsedTime < effect.duration) {
+        const positions = effect.particles.geometry.attributes.position.array;
+        const velocities = effect.velocities;
+  
+        for (let i = 0; i < positions.length; i += 3) {
+          positions[i] += velocities[i] * deltaTime * 60;
+          positions[i + 1] += velocities[i + 1] * deltaTime * 60;
+          positions[i + 2] += velocities[i + 2] * deltaTime * 60;
+        }
+  
+        effect.particles.geometry.attributes.position.needsUpdate = true;
+        effect.particles.material.opacity = 1 - (elapsedTime / effect.duration);
+        return true;
+      } else {
+        scene.remove(effect.particles);
+        return false;
+      }
+    });
+  }

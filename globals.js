@@ -43,7 +43,8 @@ window.activeVines = [];
 window.seedBurstParticleSystems = [];
 window.obsidianBlastParticleSystems = [];
 window.voidRifts = [];
-
+window.activeTeleport = null;
+window.teleportEffects = [];
 
 window.bossSpawnTimeout = undefined;
 window.bossCountdownInterval = undefined;
