@@ -80,6 +80,11 @@ export function getPlayerName() {
     return localStorage.getItem('playerName') || 'Unnamed';
 }
 
+export function setSkillPoints(points) {
+    skillPoints = points;
+    savePlayerProgress();
+  }
+
 export function calculatePlayerDamage() {
     const baseDamage = 0;
     const weaponDamage = equipment.weapon ? equipment.weapon.attackBonus || 0 : 0;
@@ -240,7 +245,7 @@ export function loadPlayerProgress() {
 }
 
 // Pomocná funkce pro výpočet celkového počtu skillPoints na základě úrovně hráče
-function calculateTotalSkillPoints(level) {
+ export function calculateTotalSkillPoints(level) {
     return level - 1;
 }
 

@@ -1,4 +1,4 @@
-import { addGold, expToNextLevel, getGold, getPlayerLevel, playerExp, updatePlayerStats } from './player.js';
+import { addGold, expToNextLevel, getGold, getPlayerLevel, getSkillPoints, playerExp, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
 import { activateSoundBuffer, breakSoundBuffer,  changeStaffColor, coinSoundBuffer,  errorSoundBuffer, exitPointerLock, itemSoundBuffer, manager, playSound, potionSoundBuffer, requestPointerLock, successSoundBuffer } from './main.js';
@@ -7,6 +7,7 @@ import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { setOriginalStaffRotation } from './spells.js';
 import { enchantEffectsOpt } from './staffModels.js';
 import { createEnchantEffect, showMessage } from './utils.js';
+import { resetSkillPoints, resetSkillTree } from './skillTree.js';
 
 let inventory = [];
 let equipment = {
@@ -866,22 +867,52 @@ function showContextMenu(event) {
   const itemId = itemElement.dataset.id;
   const item = findItemById(itemId);
 
-  if (!item || !item.sellable || isItemEquipped(item)) return;
+  if (!item || isItemEquipped(item)) return;
 
-  contextMenu.innerHTML = `
-    <ul>
-      <li data-action="sell" data-item-id="${item.id}">${getTranslation('sellItem')} (${item.sellPrice.toLocaleString()} ${getTranslation('gold')})</li>
-    </ul>
-  `;
+  let menuItems = '';
+
+  if (item.type === ITEM_TYPES.SKILL_RESET_POTION) {
+    menuItems += `<li data-action="use" data-item-id="${item.id}">${getTranslation('useItem')}</li>`;
+  }
+
+  if (item.sellable) {
+    menuItems += `<li data-action="sell" data-item-id="${item.id}">${getTranslation('sellItem')} (${item.sellPrice.toLocaleString()} ${getTranslation('gold')})</li>`;
+  }
+ 
+
+  if (menuItems === '') return;
+
+  contextMenu.innerHTML = `<ul>${menuItems}</ul>`;
 
   contextMenu.style.display = 'block';
   contextMenu.style.left = `${event.clientX}px`;
   contextMenu.style.top = `${event.clientY}px`;
 
   const sellOption = contextMenu.querySelector('[data-action="sell"]');
-  sellOption.addEventListener('click', () => sellItem(item.id));
+  if (sellOption) {
+    sellOption.addEventListener('click', () => sellItem(item.id));
+  }
+
+  const useOption = contextMenu.querySelector('[data-action="use"]');
+  if (useOption) {
+    useOption.addEventListener('click', () => useItem(item));
+  }
 
   document.addEventListener('click', hideContextMenu);
+}
+
+export function useItem(item) {
+  if (item.type === ITEM_TYPES.SKILL_RESET_POTION) {
+    const currentSkillPoints = getSkillPoints();
+    resetSkillTree();
+    resetSkillPoints();
+    showMessage(getTranslation('skillTreeReset'));
+    playSound(potionSoundBuffer);
+    removeItemFromInventory(item.id, 1);
+    renderInventory();
+    return true;
+  }
+  return false;
 }
 
 function isItemEquipped(item) {

@@ -255,7 +255,11 @@
     "completeMazesFloor3QuestDescription": "Complete 3 different mazes (with unique seeds) on the third floor to prove your advanced exploration skills.",
     "defeatObsidarothQuest": "Defeat Obsidaroth",
     "defeatObsidarothQuestDescription": "Defeat Obsidaroth, the powerful boss of the third floor, and claim a significant reward.",
-    "teleportDescription": "Teleports the player a short distance in the direction of movement"
+    "teleportDescription": "Teleports the player a short distance in the direction of movement",
+    "skillResetPotion": "Skill Reset Potion",
+    "skillResetPotionDescription": "Resets all your learned skills and returns skill points.",
+    "useItem": "Use Item",
+    "skillTreeReset": "Skill tree has been reset"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -513,6 +517,10 @@
     "completeMazesFloor3QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na třetím podlaží a prokažte své pokročilé průzkumnické schopnosti.",
     "defeatObsidarothQuest": "Poraž Obsidarotha",
     "defeatObsidarothQuestDescription": "Poraž Obsidarotha, mocného bosse třetího podlaží, a získej významnou odměnu.",
-    "teleportDescription": "Teleportuje hráče na krátkou vzdálenost ve směru pohybu"
+    "teleportDescription": "Teleportuje hráče na krátkou vzdálenost ve směru pohybu",
+    "skillResetPotion": "Lektvar resetování dovedností",
+    "skillResetPotionDescription": "Resetuje všechny naučené dovednosti a vrátí body dovedností.",
+    "useItem": "Použít předmět",
+    "skillTreeReset": "Strom dovedností byl resetován"
   }
 }

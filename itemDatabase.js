@@ -8,7 +8,8 @@ export const ITEM_TYPES = {
   HP_POTION: 'hpPotion',
   MP_POTION: 'mpPotion',
   POWER_LAPISIA: 'powerLapisia',
-  PROTECTORS_LAPISIA: 'protectorsLapisia'
+  PROTECTORS_LAPISIA: 'protectorsLapisia',
+  SKILL_RESET_POTION: 'skillResetPotion'
 };
   
   // Konstanty pro vzácnosti předmětů
@@ -55,6 +56,18 @@ export const itemDatabase = {
     stackable: true,
     icon: 'inventory/enchant/protectors_lapisia.jpg',
     description: "Used to enchant armor, increasing its protective power."
+  },
+  skillResetPotion: {
+    name: "Skill Reset Potion",
+    type: ITEM_TYPES.SKILL_RESET_POTION,
+    rarity: ITEM_RARITIES.RARE,
+    requiredLevel: 1,
+    sellable: true,
+    sellPrice: 1000,
+    buyPrice: 2000,
+    stackable: true,
+    icon: 'inventory/potions/skill-reset-potion.jpg',
+    description: "Resets all your learned skills and returns skill points."
   },
   healthPotion: {
     name: "Health Potion",

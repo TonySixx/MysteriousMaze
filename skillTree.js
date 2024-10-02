@@ -1,4 +1,4 @@
-import { baseAttackBonus, useSkillPoint } from './player.js';
+import { baseAttackBonus, calculateTotalSkillPoints, setSkillPoints, useSkillPoint } from './player.js';
 import frostboltIcon from './public/spells/frostbolt-icon.png';
 import arcaneMissileIcon from './public/spells/arcane-missile-icon.png';
 import iceExplosionIcon from './public/spells/ice-explosion-icon.png';
@@ -17,7 +17,7 @@ import { getTranslation } from './langUtils.js';
 
 let skillTreeModal = null;
 
-export const skillTree = {
+export var skillTree = {
     fireball: {
         name: 'Fireball',
         systemName: 'fireball',
@@ -141,7 +141,7 @@ export const skillTree = {
         baseDamage: 0
     },
 };
-
+export const defaultSkillTree = structuredClone(skillTree);
 
 export function toggleSkillTree() {
     if (skillTreeModal && skillTreeModal.style.display === 'block') {
@@ -578,6 +578,18 @@ function canUnlockUpgrade(spellKey, upgrade) {
     if (upgradeIndex === 0) return true;
     return spell.upgrades[upgradeIndex - 1].unlocked;
 }
+
+export function resetSkillTree() {
+    skillTree = structuredClone(defaultSkillTree);
+    saveSkillTreeProgress();
+    updateSpellUpgrades(skillTree);
+    updateSkillbar();
+  }
+  
+  export function resetSkillPoints() {
+    setSkillPoints(calculateTotalSkillPoints(playerLevel));
+    updateSkillPointsDisplay();
+  }
 
 export function calculateSpellDamage(spell) {
     let totalDamage = spell.baseDamage + baseAttackBonus;

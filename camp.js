@@ -771,6 +771,7 @@ export function createMerchantItems() {
     createMerchantItem("healthPotion", 10),
     createMerchantItem("manaPotion", 1),
     createMerchantItem("manaPotion", 10),
+    createMerchantItem("skillResetPotion", 1),
   ];
 }
 

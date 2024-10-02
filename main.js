@@ -621,7 +621,7 @@ function processConsoleCommand(command) {
       addExperience(100000);
       break;
     case "gold.cmd":
-      addGold(50);
+      addGold(5000);
       break;
     default:
       console.log("Neznámý příkaz:", command);
