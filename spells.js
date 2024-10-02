@@ -10,7 +10,7 @@ import teleportIcon from './public/spells/teleport-icon.png';
 import { setPlayerMana, updatePlayerManaBar, playerMana } from "./player.js"
 import { bosses } from "./boss.js";
 import { calculateSpellDamage, isSpellUnlocked } from "./skillTree.js";
-import { checkProjectileCollisionWithBosses, createCastEffect, createExplosion, getCameraDirection } from "./utils.js";
+import { checkProjectileCollisionWithBosses, createCastEffect, createExplosion, getCameraDirection, showTeleportEffect } from "./utils.js";
 import { initiateTeleportMove } from "./animate.js";
 
 export let fireBalls = [];
@@ -871,6 +871,9 @@ function castTeleport() {
 
     // Inicializace teleportačního pohybu
     initiateTeleportMove(player.position.clone(), destination);
+
+    // Přidáme volání nové funkce pro zobrazení efektu teleportu
+    showTeleportEffect();
 
     return true;
   }

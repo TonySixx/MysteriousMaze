@@ -411,6 +411,32 @@ export function createExplosion(position, color = 0xff8f45) {
   return explosionGroup;
 }
 
+let lastTeleportEffectTime = 0;
+const teleportEffectCooldown = 500; // 500 ms cooldown
+
+export function showTeleportEffect() {
+  var teleportOverlay = document.getElementById('teleportOverlay');
+  if (!teleportOverlay) {
+    teleportOverlay = createTeleportOverlay();
+  }
+  
+  const currentTime = Date.now();
+  if (currentTime - lastTeleportEffectTime >= teleportEffectCooldown) {
+    teleportOverlay.style.opacity = '0.7';
+    setTimeout(() => {
+      teleportOverlay.style.opacity = '0';
+    }, 300);
+    lastTeleportEffectTime = currentTime;
+  }
+}
+
+function createTeleportOverlay() {
+  const overlay = document.createElement('div');
+  overlay.id = 'teleportOverlay';
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
 export function showDamageEffect() {
   var damageOverlay = document.getElementById('damageOverlay');
   if (!damageOverlay) {
