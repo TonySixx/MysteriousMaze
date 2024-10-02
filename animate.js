@@ -562,36 +562,42 @@ export function updateObsidianBlast(deltaTime) {
 
 export function updateVoidRifts(deltaTime) {
     if (!voidRifts || voidRifts.length === 0) return;
-  
+
     const currentTime = Date.now();
-    voidRifts = voidRifts.filter(({ rift, moveDirection, startTime, duration, roomCenter, roomSize,pullForce,radius,damagePerSecond }) => {
-      const elapsedTime = currentTime - startTime;
-      if (elapsedTime < duration) {
-        const scale = 2 + Math.sin(elapsedTime / 200) * 0.5;
-        rift.scale.set(scale, scale, scale);
-        rift.material.uniforms.time.value = elapsedTime / 1000;
-  
-        // Pohyb riftu s omezením na místnost
-        const newPosition = rift.position.clone().add(moveDirection.clone().multiplyScalar(deltaTime * 60));
-        const distanceFromCenter = newPosition.distanceTo(roomCenter);
-        if (distanceFromCenter <= roomSize / 2) {
-          rift.position.copy(newPosition);
+    voidRifts = voidRifts.filter(({ rift, moveDirection, startTime, duration, roomCenter, roomSize, pullForce, radius, damagePerSecond }) => {
+        // Kontrola, zda je rift stále ve scéně
+        if (!scene.getObjectById(rift.id)) {
+            return false;
+        }
+
+        const elapsedTime = currentTime - startTime;
+        if (elapsedTime < duration) {
+            const scale = 2 + Math.sin(elapsedTime / 200) * 0.5;
+            rift.scale.set(scale, scale, scale);
+            rift.material.uniforms.time.value = elapsedTime / 1000;
+
+            // Pohyb riftu s omezením na místnost
+            const newPosition = rift.position.clone().add(moveDirection.clone().multiplyScalar(deltaTime * 60));
+            const distanceFromCenter = newPosition.distanceTo(roomCenter);
+            if (distanceFromCenter <= roomSize / 2) {
+                rift.position.copy(newPosition);
+            } else {
+                // Pokud by se rift dostal mimo místnost, odrazíme ho
+                moveDirection.negate();
+            }
+
+            const playerToRift = new THREE.Vector3().subVectors(rift.position, player.position);
+            const distance = playerToRift.length();
+            if (distance < radius) {
+                const pullStrength = (1 - distance / radius) * pullForce;
+                player.position.add(playerToRift.normalize().multiplyScalar(pullStrength * deltaTime));
+                const damageThisFrame = damagePerSecond * deltaTime;
+                playerTakeDamage(damageThisFrame);
+            }
+            return true;
         } else {
-          // Pokud by se rift dostal mimo místnost, odrazíme ho
-          moveDirection.negate();
+            scene.remove(rift);
+            return false;
         }
-  
-        const playerToRift = new THREE.Vector3().subVectors(rift.position, player.position);
-        const distance = playerToRift.length();
-        if (distance < radius) { 
-          const pullStrength = (1 - distance / radius) * pullForce;
-          player.position.add(playerToRift.normalize().multiplyScalar(pullStrength * deltaTime));
-          playerTakeDamage(damagePerSecond * deltaTime / 1000);
-        }
-        return true;
-      } else {
-        scene.remove(rift);
-        return false;
-      }
     });
-  }
+}

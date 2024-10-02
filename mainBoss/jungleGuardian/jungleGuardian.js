@@ -141,12 +141,23 @@ export class VineGrabAbility extends Ability {
         new THREE.Vector3(3, 0.5, -3)
       ];
   
+      const dragonStartHeight = 20;
+  
       for (let i = 0; i < this.dragonCount; i++) {
-        const spawnPosition = spawnPositions[i].add(this.boss.position);
+        const targetPosition = spawnPositions[i].add(this.boss.position);
+        const startPosition = targetPosition.clone().setY(dragonStartHeight);
+        
         setBossCounter(bossCounter + 1);
-        const dragon = new Boss(spawnPosition, bossCounter, this.boss.rng, 2,false,null,true);
-        dragon.health = dragon.maxHealth; // Poloviční zdraví pro vyvolané draky
+        const dragon = new Boss(startPosition, bossCounter, this.boss.rng, 2, false, null, true);
+        dragon.health = dragon.maxHealth; 
         bosses.push(dragon);
+  
+        mainBossDragons.push({
+          dragon: dragon,
+          startPosition: startPosition,
+          targetPosition: targetPosition,
+          startTime: performance.now(),
+        });
       }
   
       this.lastUseTime = Date.now();

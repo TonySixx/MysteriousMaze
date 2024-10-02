@@ -105,12 +105,23 @@ export class ShadowCloneAbility extends Ability {
       new THREE.Vector3(3, 0.5, 3),
     ];
 
+    const cloneStartHeight = 20;
+
     for (let i = 0; i < this.cloneCount; i++) {
-      const clonePosition = clonePositions[i].add(this.boss.position);
+      const targetPosition = clonePositions[i].add(this.boss.position);
+      const startPosition = targetPosition.clone().setY(cloneStartHeight);
+      
       setBossCounter(bossCounter + 1);
-      const clone = new Boss(clonePosition, bossCounter, this.boss.rng, 3, false, null, true);
-      clone.health = clone.maxHealth
+      const clone = new Boss(startPosition, bossCounter, this.boss.rng, 3, false, null, true);
+      clone.health = clone.maxHealth;
       bosses.push(clone);
+
+      mainBossDragons.push({
+        dragon: clone,
+        startPosition: startPosition,
+        targetPosition: targetPosition,
+        startTime: performance.now(),
+      });
     }
 
     this.lastUseTime = Date.now();
@@ -124,7 +135,7 @@ export class VoidRiftAbility extends Ability {
     this.cooldown = 10000;
     this.lastUseTime = 0;
     this.duration = 8000; // 8 sekund
-    this.damagePerSecond = 20;
+    this.damagePerSecond = 15;
     this.pullForce = 5;
     this.radius = 6;
     this.riftCount = 3 + Math.floor(Math.random() * 2); // 3 až 4 rifty
