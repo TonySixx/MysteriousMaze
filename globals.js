@@ -38,11 +38,15 @@ window.chainLightningsVisual = [];
 window.fireballExplosions = [];
 window.interactiveObjects = [];
 window.staffSwing = null;
+window.playerSpeed = 6.5;
 
 window.activeVines = [];
 window.seedBurstParticleSystems = [];
 window.obsidianBlastParticleSystems = [];
 window.voidRifts = [];
+window.entanglementBeams = [];
+window.timeDilationEffects = [];
+
 window.activeTeleport = null;
 window.teleportEffects = [];
 
@@ -61,6 +65,8 @@ window.totalBossesInMaze = 0;
 window.goalReached = false;
 
 window.minimapUsed = false;
+
+export const playerDefaultSpeed = 6.5;
 
 export const floorMusic = {
   1: "music/msc_lost.mp3",

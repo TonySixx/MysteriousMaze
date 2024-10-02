@@ -400,7 +400,7 @@ function updatePlayerPosition(deltaTime) {
 
     playerVelocity.set(0, 0, 0);
 
-    const speed = 6.5; // Základní rychlost hráče
+    const speed = window.playerSpeed; // Základní rychlost hráče
     const flySpeed = 6.5; // Rychlost při letu
 
     if (isFlying) {

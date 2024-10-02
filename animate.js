@@ -1,5 +1,6 @@
 import { bosses } from "./boss";
 import { checkMerchantInteraction, updateQuestIndicator } from "./camp";
+import { playerDefaultSpeed } from "./globals";
 import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor } from "./inventory";
 import { getItemName } from "./itemDatabase";
 import { getTranslation } from "./langUtils";
@@ -666,4 +667,52 @@ export function updateTeleportEffects(deltaTime) {
         return false;
       }
     });
+  }
+
+  export function updateTimeDilationEffects(deltaTime) {
+    const currentTime = Date.now();
+    for (let i = timeDilationEffects.length - 1; i >= 0; i--) {
+      const effect = timeDilationEffects[i];
+      const elapsedTime = currentTime - effect.startTime;
+      
+      if (elapsedTime < effect.duration) {
+        // Zpomalení hráče
+        window.playerSpeed = 4;
+      } else {
+        window.playerSpeed = playerDefaultSpeed; // Obnovení normální rychlosti
+        timeDilationEffects.splice(i, 1);
+      }
+    }
+  }
+  
+  export function updateEntanglementBeams(deltaTime) {
+    const currentTime = Date.now();
+    for (let i = entanglementBeams.length - 1; i >= 0; i--) {
+      const beam = entanglementBeams[i];
+      const elapsedTime = currentTime - beam.startTime;
+      
+      if (elapsedTime < beam.duration) {
+        // Výpočet směru k hráči
+        const directionToPlayer = new THREE.Vector3().subVectors(player.position, beam.mesh.position).normalize();
+        
+        // Omezení dosahu paprsku
+        const targetPosition = new THREE.Vector3().addVectors(
+          beam.mesh.position,
+          directionToPlayer.multiplyScalar(Math.min(beam.maxRange, player.position.distanceTo(beam.mesh.position)))
+        );
+        
+        // Pomalejší sledování hráče
+        beam.mesh.position.lerp(targetPosition, 0.05);
+        beam.mesh.lookAt(targetPosition);
+        
+        // Aplikace poškození
+        const distance = player.position.distanceTo(beam.mesh.position);
+        if (distance < 1) {
+          playerTakeDamage(beam.damage * deltaTime);
+        }
+      } else {
+        scene.remove(beam.mesh);
+        entanglementBeams.splice(i, 1);
+      }
+    }
   }

@@ -3,6 +3,7 @@ import { MultiShotAbility, SpawnDragonsAbility } from "./shadowDemon/shadowDemon
 import { CallOfWildAbility, SeedBurstAbility, VineGrabAbility } from "./jungleGuardian/jungleGuardian";
 import { itemDatabase } from "../itemDatabase";
 import { ObsidarothBoss, ObsidianBlastAbility, ShadowCloneAbility, VoidRiftAbility } from "./obsidaroth/obsidaroth";
+import { EntanglementBeamAbility, QuantumGuardianBoss, QuantumLeapAbility, TimeDilationAbility } from "./quantumGuardian/quantumGuardian";
 
 
 export const MAIN_BOSS_TYPES = [
@@ -105,5 +106,44 @@ export const MAIN_BOSS_TYPES = [
     torchSetIndex:4,
     flyDuration: 1,
     size:1.5,
+  },
+  {
+    name: "Quantum Guardian",
+    bossClass: QuantumGuardianBoss,
+    translationKey: "bossFloor4",
+    abilities: [QuantumLeapAbility, TimeDilationAbility, EntanglementBeamAbility],
+    mainMaterial: new THREE.MeshStandardMaterial({
+      color: 0xb8f8ff,
+      metalness: 0.9,
+      roughness: 0.2,
+      emissive: 0xb8f8ff,
+      emissiveIntensity: 2,
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x401154,
+      metalness: 0.7,
+      roughness: 0.3,
+    }),
+    attackColor: new THREE.Color(0xd4f8ff),
+    attackCooldown: 1,
+    emissiveIntensity: 3,
+    maxHealth: 80000,
+    bossHitBoxMarginY: 3.2,
+    bossHitBoxMarginXZ: 2.2,
+    attackSpeed: 0.8,
+    attackSize: 0.7,
+    specialAttackInterval: 12000,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 0.8 },
+      { item: itemDatabase.protectorsLapisia, chance: 0.8 },
+      { item: itemDatabase.greaterHealthPotion, chance: 1 },
+      { item: itemDatabase.greaterManaPotion, chance: 1 },
+    ],
+    ambientLightColor: 0x72839e,
+    nebulaColors: ["#00ffff", "#4d6791"],
+    textureSetIndex: 7,
+    torchSetIndex: 7,
+    flyDuration: 1,
+    size: 1.7,
   },
 ];
