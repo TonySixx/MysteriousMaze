@@ -214,7 +214,26 @@ const questDefinitions = [
             count: 1
         }
     },
-
+    {
+        id: 'defeatQuantumGuardian',
+        name: 'defeatQuantumGuardianQuest',
+        description: 'defeatQuantumGuardianQuestDescription',
+        level: 21,
+        rewards: {
+            exp: 35000,
+            gold: 200,
+            items: [
+                { item: 'powerLapisia', count: 5 },
+                { item: 'protectorsLapisia', count: 5 },
+                { item: 'arcaneRunecloak', count: 1 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Kvantový strážce',
+            count: 1
+        }
+    },
 ];
 
 export function getAllQuests() {

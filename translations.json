@@ -258,7 +258,9 @@
     "skillResetPotion": "Skill Reset Potion",
     "skillResetPotionDescription": "Resets all your learned skills and returns skill points.",
     "useItem": "Use Item",
-    "skillTreeReset": "Skill tree has been reset"
+    "skillTreeReset": "Skill tree has been reset",
+    "defeatQuantumGuardianQuest": "Defeat Quantum Guardian",
+    "defeatQuantumGuardianQuestDescription": "Defeat the Quantum Guardian on the fourth floor and earn a significant reward."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -519,6 +521,8 @@
     "skillResetPotion": "Lektvar resetování dovedností",
     "skillResetPotionDescription": "Resetuje všechny naučené dovednosti a vrátí body dovedností.",
     "useItem": "Použít předmět",
-    "skillTreeReset": "Strom dovedností byl resetován"
+    "skillTreeReset": "Strom dovedností byl resetován",
+    "defeatQuantumGuardianQuest": "Poraž Kvantového strážce",
+    "defeatQuantumGuardianQuestDescription": "Poraž Kvantového strážce na čtvrtém podlaží a získej významnou odměnu."
   }
 }
