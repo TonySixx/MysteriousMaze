@@ -332,7 +332,7 @@ class Boss {
                 startTime: startTime,
                 duration: duration,
                 movementDistance: 60,
-                initialOffset: 100,
+                initialOffset: 50,
                 boss: this
             });
         }
