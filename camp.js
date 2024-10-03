@@ -189,7 +189,6 @@ function createMerchant() {
     action.setLoop(THREE.LoopRepeat);
     action.play();
 
-    merchant.userData.clock = new THREE.Clock();
 
     const potionBottle = createPotionBottle();
     potionBottle.position.set(-0.1, 2.5, 0); // Umístění nad hlavou obchodníka
@@ -281,7 +280,6 @@ function createArmorMerchant() {
     action.setLoop(THREE.LoopRepeat);
     action.play();
 
-    armorMerchant.userData.clock = new THREE.Clock();
 
     const armorIcon = createArmorIcon();
     armorIcon.position.set(0, 2.5, 0);

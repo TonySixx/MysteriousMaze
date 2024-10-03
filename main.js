@@ -110,7 +110,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDamageTexts, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateExpTexts, updateFireballExplosions, updateFrostAuras, updateGoldTexts, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTimeDilationEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTimeDilationEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 
@@ -792,18 +792,6 @@ function clearScene() {
   resetSpells();
 
   teleportParticles = [];
-  damageTexts.forEach((damageText) => {
-    document.body.removeChild(damageText.element);
-  });
-  damageTexts = [];
-  expTexts.forEach((expText) => {
-    document.body.removeChild(expText.element);
-  });
-  expTexts = [];
-  goldTexts.forEach((goldText) => {
-    document.body.removeChild(goldText.element);
-  });
-  goldTexts = [];
   explosions = [];
   bossChestAndPortalData = null;
   mainBossEntryData = null;
@@ -2229,9 +2217,9 @@ function animate() {
   regenerateHealth(deltaTime);
   animateStaffRotation(deltaTime);
   updatePotionCooldowns(deltaTime);
-  updateDamageTexts(currentTime);
-  updateExpTexts(currentTime);
-  updateGoldTexts(currentTime);
+  updateFloatingTexts(damageTexts, currentTime);
+  updateFloatingTexts(expTexts, currentTime);
+  updateFloatingTexts(goldTexts, currentTime);
   updateTeleportParticles(deltaTime, currentTime);
   updateTeleportParticleSystems(deltaTime, currentTime);
   updateMainBossDragons(deltaTime, currentTime);
@@ -2255,7 +2243,7 @@ function animate() {
   updateTimeDilationEffects(deltaTime);
   updateEntanglementBeams(deltaTime);
 
-  animateMerchants();
+  animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);
   animateQuestIndicator(deltaTime);
 

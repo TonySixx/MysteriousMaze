@@ -24,6 +24,7 @@ window.merchants = [];
 window.damageTexts = [];
 window.goldTexts = [];
 window.expTexts = [];
+
 window.teleportParticles = [];
 window.teleportParticleSystems = [];
 window.mainBossDragons = [];

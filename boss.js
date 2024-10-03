@@ -331,6 +331,8 @@ class Boss {
                 element: damageText,
                 startTime: startTime,
                 duration: duration,
+                movementDistance: 60,
+                initialOffset: 100,
                 boss: this
             });
         }
@@ -395,6 +397,8 @@ class Boss {
                 element: expText,
                 startTime: startTime,
                 duration: duration,
+                initialOffset: 100, // Původní hodnota v updateExpTexts
+                movementDistance: 100,
                 boss: this
             });
         }
@@ -420,6 +424,8 @@ class Boss {
                 element: goldText,
                 startTime: startTime,
                 duration: duration,
+                initialOffset: 130, // Původní hodnota v updateGoldTexts
+                movementDistance: 100,
                 boss: this
             });
         }

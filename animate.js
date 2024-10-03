@@ -11,79 +11,57 @@ import { createTeleportEffect, inspectionDuration, inspectionStartTime, isInspec
 import { playerTakeDamage, showMessage, showTimeDilationEffect } from "./utils";
 import * as THREE from "three";
 
-export function animateMerchants() {
+export function animateMerchants(deltaTime) {
+    const time = Date.now() * 0.001;
+    const sinTime = Math.sin(time * 2) * 0.1;
+
     merchants.forEach((merchant) => {
         // Aktualizace animace obchodníka
-        const delta = merchant.userData.clock.getDelta();
-        merchant.userData.mixer.update(delta);
-
-        const time = Date.now() * 0.001;
+        merchant.userData.mixer.update(deltaTime);
 
         // Animace ikonky nad obchodníkem
         if (merchant.userData.armorIcon) {
             const armorIcon = merchant.userData.armorIcon;
-            armorIcon.position.y = 2.5 + Math.sin(time * 2) * 0.1;
+            armorIcon.position.y = 2.5 + sinTime;
             armorIcon.rotation.y = time * 0.5;
         }
 
-        // Animace "pohupování" a rotace potionBottle
+        // Animace potionBottle
         const potionBottle = merchant.userData.potionBottle;
         if (potionBottle) {
-            potionBottle.position.y = 2.5 + Math.sin(time * 2) * 0.1;
+            potionBottle.position.y = 2.5 + sinTime;
         }
 
-        // Kontrola vzdálenosti hráče pro interakci
+        // Kontrola interakce
         checkMerchantInteraction(merchant);
     });
 }
 
 
-export function updateDamageTexts(currentTime) {
-    damageTexts = damageTexts.filter((damageText) => {
-        const elapsed = currentTime - damageText.startTime;
-        if (elapsed < damageText.duration) {
-            const bossScreenPosition = damageText.boss.getScreenPosition();
-            damageText.element.style.left = `${bossScreenPosition.x}px`;
-            damageText.element.style.top = `${bossScreenPosition.y - 50 - (elapsed / damageText.duration) * 50}px`;
-            damageText.element.style.opacity = 1 - (elapsed / damageText.duration);
-            return true;
-        } else {
-            document.body.removeChild(damageText.element);
-            return false;
-        }
-    });
-}
+export function updateFloatingTexts(textArray, currentTime) {
+    textArray = textArray.filter((textItem) => {
+        const elapsed = currentTime - textItem.startTime;
+        if (elapsed < textItem.duration) {
+            const progress = elapsed / textItem.duration;
+            const bossScreenPosition = textItem.boss.getScreenPosition();
 
-export function updateExpTexts(currentTime) {
-    expTexts = expTexts.filter((expText) => {
-        const elapsed = currentTime - expText.startTime;
-        if (elapsed < expText.duration) {
-            const bossScreenPosition = expText.boss.getScreenPosition();
-            expText.element.style.left = `${bossScreenPosition.x}px`;
-            expText.element.style.top = `${bossScreenPosition.y - 100 - (elapsed / expText.duration) * 100}px`;
-            expText.element.style.opacity = 1 - (elapsed / expText.duration);
-            return true;
-        } else {
-            document.body.removeChild(expText.element);
-            return false;
-        }
-    });
-}
+            // Použití individuálních posunů
+            const initialOffset = textItem.initialOffset || 0;
+            const movementDistance = textItem.movementDistance || 0;
 
-export function updateGoldTexts(currentTime) {
-    goldTexts = goldTexts.filter((goldText) => {
-        const elapsed = currentTime - goldText.startTime;
-        if (elapsed < goldText.duration) {
-            const bossScreenPosition = goldText.boss.getScreenPosition();
-            goldText.element.style.left = `${bossScreenPosition.x}px`;
-            goldText.element.style.top = `${bossScreenPosition.y - 130 - (elapsed / goldText.duration) * 100}px`;
-            goldText.element.style.opacity = 1 - (elapsed / goldText.duration);
+            textItem.element.style.left = `${bossScreenPosition.x}px`;
+            textItem.element.style.top = `${bossScreenPosition.y - initialOffset - progress * movementDistance}px`;
+            textItem.element.style.opacity = 1 - progress;
             return true;
         } else {
-            document.body.removeChild(goldText.element);
+            // Zkontrolujeme, zda má prvek rodiče
+            if (textItem.element.parentNode) {
+                textItem.element.parentNode.removeChild(textItem.element);
+            }
             return false;
         }
     });
+    return textArray;
 }
 
 export function updateTeleportParticles(deltaTime, currentTime) {
@@ -108,17 +86,27 @@ export function updateTeleportParticles(deltaTime, currentTime) {
 }
 
 export function updateTeleportParticleSystems(deltaTime, currentTime) {
+    const playerPosition = player.position;
+
     for (let i = teleportParticleSystems.length - 1; i >= 0; i--) {
         const particleSystem = teleportParticleSystems[i];
 
+        // Kontrola vzdálenosti od hráče
+        if (particleSystem.position.distanceTo(playerPosition) > 25) {
+            scene.remove(particleSystem);
+            teleportParticleSystems.splice(i, 1);
+            continue;
+        }
+
+        // Aktualizace animace
         particleSystem.rotation.x += 0.01 * deltaTime;
         particleSystem.rotation.y += 0.01 * deltaTime;
 
         const scale = 1 + 0.1 * Math.sin(currentTime * 0.005);
         particleSystem.scale.set(scale, scale, scale);
 
-        // Zde můžete přidat logiku pro odstranění částic po určitém čase
-        if (currentTime - particleSystem.creationTime > 2000) { // například po 2 sekundách
+        // Odstranění po určitém čase
+        if (currentTime - particleSystem.creationTime > 2000) {
             scene.remove(particleSystem);
             teleportParticleSystems.splice(i, 1);
         }
@@ -615,34 +603,29 @@ export function initiateTeleportMove(startPosition, destination) {
 }
 
 export function updateTeleportMove(deltaTime) {
-  if (!activeTeleport) return;
+    if (!activeTeleport) return;
 
-  const step = Math.min(activeTeleport.teleportSpeed * deltaTime, activeTeleport.totalDistance - activeTeleport.distanceTraveled);
-  const newPosition = new THREE.Vector3().lerpVectors(
-    activeTeleport.startPosition,
-    activeTeleport.destination,
-    (activeTeleport.distanceTraveled + step) / activeTeleport.totalDistance
-  );
+    const step = Math.min(activeTeleport.teleportSpeed * deltaTime, activeTeleport.totalDistance - activeTeleport.distanceTraveled);
+    const t = (activeTeleport.distanceTraveled + step) / activeTeleport.totalDistance;
 
-  // Použijeme funkci checkCollisions pro kontrolu kolize s novou pozicí
-  const { collision } = checkCollisions(newPosition);
+    // Přímý výpočet pozice
+    player.position.lerpVectors(activeTeleport.startPosition, activeTeleport.destination, t);
 
-  if (collision) {
-    // Pokud dojde ke kolizi, zastavíme teleport
-    createTeleportEffect(player.position);
-    activeTeleport = null;
-    return;
-  }
+    // Kontrola kolizí
+    const { collision } = checkCollisions(player.position);
 
-  // Aktualizujeme pozici hráče
-  player.position.copy(newPosition);
-  activeTeleport.distanceTraveled += step;
+    if (collision) {
+        createTeleportEffect(player.position);
+        activeTeleport = null;
+        return;
+    }
 
-  if (activeTeleport.distanceTraveled >= activeTeleport.totalDistance) {
-    // Teleport dokončen
-    createTeleportEffect(player.position);
-    activeTeleport = null;
-  }
+    activeTeleport.distanceTraveled += step;
+
+    if (activeTeleport.distanceTraveled >= activeTeleport.totalDistance) {
+        createTeleportEffect(player.position);
+        activeTeleport = null;
+    }
 }
 
 export function updateTeleportEffects(deltaTime) {
