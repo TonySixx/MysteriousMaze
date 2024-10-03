@@ -701,19 +701,29 @@ class Boss {
         const particleCount = isMainBoss ? 1500 : 1000; // Více částic pro hlavního bosse
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
+        const velocities = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
     
         for (let i = 0; i < particleCount; i++) {
-            positions[i * 3] = (Math.random() - 0.5) * (isMainBoss ? 8 : 5); // Větší rozptyl pro hlavního bosse
-            positions[i * 3 + 1] = Math.random() * (isMainBoss ? 8 : 5);
-            positions[i * 3 + 2] = (Math.random() - 0.5) * (isMainBoss ? 8 : 5);
+            const angle = Math.random() * Math.PI * 2;
+            const zAngle = Math.random() * Math.PI - Math.PI / 2;
+            const radius = Math.random() * (isMainBoss ? 8 : 5);
     
+            positions[i * 3] = Math.cos(angle) * Math.cos(zAngle) * radius;
+            positions[i * 3 + 1] = Math.sin(zAngle) * radius;
+            positions[i * 3 + 2] = Math.sin(angle) * Math.cos(zAngle) * radius;
+
             colors[i * 3] = Math.random();
             colors[i * 3 + 1] = Math.random();
             colors[i * 3 + 2] = Math.random();
+    
+            velocities[i * 3] = Math.cos(angle) * Math.cos(zAngle) * (Math.random() * 0.5 + 0.5);
+            velocities[i * 3 + 1] = Math.sin(zAngle) * (Math.random() * 0.5 + 0.5);
+            velocities[i * 3 + 2] = Math.sin(angle) * Math.cos(zAngle) * (Math.random() * 0.5 + 0.5);
         }
     
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     
         const material = new THREE.PointsMaterial({
