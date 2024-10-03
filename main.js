@@ -2156,38 +2156,31 @@ function updateVisibleObjects() {
   );
   frustum.setFromProjectionMatrix(matrix);
 
-  const visibilityDistance = 50; // Maximální vzdálenost viditelnosti
+  const visibilityDistance = 50;
+  const visibilityDistanceSquared = visibilityDistance * visibilityDistance;
 
   // Aktualizace viditelnosti zdí
   walls.forEach((wall) => {
-    if (
-      frustum.intersectsObject(wall) &&
-      wall.position.distanceTo(player.position) < visibilityDistance
-    ) {
-      if (wall.visible === false) {
-        wall.visible = true;
-      }
-    } else {
-      if (wall.visible === true) {
-        wall.visible = false;
-      }
+    const isVisible = frustum.intersectsObject(wall); //&& wall.position.distanceToSquared(player.position) < visibilityDistanceSquared;
+            
+
+    if (wall.visible !== isVisible) {
+      wall.visible = isVisible;
     }
   });
 
-  torches.forEach((torches) => {
-    if (
-      frustum.intersectsObject(torches.torch) &&
-      torches.torch.position.distanceTo(player.position) < visibilityDistance
-    ) {
-      if (torches.torch.visible === false && torches.fire.visible === false) {
-        torches.torch.visible = true;
-        torches.fire.visible = true;
-      }
-    } else {
-      if (torches.torch.visible === true && torches.fire.visible === true) {
-        torches.torch.visible = false;
-        torches.fire.visible = false;
-      }
+  // Aktualizace viditelnosti pochodní
+  torches.forEach((torchData) => {
+    const torch = torchData.torch;
+    const fire = torchData.fire;
+
+    const isVisible =
+      frustum.intersectsObject(torch); //&& torch.position.distanceToSquared(player.position) < visibilityDistanceSquared;
+       
+
+    if (torch.visible !== isVisible) {
+      torch.visible = isVisible;
+      fire.visible = isVisible;
     }
   });
 }
