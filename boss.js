@@ -48,6 +48,7 @@ class Boss {
         this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
         this.attackCooldown = this.type.attackCooldown;
         this.attackSpeed = this.type.attackSpeed;
+        this.attackDamage = this.type.attackDamage || 20;
         this.attackSize = this.type.attackSize || 0.2;
         this.bossHitBoxMarginXZ = this.type.bossHitBoxMarginXZ || 1.4;
         this.bossHitBoxMarginY = this.type.bossHitBoxMarginY || 1.4;
@@ -780,7 +781,8 @@ class Boss {
         // Nastavení rychlosti na základě rng, v rozmezí 0.2 - 0.3
         const speed = magicBallSpeed ? magicBallSpeed : 0.2 + this.rng() * 0.1;
         magicBall.velocity = direction.multiplyScalar(speed);
-
+        
+        magicBall.attackDamage = this.attackDamage;
         return magicBall;
     }
 

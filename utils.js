@@ -485,6 +485,22 @@ function createDamageOverlay() {
   return overlay;
 }
 
+
+function createTimeDilationOverlay() {
+  const overlay = document.createElement('div');
+  overlay.id = 'timeDilationOverlay';
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+export function showTimeDilationEffect() {
+  const overlay = document.getElementById('timeDilationOverlay') || createTimeDilationOverlay();
+  overlay.style.opacity = '1';
+  setTimeout(() => {
+    overlay.style.opacity = '0';
+  }, 300);
+}
+
 export function updateMagicBalls(deltaTime) {
   for (let i = magicBalls.length - 1; i >= 0; i--) {
     const magicBall = magicBalls[i];
@@ -504,7 +520,7 @@ export function updateMagicBalls(deltaTime) {
       if (magicBall.isFrostbolt) {
         freezePlayer();
       } else {
-        playerTakeDamage(20);
+        playerTakeDamage(magicBall.attackDamage);
       }
       createExplosion(magicBall.position, magicBall.material.color.getHex());
       scene.remove(magicBall);

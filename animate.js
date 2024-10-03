@@ -8,7 +8,7 @@ import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, se
 import { checkCollisions, player } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { createTeleportEffect, inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
-import { playerTakeDamage, showMessage } from "./utils";
+import { playerTakeDamage, showMessage, showTimeDilationEffect } from "./utils";
 import * as THREE from "three";
 
 export function animateMerchants() {
@@ -678,13 +678,23 @@ export function updateTeleportEffects(deltaTime) {
       if (elapsedTime < effect.duration) {
         // Zpomalení hráče
         window.playerSpeed = 4;
+        showTimeDilationEffect();
+        
+        // Aktualizace vizuálního efektu
+        if (effect.mesh) {
+          effect.mesh.material.uniforms.time.value = elapsedTime / 1000;
+          effect.mesh.scale.setScalar(1 + Math.sin(elapsedTime / 200) * 0.1);
+        }
       } else {
         window.playerSpeed = playerDefaultSpeed; // Obnovení normální rychlosti
+        if (effect.mesh) {
+          scene.remove(effect.mesh);
+        }
         timeDilationEffects.splice(i, 1);
       }
     }
   }
-  
+
   export function updateEntanglementBeams(deltaTime) {
     const currentTime = Date.now();
     for (let i = entanglementBeams.length - 1; i >= 0; i--) {

@@ -79,7 +79,7 @@ import {
   updateStaffVisibility,
 } from "./inventory.js";
 import { createMainMenu, stopMainTheme } from "./mainMenu.js";
-import { floorsConfig, textureSets } from "./globals.js";
+import { floorsConfig, playerDefaultSpeed, textureSets } from "./globals.js";
 import {
   displayScores,
   filterScores,
@@ -205,6 +205,8 @@ export var potionSoundBuffer;
 export var levelUpSoundBuffer;
 export var seedBurstSoundBuffer;
 export var vineGrabSoundBuffer;
+export var slowSoundBuffer;
+export var blowSoundBuffer;
 export var spell1SoundBuffer;
 export var hurtSoundBuffer;
 export var voidRiftSoundBuffer;
@@ -425,6 +427,14 @@ export async function init() {
 
   audioLoader.load("sounds/snd_void_rift.wav", function (buffer) {
     voidRiftSoundBuffer = buffer;
+  });
+
+  audioLoader.load("sounds/snd_slow_down.wav", function (buffer) {
+    slowSoundBuffer = buffer;
+  });
+
+  audioLoader.load("sounds/snd_blow.mp3", function (buffer) {
+    blowSoundBuffer = buffer;
   });
 
   loadPlayerProgress();
@@ -811,7 +821,17 @@ function clearScene() {
   activeVines = [];
   seedBurstParticleSystems = [];
   voidRifts = [];
+  timeDilationEffects = [];
+  entanglementBeams = [];
 
+   // Resetování rychlosti hráče na výchozí hodnotu
+   window.playerSpeed = playerDefaultSpeed;
+
+   // Odstranění vizuálních efektů z obrazovky
+   const timeDilationOverlay = document.getElementById('timeDilationOverlay');
+   if (timeDilationOverlay) {
+     timeDilationOverlay.remove();
+   }
 
 
   // Vyčistíme kontejner pro zdraví bosse
@@ -873,7 +893,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
       textureSet: textureSets[bossType.textureSetIndex || bossIndex + 1],
       torchColor: textureSets[bossType.torchSetIndex || 1].torchColor.light,
       bossType: bossType, 
-      spawnDelay: 5000,
+      spawnDelay: 6000,
       countdownDuration: 5,
       roomAmbientLightColor: new THREE.Color(bossType.ambientLightColor),
       roomAmbientLightIntensity: 0.5,

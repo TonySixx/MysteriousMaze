@@ -128,8 +128,8 @@ export const MAIN_BOSS_TYPES = [
     attackCooldown: 1,
     emissiveIntensity: 3,
     maxHealth: 80000,
-    bossHitBoxMarginY: 3.2,
-    bossHitBoxMarginXZ: 2.2,
+    bossHitBoxMarginY: 3.5,
+    bossHitBoxMarginXZ: 2.4,
     attackSpeed: 0.8,
     attackSize: 0.7,
     specialAttackInterval: 12000,
@@ -145,5 +145,6 @@ export const MAIN_BOSS_TYPES = [
     torchSetIndex: 7,
     flyDuration: 1,
     size: 1.7,
+    attackDamage: 30,
   },
 ];
