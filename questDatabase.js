@@ -234,6 +234,27 @@ const questDefinitions = [
             count: 1
         }
     },
+    {
+        id: 'completeMazesFloor4',
+        name: 'completeMazesFloor4Quest',
+        description: 'completeMazesFloor4QuestDescription',
+        level: 21,
+        rewards: {
+            exp: 30000,
+            gold: 150,
+            items: [
+                { item: 'ultimateHealthPotion', count: 2 },
+                { item: 'ultimateManaPotion', count: 2 },
+                { item: 'protectorsLapisia', count: 3 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 4
+        }
+    },
 ];
 
 export function getAllQuests() {
