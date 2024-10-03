@@ -19,6 +19,7 @@ export function setBossCounter(value) {
 }
 
 
+
 class Boss {
     constructor(position, id, rng, floor, isMainBoss = false, type = null, dontDropKey = false) {
         this.isMainBoss = isMainBoss;
@@ -266,7 +267,7 @@ class Boss {
             this.burningTimer -= deltaTime * 1000;
             const currentTime = Date.now();
             if (currentTime - this.lastBurningDamageTime >= 500) { // každých 0.5 sekundy
-                this.takeDamage(20 + (calculatePlayerDamage()* 0.1));
+                this.takeDamage(20 + (calculatePlayerDamage() * 0.1));
                 this.lastBurningDamageTime = currentTime;
             }
             if (this.burningTimer <= 0) {
@@ -450,6 +451,10 @@ class Boss {
             bossHealthElement.remove();
         }
 
+        // Vytvoření efektu smrti
+        this.createDeathEffect(this.isMainBoss);
+
+
         // Výpočet zkušeností za zabití bosse
         const playerLevel = getPlayerLevel(); // Předpokládáme, že tato funkce existuje
         const bossLevel = this.floor * 1; // Každé podlaží odpovídá 1 úrovni bosse
@@ -617,7 +622,7 @@ class Boss {
 
         // Damage player if within blast radius
         if (player.position.distanceTo(this.position) < blastRadius) {
-           playerTakeDamage(20);
+            playerTakeDamage(20);
             updatePlayerHealthBar();
             if (playerHealth <= 0) {
                 playerDeath();
@@ -690,6 +695,44 @@ class Boss {
         }
 
         return originalPosition; // Vrátíme původní pozici, pokud nebyla nalezena žádná bezpečná pozice
+    }
+
+    createDeathEffect(isMainBoss) {
+        const particleCount = isMainBoss ? 1500 : 1000; // Více částic pro hlavního bosse
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+    
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * (isMainBoss ? 8 : 5); // Větší rozptyl pro hlavního bosse
+            positions[i * 3 + 1] = Math.random() * (isMainBoss ? 8 : 5);
+            positions[i * 3 + 2] = (Math.random() - 0.5) * (isMainBoss ? 8 : 5);
+    
+            colors[i * 3] = Math.random();
+            colors[i * 3 + 1] = Math.random();
+            colors[i * 3 + 2] = Math.random();
+        }
+    
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+        const material = new THREE.PointsMaterial({
+            size: isMainBoss ? 0.2 : 0.1, // Větší velikost částic pro hlavního bosse
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            opacity: 0.8
+        });
+    
+        const particles = new THREE.Points(geometry, material);
+        particles.position.copy(this.position);
+        scene.add(particles);
+    
+        // Přidáme částice do pole pro pozdější odstranění
+        deathParticles.push({
+            particles: particles,
+            creationTime: performance.now()
+        });
     }
 
     createTeleportParticles(position) {
@@ -781,7 +824,7 @@ class Boss {
         // Nastavení rychlosti na základě rng, v rozmezí 0.2 - 0.3
         const speed = magicBallSpeed ? magicBallSpeed : 0.2 + this.rng() * 0.1;
         magicBall.velocity = direction.multiplyScalar(speed);
-        
+
         magicBall.attackDamage = this.attackDamage;
         return magicBall;
     }

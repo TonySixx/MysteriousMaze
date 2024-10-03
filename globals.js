@@ -38,6 +38,7 @@ window.chainLightningsVisual = [];
 window.fireballExplosions = [];
 window.interactiveObjects = [];
 window.staffSwing = null;
+window.deathParticles = [];
 window.playerSpeed = 6.5;
 
 window.activeVines = [];

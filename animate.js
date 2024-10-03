@@ -726,3 +726,24 @@ export function updateTeleportEffects(deltaTime) {
       }
     }
   }
+
+  export function updateDeathParticles(deltaTime, currentTime) {
+    for (let i = deathParticles.length - 1; i >= 0; i--) {
+        const particleSystem = deathParticles[i];
+        const positions = particleSystem.particles.geometry.attributes.position.array;
+
+        for (let j = 0; j < positions.length; j += 3) {
+            positions[j] += (Math.random() - 0.5) * 0.1;
+            positions[j + 1] += 0.1;
+            positions[j + 2] += (Math.random() - 0.5) * 0.1;
+        }
+
+        particleSystem.particles.geometry.attributes.position.needsUpdate = true;
+        particleSystem.particles.material.opacity -= 0.02;
+
+        if (particleSystem.particles.material.opacity <= 0 || currentTime - particleSystem.creationTime > 2000) {
+            scene.remove(particleSystem.particles);
+            deathParticles.splice(i, 1);
+        }
+    }
+}
