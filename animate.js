@@ -4,7 +4,7 @@ import { playerDefaultSpeed } from "./globals";
 import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor } from "./inventory";
 import { getItemName } from "./itemDatabase";
 import { getTranslation } from "./langUtils";
-import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
+import { CELL_SIZE, chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
 import { player,checkCollisions } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { createTeleportEffect, inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
@@ -804,4 +804,208 @@ export function updateChronoNovaEffects(deltaTime) {
       chronoNovaEffects.splice(i, 1);
     }
   }
+}
+
+export function updatePoisonClouds(deltaTime) {
+  const currentTime = Date.now();
+  for (let i = poisonClouds.length - 1; i >= 0; i--) {
+    const cloud = poisonClouds[i];
+    const elapsedTime = currentTime - cloud.startTime;
+    
+    if (elapsedTime < cloud.duration) {
+      // Aktualizace shaderu
+      cloud.mesh.material.uniforms.time.value = elapsedTime / 1000;
+      
+      // Pohyb mraku
+      const movement = cloud.direction.clone().multiplyScalar(cloud.speed * deltaTime);
+      cloud.mesh.position.add(movement);
+
+      // Kontrola kolize se stěnami a změna směru
+      const halfMazeSize = (10 * CELL_SIZE) / 2;
+      if (Math.abs(cloud.mesh.position.x) > halfMazeSize - cloud.radius || 
+          Math.abs(cloud.mesh.position.z) > halfMazeSize - cloud.radius) {
+        cloud.direction.reflect(new THREE.Vector3(
+          Math.abs(cloud.mesh.position.x) > halfMazeSize - cloud.radius ? 1 : 0,
+          0,
+          Math.abs(cloud.mesh.position.z) > halfMazeSize - cloud.radius ? 1 : 0
+        ).normalize());
+      }
+      
+      // Kontrola poškození hráče
+      if (player.position.distanceTo(cloud.mesh.position) <= cloud.radius) {
+        playerTakeDamage(cloud.damagePerSecond * deltaTime);
+      }
+
+      // Přidání částicového efektu
+      if (Math.random() < deltaTime * 30) { // Kontrola pro omezení počtu částic
+        addPoisonParticle(cloud.mesh.position, cloud.radius);
+      }
+    } else {
+      scene.remove(cloud.mesh);
+      cloud.mesh.geometry.dispose();
+      cloud.mesh.material.dispose();
+      poisonClouds.splice(i, 1);
+    }
+  }
+}
+
+function addPoisonParticle(position, radius) {
+  const particle = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0x00FF00, transparent: true, opacity: 0.7 })
+  );
+  particle.position.copy(position).add(new THREE.Vector3(
+    (Math.random() - 0.5) * radius * 2,
+    (Math.random() - 0.5) * radius * 2,
+    (Math.random() - 0.5) * radius * 2
+  ));
+  scene.add(particle);
+
+  const duration = 1000 + Math.random() * 1000;
+  const startTime = Date.now();
+
+  function animateParticle() {
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime < duration) {
+      particle.position.y += 0.01;
+      particle.material.opacity = 0.7 * (1 - elapsedTime / duration);
+      requestAnimationFrame(animateParticle);
+    } else {
+      scene.remove(particle);
+      particle.geometry.dispose();
+      particle.material.dispose();
+    }
+  }
+
+  animateParticle();
+}
+
+export function updateAcidSprays(deltaTime) {
+  const currentTime = Date.now();
+  for (let i = acidSprays.length - 1; i >= 0; i--) {
+    const spray = acidSprays[i];
+    const elapsedTime = currentTime - spray.startTime;
+    
+    if (elapsedTime < spray.duration) {
+      spray.group.position.add(spray.velocity.clone().multiplyScalar(deltaTime * 60));
+      
+      // Aktualizace vlastních efektů
+      if (spray.update) {
+        spray.update(deltaTime);
+      }
+      
+      // Kontrola, zda střela dosáhla cíle
+      if (spray.group.position.distanceTo(spray.targetPosition) < 0.5) {
+        // Vytvoření efektu exploze při dopadu
+        createAcidExplosion(spray.targetPosition);
+        
+        // Kontrola kolize s hráčem
+        if (player.position.distanceTo(spray.targetPosition) <= 1.5) {
+          playerTakeDamage(spray.damage);
+        }
+        
+        scene.remove(spray.group);
+        acidSprays.splice(i, 1);
+      }
+    } else {
+      scene.remove(spray.group);
+      acidSprays.splice(i, 1);
+    }
+  }
+}
+
+function createAcidExplosion(position) {
+  const explosionGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+  const explosionMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      time: { value: 0 },
+      color: { value: new THREE.Color(0xAAFF00) }
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float time;
+      uniform vec3 color;
+      varying vec2 vUv;
+      void main() {
+        float alpha = 1.0 - smoothstep(0.0, 1.0, time);
+        gl_FragColor = vec4(color, alpha);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide
+  });
+
+  const explosion = new THREE.Mesh(explosionGeometry, explosionMaterial);
+  explosion.position.copy(position);
+  scene.add(explosion);
+
+  const startTime = Date.now();
+  const duration = 500; // 0.5 sekundy
+
+  function animateExplosion() {
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime < duration) {
+      const progress = elapsedTime / duration;
+      explosion.scale.setScalar(1 + progress * 3); // Zvětšení exploze
+      explosion.material.uniforms.time.value = progress;
+      requestAnimationFrame(animateExplosion);
+    } else {
+      scene.remove(explosion);
+      explosion.geometry.dispose();
+      explosion.material.dispose();
+    }
+  }
+
+  animateExplosion();
+
+  // Přidání částicového efektu
+  const particleCount = 50;
+  const particleGeometry = new THREE.BufferGeometry();
+  const particlePositions = new Float32Array(particleCount * 3);
+  const particleMaterial = new THREE.PointsMaterial({
+    color: 0xAAFF00,
+    size: 0.1,
+    transparent: true,
+    blending: THREE.AdditiveBlending
+  });
+
+  for (let i = 0; i < particleCount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.random() * 1.5;
+    particlePositions[i * 3] = Math.cos(angle) * radius;
+    particlePositions[i * 3 + 1] = Math.sin(angle) * radius;
+    particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 2;
+  }
+
+  particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+  const particles = new THREE.Points(particleGeometry, particleMaterial);
+  particles.position.copy(position);
+  scene.add(particles);
+
+  function animateParticles() {
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime < duration) {
+      const positions = particles.geometry.attributes.position.array;
+      for (let i = 0; i < positions.length; i += 3) {
+        positions[i] *= 1.05;
+        positions[i + 1] *= 1.05;
+        positions[i + 2] *= 1.05;
+      }
+      particles.geometry.attributes.position.needsUpdate = true;
+      particles.material.opacity = 1 - elapsedTime / duration;
+      requestAnimationFrame(animateParticles);
+    } else {
+      scene.remove(particles);
+      particles.geometry.dispose();
+      particles.material.dispose();
+    }
+  }
+
+  animateParticles();
 }

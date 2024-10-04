@@ -269,7 +269,10 @@
     "completeMazesFloor4QuestDescription": "Complete 3 different mazes (with unique seeds) on the fourth floor to prove your expert exploration skills.",
     "bossFloor5": "Chronos, Lord of Time",
     "defeatChronosQuest": "Defeat Chronos",
-    "defeatChronosQuestDescription": "Defeat Chronos, the Lord of Time, on the fifth floor and claim reward."
+    "defeatChronosQuestDescription": "Defeat Chronos, the Lord of Time, on the fifth floor and claim reward.",
+    "bossFloor6": "Toxicus, Lord of Plague",
+    "defeatToxicusQuest": "Defeat Toxicus",
+    "defeatToxicusQuestDescription": "Defeat Toxicus, the Lord of Plague, on the sixth floor and claim your reward."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -541,6 +544,9 @@
     "completeMazesFloor4QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na čtvrtém podlaží a prokažte své expertní průzkumnické schopnosti.",
     "bossFloor5": "Chronos, Pán času",
     "defeatChronosQuest": "Poraž Chronose",
-    "defeatChronosQuestDescription": "Poraž Chronose, Pána času, na pátém podlaží a získej odměnu."
+    "defeatChronosQuestDescription": "Poraž Chronose, Pána času, na pátém podlaží a získej odměnu.",
+    "bossFloor6": "Toxicus, Pán moru",
+    "defeatToxicusQuest": "Poraž Toxicuse",
+    "defeatToxicusQuestDescription": "Poraž Toxicuse, Pána moru, na šestém podlaží a získej svou odměnu."
   }
 }

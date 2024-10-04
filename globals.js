@@ -48,6 +48,8 @@ window.obsidianBlastParticleSystems = [];
 window.voidRifts = [];
 window.entanglementBeams = [];
 window.timeDilationEffects = [];
+window.poisonClouds = [];
+window.acidSprays = [];
 
 window.activeTeleport = null;
 window.teleportEffects = [];
@@ -357,3 +359,4 @@ export const textureSets = [
       bossProbability: 1
     }
   };
+

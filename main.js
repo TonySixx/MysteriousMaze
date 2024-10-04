@@ -110,7 +110,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateChronoNovaEffects, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTemporalEchoes, updateTimeDilationEffects, updateTimeWarpEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateAcidSprays, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateChronoNovaEffects, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updatePoisonClouds, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTemporalEchoes, updateTimeDilationEffects, updateTimeWarpEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 import { ChronoNovaAbility } from "./mainBoss/chronos/chronos.js";
@@ -2304,6 +2304,8 @@ function animate() {
   updateTimeWarpEffects(deltaTime);
   updateTemporalEchoes(deltaTime);
   updateChronoNovaEffects(deltaTime);
+  updatePoisonClouds(deltaTime);
+  updateAcidSprays(deltaTime);
 
   animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);
@@ -2505,7 +2507,8 @@ export function canSelectFloor(floor) {
   if (floor === 101) return playerLevel >= 12;
   if (floor === 102) return playerLevel >= 16;
   if (floor === 103) return playerLevel >= 21;
-  if (floor === 104) return playerLevel >= 26; // Nové podlaží pro pátého bosse
+  if (floor === 104) return playerLevel >= 26;
+  if (floor === 105) return playerLevel >= 31;
   return false;
 }
 

@@ -5,6 +5,7 @@ import { itemDatabase } from "../itemDatabase";
 import { ObsidarothBoss, ObsidianBlastAbility, ShadowCloneAbility, VoidRiftAbility } from "./obsidaroth/obsidaroth";
 import { EntanglementBeamAbility, QuantumGuardianBoss, QuantumLeapAbility, TimeDilationAbility } from "./quantumGuardian/quantumGuardian";
 import { ChronosBoss, TimeWarpAbility, TemporalEchoAbility, ChronoNovaAbility } from "./chronos/chronos";
+import { ToxicusBoss, PoisonCloudAbility, AcidSprayAbility } from "./toxicus/toxicus";
 
 export const MAIN_BOSS_TYPES = [
   {
@@ -191,5 +192,46 @@ export const MAIN_BOSS_TYPES = [
     flyDuration: 1,
     size: 2,
     attackDamage: 40,
+  },
+  {
+    name: "Toxicus, Pán moru",
+    bossClass: ToxicusBoss,
+    translationKey: "bossFloor6",
+    abilities: [PoisonCloudAbility, AcidSprayAbility],
+    mainMaterial: new THREE.MeshStandardMaterial({
+      color: 0x2e8b57,
+      metalness: 0.7,
+      roughness: 0.3,
+      emissive: 0x32cd32,
+      emissiveIntensity: 0.5,
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x8fbc8f,
+      metalness: 0.5,
+      roughness: 0.5,
+    }),
+    attackColor: new THREE.Color(0x33cc36),
+    attackCooldown: 0.8,
+    emissiveIntensity: 3,
+    maxHealth: 160000,
+    bossHitBoxMarginY: 4,
+    bossHitBoxMarginXZ: 2.6,
+    attackSpeed: 1.0,
+    attackSize: 0.9,
+    specialAttackInterval: 12000,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 0.6 },
+      { item: itemDatabase.protectorsLapisia, chance: 0.6 },
+      { item: itemDatabase.ultimateHealthPotion, chance: 0.4 },
+      { item: itemDatabase.ultimateManaPotion, chance: 0.4 },
+      { item: itemDatabase.venomskullStaff, chance: 0.2 },
+    ],
+    ambientLightColor: 0x396060,
+    nebulaColors: ["#89d973", "#00662c"],
+    textureSetIndex: 10,
+    torchSetIndex: 10,
+    flyDuration: 1,
+    size: 2,
+    attackDamage: 50,
   },
 ];
