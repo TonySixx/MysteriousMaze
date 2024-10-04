@@ -273,7 +273,9 @@
     "bossFloor6": "Toxicus, Lord of Plague",
     "defeatToxicusQuest": "Defeat Toxicus",
     "defeatToxicusQuestDescription": "Defeat Toxicus, the Lord of Plague, on the sixth floor and claim your reward.",
-    "bossFloor7": "Frostlord, Lord of Ice"
+    "bossFloor7": "Frostlord, Lord of Ice",
+    "defeatFrostlordQuest": "Defeat Frostlord",
+    "defeatFrostlordQuestDescription": "Defeat Frostlord, the Lord of Ice, on the seventh floor and claim your ultimate reward."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -549,6 +551,8 @@
     "bossFloor6": "Toxicus, Pán moru",
     "defeatToxicusQuest": "Poraž Toxicuse",
     "defeatToxicusQuestDescription": "Poraž Toxicuse, Pána moru, na šestém podlaží a získej svou odměnu.",
-    "bossFloor7": "Frostlord, Vládce ledu"
+    "bossFloor7": "Frostlord, Vládce ledu",
+    "defeatFrostlordQuest": "Poraž Frostlorda",
+    "defeatFrostlordQuestDescription": "Poraž Frostlorda, Vládce ledu, na sedmém podlaží a získej svou ultimátní odměnu."
   }
 }

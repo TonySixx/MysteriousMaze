@@ -259,7 +259,7 @@ const questDefinitions = [
         id: 'defeatChronos',
         name: 'defeatChronosQuest',
         description: 'defeatChronosQuestDescription',
-        level: 21,
+        level: 26,
         rewards: {
             exp: 100000,
             gold: 150,
@@ -281,7 +281,7 @@ const questDefinitions = [
         id: 'defeatToxicus',
         name: 'defeatToxicusQuest',
         description: 'defeatToxicusQuestDescription',
-        level: 26,
+        level: 31,
         rewards: {
             exp: 200000,
             gold: 200,
@@ -298,6 +298,25 @@ const questDefinitions = [
             count: 1
         }
     },
+    {
+        id: 'defeatFrostlord',
+        name: 'defeatFrostlordQuest',
+        description: 'defeatFrostlordQuestDescription',
+        level: 36,
+        rewards: {
+            exp: 350000,
+            gold: 300,
+            items: [
+                { item: 'powerLapisia', count: 7 },
+                { item: 'protectorsLapisia', count: 7 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Frostlord, Vládce ledu',
+            count: 1
+        }
+    }
 ];
 
 export function getAllQuests() {
