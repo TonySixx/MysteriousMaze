@@ -74,6 +74,9 @@ window.timeWarpEffects = [];
 window.temporalEchoes = [];
 window.chronoNovaEffects = [];
 
+window.acidExplosions = [];
+window.poisonParticles = [];
+
 export const playerDefaultSpeed = 6.5;
 
 export const floorMusic = {
@@ -359,4 +362,3 @@ export const textureSets = [
       bossProbability: 1
     }
   };
-

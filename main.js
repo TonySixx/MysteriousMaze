@@ -110,7 +110,7 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateAcidSprays, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateChronoNovaEffects, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updatePoisonClouds, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTemporalEchoes, updateTimeDilationEffects, updateTimeWarpEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateAcidExplosions, updateAcidSprays, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateChronoNovaEffects, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updatePoisonClouds, updatePoisonParticles, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTemporalEchoes, updateTimeDilationEffects, updateTimeWarpEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 import { ChronoNovaAbility } from "./mainBoss/chronos/chronos.js";
@@ -786,10 +786,11 @@ function clearScene() {
   lightManager = null;
 
   // Resetujeme bossy a jejich efekty
+  // Resetujeme bossy a jejich efekty
   bosses.forEach(boss => {
     if (boss.abilities) {
       boss.abilities.forEach(ability => {
-        if (ability instanceof ChronoNovaAbility) {
+        if (ability.cancelAbility) {
           ability.cancelAbility();
         }
       });
@@ -839,12 +840,19 @@ function clearScene() {
 }
 
 function clearBossEffects() {
-  [timeWarpEffects, temporalEchoes, chronoNovaEffects].forEach(effectArray => {
+  [timeWarpEffects, temporalEchoes, chronoNovaEffects, poisonClouds, acidSprays].forEach(effectArray => {
     effectArray.forEach(effect => {
       if (effect.mesh) {
         scene.remove(effect.mesh);
         effect.mesh.geometry.dispose();
         effect.mesh.material.dispose();
+      }
+      if (effect.group) {
+        scene.remove(effect.group);
+        effect.group.traverse((child) => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) child.material.dispose();
+        });
       }
     });
     effectArray.length = 0;
@@ -855,7 +863,8 @@ function clearOtherEffects() {
   [
     teleportParticles, explosions, frostAuras, chainLightningsVisual,
     iceExplosions, chainExplosions, fireballExplosions, activeVines,
-    seedBurstParticleSystems, voidRifts, timeDilationEffects, entanglementBeams
+    seedBurstParticleSystems, voidRifts, timeDilationEffects, entanglementBeams,
+    poisonParticles, acidExplosions
   ].forEach(effectArray => {
     effectArray.forEach(effect => {
       if (effect.mesh) {
@@ -2306,6 +2315,8 @@ function animate() {
   updateChronoNovaEffects(deltaTime);
   updatePoisonClouds(deltaTime);
   updateAcidSprays(deltaTime);
+  updateAcidExplosions(deltaTime);
+  updatePoisonParticles(deltaTime);
 
   animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);

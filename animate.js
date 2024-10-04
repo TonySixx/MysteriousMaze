@@ -738,7 +738,6 @@ export function updateTimeWarpEffects(deltaTime) {
     
     if (elapsedTime < effect.duration) {
       effect.mesh.material.uniforms.time.value = elapsedTime / 1000;
-      requestAnimationFrame(() => updateTimeWarpEffects(deltaTime));
     } else {
       scene.remove(effect.mesh);
       timeWarpEffects.splice(i, 1);
@@ -945,26 +944,6 @@ function createAcidExplosion(position) {
   explosion.position.copy(position);
   scene.add(explosion);
 
-  const startTime = Date.now();
-  const duration = 500; // 0.5 sekundy
-
-  function animateExplosion() {
-    const elapsedTime = Date.now() - startTime;
-    if (elapsedTime < duration) {
-      const progress = elapsedTime / duration;
-      explosion.scale.setScalar(1 + progress * 3); // Zvětšení exploze
-      explosion.material.uniforms.time.value = progress;
-      requestAnimationFrame(animateExplosion);
-    } else {
-      scene.remove(explosion);
-      explosion.geometry.dispose();
-      explosion.material.dispose();
-    }
-  }
-
-  animateExplosion();
-
-  // Přidání částicového efektu
   const particleCount = 50;
   const particleGeometry = new THREE.BufferGeometry();
   const particlePositions = new Float32Array(particleCount * 3);
@@ -988,24 +967,52 @@ function createAcidExplosion(position) {
   particles.position.copy(position);
   scene.add(particles);
 
-  function animateParticles() {
-    const elapsedTime = Date.now() - startTime;
-    if (elapsedTime < duration) {
-      const positions = particles.geometry.attributes.position.array;
-      for (let i = 0; i < positions.length; i += 3) {
-        positions[i] *= 1.05;
-        positions[i + 1] *= 1.05;
-        positions[i + 2] *= 1.05;
+  acidExplosions.push({
+    explosion: explosion,
+    particles: particles,
+    startTime: Date.now(),
+    duration: 500 // 0.5 sekundy
+  });
+}
+
+// Přidáme nové funkce pro aktualizaci efektů
+export function updateAcidExplosions(deltaTime) {
+    for (let i = acidExplosions.length - 1; i >= 0; i--) {
+      const explosion = acidExplosions[i];
+      const elapsedTime = Date.now() - explosion.startTime;
+      const progress = elapsedTime / explosion.duration;
+  
+      if (progress < 1) {
+        explosion.explosion.scale.setScalar(1 + progress * 3);
+        explosion.explosion.material.uniforms.time.value = progress;
+  
+        const positions = explosion.particles.geometry.attributes.position.array;
+        for (let j = 0; j < positions.length; j += 3) {
+          positions[j] *= 1.05;
+          positions[j + 1] *= 1.05;
+          positions[j + 2] *= 1.05;
+        }
+        explosion.particles.geometry.attributes.position.needsUpdate = true;
+        explosion.particles.material.opacity = 1 - progress;
+      } else {
+        scene.remove(explosion.explosion);
+        scene.remove(explosion.particles);
+        acidExplosions.splice(i, 1);
       }
-      particles.geometry.attributes.position.needsUpdate = true;
-      particles.material.opacity = 1 - elapsedTime / duration;
-      requestAnimationFrame(animateParticles);
-    } else {
-      scene.remove(particles);
-      particles.geometry.dispose();
-      particles.material.dispose();
     }
   }
-
-  animateParticles();
-}
+  
+  export function updatePoisonParticles(deltaTime) {
+    for (let i = poisonParticles.length - 1; i >= 0; i--) {
+      const particle = poisonParticles[i];
+      const elapsedTime = Date.now() - particle.startTime;
+      
+      if (elapsedTime < particle.duration) {
+        particle.mesh.position.y += 0.01;
+        particle.mesh.material.opacity = 0.7 * (1 - elapsedTime / particle.duration);
+      } else {
+        scene.remove(particle.mesh);
+        poisonParticles.splice(i, 1);
+      }
+    }
+  }

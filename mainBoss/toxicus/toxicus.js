@@ -36,12 +36,13 @@ export class ToxicusBoss extends MainBoss {
 export class PoisonCloudAbility extends Ability {
   constructor(boss) {
     super(boss);
-    this.cooldown = 20000; // 20 sekund
+    this.cooldown = 20000;
     this.lastUseTime = 0;
     this.cloudRadius = 6;
     this.damagePerSecond = 25;
-    this.cloudSpeed = 2; // Rychlost pohybu mraku
-    this.cloudLifetime = 10000; // Životnost mraku v milisekundách
+    this.cloudSpeed = 2;
+    this.cloudLifetime = 10000;
+    this.activeCloud = null;
   }
 
   canUse() {
@@ -104,7 +105,7 @@ export class PoisonCloudAbility extends Ability {
     const startPosition = this.boss.position.clone();
     const direction = new THREE.Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
 
-    poisonClouds.push({
+    this.activeCloud = {
       mesh: cloud,
       startTime: Date.now(),
       duration: this.cloudLifetime,
@@ -113,7 +114,18 @@ export class PoisonCloudAbility extends Ability {
       startPosition: startPosition,
       direction: direction,
       speed: this.cloudSpeed
-    });
+    };
+
+    poisonClouds.push(this.activeCloud);
+  }
+
+  cancelAbility() {
+    if (this.activeCloud) {
+      scene.remove(this.activeCloud.mesh);
+      poisonClouds = poisonClouds.filter(cloud => cloud !== this.activeCloud);
+      this.activeCloud = null;
+    }
+    this.boss.isUsingAbility = false;
   }
 }
 
@@ -122,13 +134,16 @@ export class AcidSprayAbility extends Ability {
     super(boss);
     this.cooldown = 15000;
     this.lastUseTime = 0;
-    this.sprayCount = 20; // Zvýšíme počet sprejů pro intenzivnější útok
-    this.sprayInterval = 400; // Snížíme interval mezi spreji pro rychlejší sekvenci
+    this.sprayCount = 20;
+    this.sprayInterval = 400;
     this.spraysFired = 0;
     this.lastSprayTime = 0;
     this.warningDuration = 500;
-    this.innerRadius = 0; // Minimální vzdálenost od hráče
-    this.outerRadius = 5; // Maximální vzdálenost od hráče
+    this.innerRadius = 0;
+    this.outerRadius = 5;
+    this.activeWarnings = [];
+    this.activeAcidSprays = [];
+    this.sprayTimer = null;
   }
 
   canUse() {
@@ -152,10 +167,13 @@ export class AcidSprayAbility extends Ability {
 
   prepareAcidSpray() {
     const targetPosition = this.getRandomPositionAroundPlayer();
-    this.createWarningIndicator(targetPosition);
+    const warning = this.createWarningIndicator(targetPosition);
+    this.activeWarnings.push(warning);
 
-    setTimeout(() => {
+    this.sprayTimer = setTimeout(() => {
       this.fireAcidSpray(targetPosition);
+      this.activeWarnings = this.activeWarnings.filter(w => w !== warning);
+      scene.remove(warning);
     }, this.warningDuration);
   }
 
@@ -181,9 +199,7 @@ export class AcidSprayAbility extends Ability {
 
     scene.add(indicator);
 
-    setTimeout(() => {
-      scene.remove(indicator);
-    }, this.warningDuration);
+    return indicator;
   }
 
   fireAcidSpray(targetPosition) {
@@ -256,7 +272,7 @@ export class AcidSprayAbility extends Ability {
 
     pulseTween.start();
 
-    acidSprays.push({
+    const acidSpray = {
       group: sprayGroup,
       velocity: sprayGroup.velocity,
       damage: 50,
@@ -268,6 +284,30 @@ export class AcidSprayAbility extends Ability {
         sprayGroup.rotation.y += deltaTime * 3;
         particles.rotation.y -= deltaTime * 5;
       }
+    };
+
+    this.activeAcidSprays.push(acidSpray);
+    acidSprays.push(acidSpray);
+  }
+
+  cancelAbility() {
+    if (this.sprayTimer) {
+      clearTimeout(this.sprayTimer);
+      this.sprayTimer = null;
+    }
+
+    this.activeWarnings.forEach(warning => {
+      scene.remove(warning);
     });
+    this.activeWarnings = [];
+
+    this.activeAcidSprays.forEach(spray => {
+      scene.remove(spray.group);
+      acidSprays = acidSprays.filter(s => s !== spray);
+    });
+    this.activeAcidSprays = [];
+
+    this.spraysFired = 0;
+    this.boss.isUsingAbility = false;
   }
 }
