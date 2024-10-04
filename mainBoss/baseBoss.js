@@ -28,7 +28,7 @@ export class MainBoss extends Boss {
         this.health = type.maxHealth;
         this.isMainBoss = true;
         this.lastSpecialAttackTime = Date.now();
-        this.specialAttackInterval =  type.specialAttackInterval || 20000; // 20 sekund
+        this.specialAttackInterval = type.specialAttackInterval || 20000; // 20 sekund
         this.centerPosition = new THREE.Vector3(0, 0.5, 0);
         this.dontDropKey = true;
 
@@ -40,7 +40,10 @@ export class MainBoss extends Boss {
         // Iniciace aktivních efektů
         this.activeEffects = [];
 
-        this.loadMainBossModel();
+        if (!this.type.hasCustomModel) {
+            this.loadMainBossModel();
+        }
+
         this.changeDirection();
         this.createHealthUI();
     }

@@ -277,6 +277,27 @@ const questDefinitions = [
             count: 1
         }
     },
+    {
+        id: 'defeatToxicus',
+        name: 'defeatToxicusQuest',
+        description: 'defeatToxicusQuestDescription',
+        level: 26,
+        rewards: {
+            exp: 200000,
+            gold: 200,
+            items: [
+                { item: 'powerLapisia', count: 3 },
+                { item: 'protectorsLapisia', count: 3 },
+                { item: 'ultimateHealthPotion', count: 2 },
+                { item: 'darkshadeStaff', count: 1 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Toxicus, Pán Moru',
+            count: 1
+        }
+    },
 ];
 
 export function getAllQuests() {

@@ -553,6 +553,16 @@ export function updateQuestsOnEvent(eventType, eventData) {
                     return quest;
                 });
             }
+            else if (eventData.bossType === "bossFloor6") {
+                updateQuestProgress('defeatToxicus', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
             break;
             
     }
