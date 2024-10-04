@@ -8,7 +8,7 @@ import { CELL_SIZE, chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, pl
 import { player,checkCollisions } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { createTeleportEffect, inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
-import { playerTakeDamage, showMessage, showTimeDilationEffect } from "./utils";
+import { freezePlayer, playerTakeDamage, showMessage, showTimeDilationEffect } from "./utils";
 import * as THREE from "three";
 
 export function animateMerchants(deltaTime) {
@@ -1016,3 +1016,5 @@ export function updateAcidExplosions(deltaTime) {
       }
     }
   }
+
+

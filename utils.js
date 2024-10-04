@@ -549,7 +549,7 @@ export function updateMagicBalls(deltaTime) {
 }
 
 let freezeEndTime = 0;
-function freezePlayer() {
+export function freezePlayer() {
   const currentTime = Date.now();
   const freezeDuration = 2000; // 2 sekundy
 

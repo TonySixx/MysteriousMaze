@@ -272,7 +272,8 @@
     "defeatChronosQuestDescription": "Defeat Chronos, the Lord of Time, on the fifth floor and claim reward.",
     "bossFloor6": "Toxicus, Lord of Plague",
     "defeatToxicusQuest": "Defeat Toxicus",
-    "defeatToxicusQuestDescription": "Defeat Toxicus, the Lord of Plague, on the sixth floor and claim your reward."
+    "defeatToxicusQuestDescription": "Defeat Toxicus, the Lord of Plague, on the sixth floor and claim your reward.",
+    "bossFloor7": "Frostlord, Lord of Ice"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -547,6 +548,7 @@
     "defeatChronosQuestDescription": "Poraž Chronose, Pána času, na pátém podlaží a získej odměnu.",
     "bossFloor6": "Toxicus, Pán moru",
     "defeatToxicusQuest": "Poraž Toxicuse",
-    "defeatToxicusQuestDescription": "Poraž Toxicuse, Pána moru, na šestém podlaží a získej svou odměnu."
+    "defeatToxicusQuestDescription": "Poraž Toxicuse, Pána moru, na šestém podlaží a získej svou odměnu.",
+    "bossFloor7": "Frostlord, Vládce ledu"
   }
 }

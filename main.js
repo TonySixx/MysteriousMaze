@@ -114,6 +114,7 @@ import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaff
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 import { ChronoNovaAbility } from "./mainBoss/chronos/chronos.js";
+import { updateFrostAuraEffects, updateGlacialNovaEffects, updateIceTrails, updateIcicleBullets } from "./animate/frostlordAnimate.js";
 
 export const version = "3.1.4";
 
@@ -2317,6 +2318,10 @@ function animate() {
   updateAcidSprays(deltaTime);
   updateAcidExplosions(deltaTime);
   updatePoisonParticles(deltaTime);
+  updateGlacialNovaEffects(deltaTime);
+  updateIcicleBullets(deltaTime);
+  updateIceTrails(deltaTime);
+  updateFrostAuraEffects(deltaTime);
 
   animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);
@@ -2512,14 +2517,14 @@ export function canSelectFloor(floor) {
   if (floor === 4) return playerLevel >= 16;
   if (floor === 5) return playerLevel >= 21;
   if (floor === 6) return playerLevel >= 26;
-  if (floor === 7) return playerLevel >= 31;
-  if (floor === 8) return playerLevel >= 36;
+  if (floor === 7) return playerLevel >= 36; // Nové podlaží pro Frostlorda
   if (floor === 100) return playerLevel >= 7;
   if (floor === 101) return playerLevel >= 12;
   if (floor === 102) return playerLevel >= 16;
-  if (floor === 103) return playerLevel >= 21;
-  if (floor === 104) return playerLevel >= 26;
-  if (floor === 105) return playerLevel >= 31;
+  if (floor === 103) return playerLevel >= 20;
+  if (floor === 104) return playerLevel >= 25;
+  if (floor === 105) return playerLevel >= 30;
+  if (floor === 106) return playerLevel >= 36; // Boss podlaží pro Frostlorda
   return false;
 }
 

@@ -6,6 +6,7 @@ import { ObsidarothBoss, ObsidianBlastAbility, ShadowCloneAbility, VoidRiftAbili
 import { EntanglementBeamAbility, QuantumGuardianBoss, QuantumLeapAbility, TimeDilationAbility } from "./quantumGuardian/quantumGuardian";
 import { ChronosBoss, TimeWarpAbility, TemporalEchoAbility, ChronoNovaAbility } from "./chronos/chronos";
 import { ToxicusBoss, PoisonCloudAbility, AcidSprayAbility } from "./toxicus/toxicus";
+import { FrostlordBoss, GlacialNovaAbility, IcicleBarrageAbility, FrostWalkerAbility } from "./frostlord/frostlord";
 
 export const MAIN_BOSS_TYPES = [
   {
@@ -239,6 +240,8 @@ export const MAIN_BOSS_TYPES = [
       { item: itemDatabase.ultimateManaPotion, chance: 0.4 },
       { item: itemDatabase.venomskullStaff, chance: 0.15 },
       { item: itemDatabase.sunflareRobe, chance: 0.2 },
+      { item: itemDatabase.flamewreathedMantle, chance: 0.12 },
+      
     ],
     ambientLightColor: 0x6b9494,
     nebulaColors: ["#89d973", "#00662c"],
@@ -247,6 +250,64 @@ export const MAIN_BOSS_TYPES = [
     flyDuration: 1,
     size: 2,
     attackDamage: 50,
+    hasCustomModel: true,
+  },
+  {
+    name: "Frostlord, Vládce ledu",
+    bossClass: FrostlordBoss,
+    translationKey: "bossFloor7",
+    abilities: [GlacialNovaAbility, IcicleBarrageAbility, FrostWalkerAbility],
+    tribalMainMaterial: new THREE.MeshStandardMaterial({
+      color: 0x006bb3,
+      metalness: 0.5,
+      roughness: 0.3,
+      emissive: 0x006bb3,
+      emissiveIntensity: 0.3,
+    }),
+    tribalGoldMaterial: new THREE.MeshStandardMaterial({
+      color: 0xadd8e6,
+      metalness: 0.5,
+      roughness: 0.5,
+      emissive: 0xadd8e6,
+      emissiveIntensity: 2,
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x006bb3,
+      metalness: 0.5,
+      roughness: 0.5,
+    }),
+    eyeWhiteMaterial: new THREE.MeshStandardMaterial({
+      color: 0x000000,
+    }),
+    eyeBlackMaterial: new THREE.MeshStandardMaterial({
+      color: 0xadd8e6,
+      emissive: 0xadd8e6,
+      emissiveIntensity: 3,
+    }),
+    attackColor: new THREE.Color(0x87cefa),
+    attackCooldown: 1,
+    emissiveIntensity: 3,
+    maxHealth: 200000,
+    bossHitBoxMarginY: 4,
+    bossHitBoxMarginXZ: 2.6,
+    attackSpeed: 0.8,
+    attackSize: 1.0,
+    specialAttackInterval: 10000,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 0.65 },
+      { item: itemDatabase.protectorsLapisia, chance: 0.65 },
+      { item: itemDatabase.ultimateHealthPotion, chance: 0.5 },
+      { item: itemDatabase.ultimateManaPotion, chance: 0.5 },
+      { item: itemDatabase.frostbaneCorruption, chance: 0.13 },
+      { item: itemDatabase.starlightSurgeRobe, chance: 0.10 },
+    ],
+    ambientLightColor: 0xb0e0e6,
+    nebulaColors: ["#87cefa", "#e0ffff"],
+    textureSetIndex: 12,
+    torchSetIndex: 12,
+    flyDuration: 1,
+    size: 2,
+    attackDamage: 30,
     hasCustomModel: true,
   },
 ];

@@ -77,6 +77,11 @@ window.chronoNovaEffects = [];
 window.acidExplosions = [];
 window.poisonParticles = [];
 
+window.glacialNovaEffects = [];
+window.icicleBullets = [];
+window.iceTrails = [];
+window.frostAuraEffects = [];
+
 export const playerDefaultSpeed = 6.5;
 
 export const floorMusic = {
