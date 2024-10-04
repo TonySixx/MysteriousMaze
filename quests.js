@@ -135,11 +135,11 @@ function updateQuestDetails() {
             <h3 style="margin-top: 40px;">${getTranslation('rewards')}:</h3>
             <div class="quest-reward">
                 <img src="gold-coin.png" alt="Gold" class="quest-reward-icon">
-                <span class="quest-reward-gold">${selectedQuest.rewards.gold}</span>
+                <span class="quest-reward-gold">${selectedQuest.rewards.gold.toLocaleString() + " " + getTranslation('gold')}</span>
             </div>
             <div class="quest-reward">
                 <img src="experience.png" alt="EXP" class="quest-reward-icon">
-                <span class="quest-reward-exp">${selectedQuest.rewards.exp}</span>
+                <span class="quest-reward-exp">${selectedQuest.rewards.exp.toLocaleString() + " " + getTranslation('exp')}</span>
             </div>
             <div class="quest-items"></div>
             <h3 style="margin-top: 20px;">${getTranslation('progress')}:</h3>
@@ -392,11 +392,11 @@ function showQuestDetails(quest) {
         <h3 style="margin-top: 40px;">${getTranslation('rewards')}:</h3>
         <div class="quest-reward">
             <img src="gold-coin.png" alt="Gold" class="quest-reward-icon">
-            <span class="quest-reward-gold">${quest.rewards.gold}</span>
+            <span class="quest-reward-gold">${quest.rewards.gold.toLocaleString() + " " + getTranslation('gold')}</span>
         </div>
         <div class="quest-reward">
             <img src="experience.png" alt="EXP" class="quest-reward-icon">
-            <span class="quest-reward-exp">${quest.rewards.exp}</span>
+            <span class="quest-reward-exp">${quest.rewards.exp.toLocaleString() + " " + getTranslation('exp')}</span>
         </div>
         <div class="quest-items"></div>
     `;
@@ -543,6 +543,17 @@ export function updateQuestsOnEvent(eventType, eventData) {
                     return quest;
                 });
             }
+            else if (eventData.bossType === "bossFloor5") {
+                updateQuestProgress('defeatChronos', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
             break;
+            
     }
 }

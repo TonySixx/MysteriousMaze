@@ -5,7 +5,7 @@ import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor }
 import { getItemName } from "./itemDatabase";
 import { getTranslation } from "./langUtils";
 import { chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, teleportSoundBuffer } from "./main";
-import { checkCollisions, player } from "./player";
+import { player,checkCollisions } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { createTeleportEffect, inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
 import { playerTakeDamage, showMessage, showTimeDilationEffect } from "./utils";
@@ -729,4 +729,79 @@ export function updateTeleportEffects(deltaTime) {
             deathParticles.splice(i, 1);
         }
     }
+}
+
+export function updateTimeWarpEffects(deltaTime) {
+  for (let i = timeWarpEffects.length - 1; i >= 0; i--) {
+    const effect = timeWarpEffects[i];
+    const elapsedTime = Date.now() - effect.startTime;
+    
+    if (elapsedTime < effect.duration) {
+      effect.mesh.material.uniforms.time.value = elapsedTime / 1000;
+      requestAnimationFrame(() => updateTimeWarpEffects(deltaTime));
+    } else {
+      scene.remove(effect.mesh);
+      timeWarpEffects.splice(i, 1);
+    }
+  }
+}
+
+export function updateTemporalEchoes(deltaTime) {
+  for (let i = temporalEchoes.length - 1; i >= 0; i--) {
+    const echo = temporalEchoes[i];
+    const elapsedTime = Date.now() - echo.startTime;
+    
+    if (elapsedTime < echo.duration) {
+      // Pulzující efekt
+      const scale = 1 + Math.sin(elapsedTime / 200) * 0.2;
+      echo.mesh.scale.setScalar(scale);
+      
+      // Rotace kolem původní pozice
+      const angle = elapsedTime * 0.001;
+      const radius = 2;
+      echo.mesh.position.x = echo.originalPosition.x + Math.cos(angle) * radius;
+      echo.mesh.position.z = echo.originalPosition.z + Math.sin(angle) * radius;
+      
+      echo.mesh.material.opacity = 0.7 * (1 - elapsedTime / echo.duration);
+      
+      if (player.position.distanceTo(echo.mesh.position) < 2) {
+        playerTakeDamage(echo.damage * deltaTime);
+      }
+    } else {
+      scene.remove(echo.mesh);
+      temporalEchoes.splice(i, 1);
+    }
+  }
+}
+
+export function updateChronoNovaEffects(deltaTime) {
+  const currentTime = Date.now();
+  for (let i = chronoNovaEffects.length - 1; i >= 0; i--) {
+    const effect = chronoNovaEffects[i];
+    const elapsedTime = currentTime - effect.startTime;
+    const progress = elapsedTime / effect.duration;
+
+    if (progress < 1) {
+      effect.mesh.material.uniforms.time.value = elapsedTime / 1000;
+
+      if (effect.type === 'explosion') {
+        const scale = progress * effect.radius;
+        effect.mesh.scale.setScalar(scale);
+
+        // Optimalizované poškození hráče
+        if (progress % 0.1 < 0.01) { // Kontrola poškození každých 10% průběhu exploze
+          const distanceToPlayer = player.position.distanceTo(effect.boss.position);
+          if (distanceToPlayer <= scale) {
+            const damage = effect.boss.type.attackDamage * (1 - distanceToPlayer / scale);
+            playerTakeDamage(damage * 0.5); // Snížené poškození kvůli méně častým kontrolám
+          }
+        }
+      }
+    } else {
+      scene.remove(effect.mesh);
+      effect.mesh.geometry.dispose();
+      effect.mesh.material.dispose();
+      chronoNovaEffects.splice(i, 1);
+    }
+  }
 }

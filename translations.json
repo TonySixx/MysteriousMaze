@@ -266,7 +266,10 @@
     "defeatQuantumGuardianQuest": "Defeat Quantum Guardian",
     "defeatQuantumGuardianQuestDescription": "Defeat the Quantum Guardian on the fourth floor and earn a significant reward.",
     "completeMazesFloor4Quest": "Floor 4 Maze Explorer",
-    "completeMazesFloor4QuestDescription": "Complete 3 different mazes (with unique seeds) on the fourth floor to prove your expert exploration skills."
+    "completeMazesFloor4QuestDescription": "Complete 3 different mazes (with unique seeds) on the fourth floor to prove your expert exploration skills.",
+    "bossFloor5": "Chronos, Lord of Time",
+    "defeatChronosQuest": "Defeat Chronos",
+    "defeatChronosQuestDescription": "Defeat Chronos, the Lord of Time, on the fifth floor and claim reward."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -535,6 +538,9 @@
     "defeatQuantumGuardianQuest": "Poraž Kvantového strážce",
     "defeatQuantumGuardianQuestDescription": "Poraž Kvantového strážce na čtvrtém podlaží a získej významnou odměnu.",
     "completeMazesFloor4Quest": "Průzkumník 4. podlaží",
-    "completeMazesFloor4QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na čtvrtém podlaží a prokažte své expertní průzkumnické schopnosti."
+    "completeMazesFloor4QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na čtvrtém podlaží a prokažte své expertní průzkumnické schopnosti.",
+    "bossFloor5": "Chronos, Pán času",
+    "defeatChronosQuest": "Poraž Chronose",
+    "defeatChronosQuestDescription": "Poraž Chronose, Pána času, na pátém podlaží a získej odměnu."
   }
 }

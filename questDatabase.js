@@ -255,6 +255,28 @@ const questDefinitions = [
             floor: 4
         }
     },
+    {
+        id: 'defeatChronos',
+        name: 'defeatChronosQuest',
+        description: 'defeatChronosQuestDescription',
+        level: 21,
+        rewards: {
+            exp: 100000,
+            gold: 150,
+            items: [
+                { item: 'powerLapisia', count: 5 },
+                { item: 'protectorsLapisia', count: 5 },
+                { item: 'ultimateHealthPotion', count: 2 },
+                { item: 'ultimateManaPotion', count: 2 },
+                { item: 'goldenDawnRobe', count: 1 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Chronos, Pán času',
+            count: 1
+        }
+    },
 ];
 
 export function getAllQuests() {

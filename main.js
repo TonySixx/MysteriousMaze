@@ -110,11 +110,12 @@ import {
   updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTimeDilationEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
+import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateChronoNovaEffects, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTemporalEchoes, updateTimeDilationEffects, updateTimeWarpEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
+import { ChronoNovaAbility } from "./mainBoss/chronos/chronos.js";
 
-export const version = "3.1.3";
+export const version = "3.1.4";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -784,70 +785,135 @@ function clearScene() {
   // Resetujeme lightManager
   lightManager = null;
 
-  // Resetujeme bossy
+  // Resetujeme bossy a jejich efekty
+  bosses.forEach(boss => {
+    if (boss.abilities) {
+      boss.abilities.forEach(ability => {
+        if (ability instanceof ChronoNovaAbility) {
+          ability.cancelAbility();
+        }
+      });
+    }
+  });
+
+
+  // Resetujeme bossy a jejich efekty
   setBosses([]);
   setBossCounter(0);
+
+   // Čištění efektů Chronose a dalších bossů
+   clearBossEffects();
 
   // Resetujeme kouzla
   resetSpells();
 
-  teleportParticles = [];
-  explosions = [];
+  // Čištění efektů Chronose a dalších bossů
+  clearBossEffects();
+
+  // Čištění dalších efektů
+  clearOtherEffects();
+
+  // Resetování rychlosti hráče na výchozí hodnotu
+  window.playerSpeed = playerDefaultSpeed;
+
+  // Odstranění vizuálních efektů z obrazovky
+  removeVisualEffects();
+
+  // Vyčistíme kontejner pro zdraví bosse
+  clearBossHealthContainer();
+
+  // Odstraníme elementy interakce s obchodníky
+  removeInteractionElements();
+
+  // Zavřeme všechny otevřené obchody
+  closeAllShops();
+
+  // Resetujeme instance obchodníků
+  resetMerchantInstances();
+
+  // Zastavíme všechny animace
+  stopAllAnimations();
+
+  // Odstraníme všechny event listenery přidané v táboře
+  removeCampEventListeners();
+}
+
+function clearBossEffects() {
+  [timeWarpEffects, temporalEchoes, chronoNovaEffects].forEach(effectArray => {
+    effectArray.forEach(effect => {
+      if (effect.mesh) {
+        scene.remove(effect.mesh);
+        effect.mesh.geometry.dispose();
+        effect.mesh.material.dispose();
+      }
+    });
+    effectArray.length = 0;
+  });
+}
+
+function clearOtherEffects() {
+  [
+    teleportParticles, explosions, frostAuras, chainLightningsVisual,
+    iceExplosions, chainExplosions, fireballExplosions, activeVines,
+    seedBurstParticleSystems, voidRifts, timeDilationEffects, entanglementBeams
+  ].forEach(effectArray => {
+    effectArray.forEach(effect => {
+      if (effect.mesh) {
+        scene.remove(effect.mesh);
+        if (effect.mesh.geometry) effect.mesh.geometry.dispose();
+        if (effect.mesh.material) effect.mesh.material.dispose();
+      }
+    });
+    effectArray.length = 0;
+  });
+
+  // Resetování specifických efektů
   bossChestAndPortalData = null;
   mainBossEntryData = null;
   chestMixer = null;
-  frostAuras = [];
-  chainLightningsVisual = [];
-  iceExplosions = [];
-  chainExplosions = [];
-  fireballExplosions = [];
   staffSwing = null;
   setIsSwingingStaff(false);
   setIsInspectingStaff(false);
-  staffModel.rotation.copy(originalStaffRotation)
+  if (staffModel) staffModel.rotation.copy(originalStaffRotation);
+}
 
-  activeVines = [];
-  seedBurstParticleSystems = [];
-  voidRifts = [];
-  timeDilationEffects = [];
-  entanglementBeams = [];
+function removeVisualEffects() {
+  const timeDilationOverlay = document.getElementById('timeDilationOverlay');
+  if (timeDilationOverlay) {
+    timeDilationOverlay.remove();
+  }
+}
 
-   // Resetování rychlosti hráče na výchozí hodnotu
-   window.playerSpeed = playerDefaultSpeed;
-
-   // Odstranění vizuálních efektů z obrazovky
-   const timeDilationOverlay = document.getElementById('timeDilationOverlay');
-   if (timeDilationOverlay) {
-     timeDilationOverlay.remove();
-   }
-
-
-  // Vyčistíme kontejner pro zdraví bosse
+function clearBossHealthContainer() {
   const bossHealthContainer = document.getElementById("bossHealthContainer");
   while (bossHealthContainer.firstChild) {
     bossHealthContainer.removeChild(bossHealthContainer.firstChild);
   }
+}
 
-  // Odstraníme elementy interakce s obchodníky
+function removeInteractionElements() {
   const interactionTexts = document.querySelectorAll(".interaction-text");
   interactionTexts.forEach((text) => text.remove());
+}
 
-  // Zavřeme všechny otevřené obchody
+function closeAllShops() {
   const shopModals = document.querySelectorAll('[id^="merchantModal"]');
   shopModals.forEach((modal) => modal.remove());
+}
 
-  // Resetujeme instance obchodníků (pokud jsou uloženy globálně)
+function resetMerchantInstances() {
   if (typeof potionMerchant !== "undefined") potionMerchant = null;
-  if (typeof armorMerchantInstance !== "undefined")
-    armorMerchantInstance = null;
+  if (typeof armorMerchantInstance !== "undefined") armorMerchantInstance = null;
+}
 
-  // Zastavíme všechny animace (pokud jsou spuštěny)
+function stopAllAnimations() {
   if (typeof updateMerchantAnimation !== "undefined")
     cancelAnimationFrame(updateMerchantAnimation);
   if (typeof updateArmorMerchantAnimation !== "undefined")
     cancelAnimationFrame(updateArmorMerchantAnimation);
+}
 
-  // Odstraníme všechny event listenery přidané v táboře
+function removeCampEventListeners() {
   const campElements = document.querySelectorAll(".camp-element");
   campElements.forEach((element) => {
     element.replaceWith(element.cloneNode(true));
@@ -2235,6 +2301,9 @@ function animate() {
   updateVoidRifts(deltaTime);
   updateTimeDilationEffects(deltaTime);
   updateEntanglementBeams(deltaTime);
+  updateTimeWarpEffects(deltaTime);
+  updateTemporalEchoes(deltaTime);
+  updateChronoNovaEffects(deltaTime);
 
   animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);
@@ -2435,7 +2504,8 @@ export function canSelectFloor(floor) {
   if (floor === 100) return playerLevel >= 7;
   if (floor === 101) return playerLevel >= 12;
   if (floor === 102) return playerLevel >= 16;
-  if (floor === 103) return playerLevel >= 20;
+  if (floor === 103) return playerLevel >= 21;
+  if (floor === 104) return playerLevel >= 26; // Nové podlaží pro pátého bosse
   return false;
 }
 

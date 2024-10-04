@@ -4,7 +4,7 @@ import { CallOfWildAbility, SeedBurstAbility, VineGrabAbility } from "./jungleGu
 import { itemDatabase } from "../itemDatabase";
 import { ObsidarothBoss, ObsidianBlastAbility, ShadowCloneAbility, VoidRiftAbility } from "./obsidaroth/obsidaroth";
 import { EntanglementBeamAbility, QuantumGuardianBoss, QuantumLeapAbility, TimeDilationAbility } from "./quantumGuardian/quantumGuardian";
-
+import { ChronosBoss, TimeWarpAbility, TemporalEchoAbility, ChronoNovaAbility } from "./chronos/chronos";
 
 export const MAIN_BOSS_TYPES = [
   {
@@ -150,5 +150,46 @@ export const MAIN_BOSS_TYPES = [
     flyDuration: 1,
     size: 1.7,
     attackDamage: 30,
+  },
+  {
+    name: "Chronos, Pán času",
+    bossClass: ChronosBoss,
+    translationKey: "bossFloor5",
+    abilities: [TimeWarpAbility, TemporalEchoAbility, ChronoNovaAbility],
+    mainMaterial: new THREE.MeshStandardMaterial({
+      color: 0xff9966,
+      metalness: 0.9,
+      roughness: 0.2,
+      emissive: 0xffff66,
+      emissiveIntensity: 2,
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x800080,
+      metalness: 0.7,
+      roughness: 0.3,
+    }),
+    attackColor: new THREE.Color(0xffff66),
+    attackCooldown: 0.9,
+    emissiveIntensity: 3,
+    maxHealth: 120000,
+    bossHitBoxMarginY: 4,
+    bossHitBoxMarginXZ: 2.6,
+    attackSpeed: 0.9,
+    attackSize: 0.8,
+    specialAttackInterval: 15000,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 0.5 },
+      { item: itemDatabase.protectorsLapisia, chance: 0.5 },
+      { item: itemDatabase.ultimateHealthPotion, chance: 0.3 },
+      { item: itemDatabase.ultimateManaPotion, chance: 0.3 },
+      { item: itemDatabase.bloomShadeKimono, chance: 0.2 }, 
+    ],
+    ambientLightColor: 0x4b0082,
+    nebulaColors: ["#00ffff", "#800080"],
+    textureSetIndex: 8,
+    torchSetIndex: 8,
+    flyDuration: 1,
+    size: 2,
+    attackDamage: 40,
   },
 ];

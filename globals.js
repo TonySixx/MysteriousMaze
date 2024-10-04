@@ -68,6 +68,10 @@ window.goalReached = false;
 
 window.minimapUsed = false;
 
+window.timeWarpEffects = [];
+window.temporalEchoes = [];
+window.chronoNovaEffects = [];
+
 export const playerDefaultSpeed = 6.5;
 
 export const floorMusic = {
