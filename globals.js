@@ -100,9 +100,13 @@ export const floorMusic = {
   6: "music/msc_lost.mp3",
   999: "music/msc_camp.mp3",
   100: "music/msc_boss_fight.mp3",
-  101: "music/msc_boss_fight.mp3",
-  102: "music/msc_boss_fight2.mp3",
-  103: "music/msc_boss_fight.mp3"
+  101: "music/msc_boss_fight2.mp3",
+  102: "music/msc_devils_party.mp3",
+  103: "music/msc_match_from_heaven.mp3",
+  104: "music/msc_boss_fight.mp3",
+  105: "music/msc_devils_party.mp3",
+  106: "music/msc_boss_fight2.mp3",
+  107: "music/msc_the_hunt.mp3",
 };
 
 export const textureSets = [

@@ -90,7 +90,7 @@ import { toggleQuestWindow } from "./quests.js";
 import { clearScene } from "./clearScene.js";
 import { animate } from "./animate/mainAnimate.js";
 
-export const version = "3.1.4";
+export const version = "3.1.5";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";

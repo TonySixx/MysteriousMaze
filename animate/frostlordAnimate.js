@@ -2,7 +2,7 @@ import { playerDefaultSpeed } from "../globals";
 import { player } from "../player";
 import * as THREE from "three";
 import { freezePlayer, playerTakeDamage } from "../utils";
-import { CELL_SIZE } from "../main";
+import { CELL_SIZE, selectedFloor } from "../main";
 import { createIceExplosion } from "../spells";
 
 // Přidáme nové funkce pro aktualizaci efektů
@@ -100,7 +100,7 @@ export function updateGlacialNovaEffects(deltaTime) {
     }
   
     // Obnovení normální rychlosti hráče, pokud není v žádné ledové zóně
-    if (iceTrails.every(trail => player.position.distanceTo(trail.position) > trail.radius)) {
+    if (iceTrails.every(trail => player.position.distanceTo(trail.position) > trail.radius) && selectedFloor === 106 )  {
       window.playerSpeed = playerDefaultSpeed;
     }
   }
