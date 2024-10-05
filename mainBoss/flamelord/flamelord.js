@@ -347,11 +347,11 @@ export class InfernoWaveAbility extends Ability {
         this.cooldown = 15000; // 15 sekund
         this.lastUseTime = 0;
         this.waveCount = 3; // Počet vln
-        this.waveDuration = 3000; // 3 sekundy na vlnu (prodlouženo pro lepší viditelnost)
-        this.waveInterval = 1000; // 1 sekunda mezi vlnami
+        this.waveDuration = 2500; // 2.5 sekundy na vlnu
+        this.waveInterval = 2000; // 2 sekundy mezi vlnami
         this.maxWaveRadius = 12;
-        this.damagePerSecond = 50;
-        this.waveWidth = 2; // Šířka ohnivého pruhu
+        this.damagePerSecond = 40;
+        this.waveWidth = 2;
     }
 
     canUse() {
@@ -359,7 +359,6 @@ export class InfernoWaveAbility extends Ability {
     }
 
     use() {
-        playSound(fireballSoundBuffer);
         this.createInfernoWaves();
         this.lastUseTime = Date.now();
         this.boss.isUsingAbility = false;
@@ -374,21 +373,17 @@ export class InfernoWaveAbility extends Ability {
     }
 
     createInfernoWaveEffect(waveIndex) {
+        playSound(fireballSoundBuffer);
         const waveMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 color1: { value: new THREE.Color(0xff4500) },
                 color2: { value: new THREE.Color(0xff8c00) },
-                waveRadius: { value: 0 },
-                maxRadius: { value: this.maxWaveRadius },
-                waveWidth: { value: this.waveWidth }
             },
             vertexShader: `
                 varying vec2 vUv;
-                varying vec3 vPosition;
                 void main() {
                     vUv = uv;
-                    vPosition = position;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
             `,
@@ -396,25 +391,12 @@ export class InfernoWaveAbility extends Ability {
                 uniform float time;
                 uniform vec3 color1;
                 uniform vec3 color2;
-                uniform float waveRadius;
-                uniform float maxRadius;
-                uniform float waveWidth;
                 varying vec2 vUv;
-                varying vec3 vPosition;
-                
+    
                 void main() {
-                    float dist = length(vPosition.xz);
-                    float wave = smoothstep(waveRadius - waveWidth, waveRadius, dist) * smoothstep(waveRadius + waveWidth, waveRadius, dist);
-                    float edge = smoothstep(maxRadius - 1.0, maxRadius, dist);
-                    vec3 color = mix(color1, color2, wave);
-                    float alpha = (1.0 - edge) * wave * (0.6 + 0.4 * sin(time * 10.0));
-                    
-                    // Přidáme vizuální indikátor bezpečných zón
-                    float safeZone = smoothstep(waveRadius - waveWidth * 1.5, waveRadius - waveWidth, dist) * 
-                                     smoothstep(waveRadius + waveWidth, waveRadius + waveWidth * 1.5, dist);
-                    vec3 safeColor = vec3(0.0, 1.0, 0.0); // Zelená barva pro bezpečné zóny
-                    color = mix(color, safeColor, safeZone * 0.3); // Mírně naznačíme bezpečné zóny
-                    
+                    float stripes = sin((vUv.x * 10.0) + time * 5.0);
+                    float alpha = smoothstep(0.9, 1.0, abs(stripes));
+                    vec3 color = mix(color1, color2, alpha);
                     gl_FragColor = vec4(color, alpha);
                 }
             `,
@@ -422,22 +404,21 @@ export class InfernoWaveAbility extends Ability {
             side: THREE.DoubleSide,
             depthWrite: false
         });
-
+    
         const waveGeometry = new THREE.PlaneGeometry(this.maxWaveRadius * 2, this.maxWaveRadius * 2, 64, 64);
         const wave = new THREE.Mesh(waveGeometry, waveMaterial);
         wave.rotation.x = -Math.PI / 2;
         wave.position.copy(this.boss.position);
         wave.position.y = 0.1;
         scene.add(wave);
-
+    
         infernoWaves.push({
             mesh: wave,
             startTime: Date.now(),
             duration: this.waveDuration,
-            maxRadius: this.maxWaveRadius,
+            maxWaveRadius: this.maxWaveRadius,
             damagePerSecond: this.damagePerSecond,
             boss: this.boss,
-            waveWidth: this.waveWidth
         });
     }
 

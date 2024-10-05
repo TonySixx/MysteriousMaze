@@ -41,17 +41,22 @@ export function updateMeteorExplosions(deltaTime) {
 export function updateInfernoWaves(deltaTime) {
     for (let i = infernoWaves.length - 1; i >= 0; i--) {
         const wave = infernoWaves[i];
-        const elapsedTime = Date.now() - wave.startTime;
-        const progress = elapsedTime / wave.duration;
-        
+        const elapsedTime = (Date.now() - wave.startTime) / 1000;
+        const progress = elapsedTime / (wave.duration / 1000);
+
         if (progress < 1) {
-            const currentRadius = wave.maxRadius * progress;
-            wave.mesh.material.uniforms.time.value = elapsedTime / 1000;
-            wave.mesh.material.uniforms.waveRadius.value = currentRadius;
-            
-            // Kontrola kolize s hráčem
-            const distanceToPlayer = player.position.distanceTo(wave.boss.position);
-            if (Math.abs(distanceToPlayer - currentRadius) <= wave.waveWidth / 2) {
+            wave.mesh.material.uniforms.time.value = elapsedTime;
+
+            const playerXZ = new THREE.Vector2(player.position.x, player.position.z);
+            const waveCenterXZ = new THREE.Vector2(wave.mesh.position.x, wave.mesh.position.z);
+            const relativePosition = playerXZ.clone().sub(waveCenterXZ);
+
+            const uvX = (relativePosition.x / (wave.maxWaveRadius)) * 0.5 + 0.5;
+
+            const stripes = Math.sin((uvX * 10.0) + elapsedTime * 5.0);
+            const stripeThreshold = 0.1;
+
+            if (Math.abs(stripes) > (1.0 - stripeThreshold)) {
                 playerTakeDamage(wave.damagePerSecond * deltaTime);
             }
         } else {
