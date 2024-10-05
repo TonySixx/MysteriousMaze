@@ -51,7 +51,7 @@ export function updateInfernoWaves(deltaTime) {
             
             // Kontrola kolize s hráčem
             const distanceToPlayer = player.position.distanceTo(wave.boss.position);
-            if (distanceToPlayer <= currentRadius + 2 && distanceToPlayer >= currentRadius - 2) {
+            if (Math.abs(distanceToPlayer - currentRadius) <= wave.waveWidth / 2) {
                 playerTakeDamage(wave.damagePerSecond * deltaTime);
             }
         } else {

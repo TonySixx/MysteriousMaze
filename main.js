@@ -185,7 +185,8 @@ export var blowSoundBuffer;
 export var spell1SoundBuffer;
 export var hurtSoundBuffer;
 export var voidRiftSoundBuffer;
-
+export var spell2SoundBuffer;
+export var explosionSoundBuffer;
 
 
 
@@ -410,6 +411,14 @@ export async function init() {
 
   audioLoader.load("sounds/snd_blow.mp3", function (buffer) {
     blowSoundBuffer = buffer;
+  });
+
+  audioLoader.load("sounds/snd_spell2.wav", function (buffer) {
+    spell2SoundBuffer = buffer;
+  });
+
+  audioLoader.load("sounds/snd_explosion.wav", function (buffer) {
+    explosionSoundBuffer = buffer;
   });
 
   loadPlayerProgress();

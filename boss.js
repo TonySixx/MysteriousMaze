@@ -159,7 +159,7 @@ class Boss {
         const healthBarContainerGeometry = new THREE.PlaneGeometry(2, 0.2);
         const healthBarContainerMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
         this.healthBarContainer = new THREE.Mesh(healthBarContainerGeometry, healthBarContainerMaterial);
-        this.healthBarContainer.position.set(0, 3, 0);
+        this.healthBarContainer.position.set(0, 3 + (this.type.healthBarOffsetY || 0), 0);
         this.model.add(this.healthBarContainer);
 
         const healthBarGeometry = new THREE.PlaneGeometry(2, 0.2);

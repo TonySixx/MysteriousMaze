@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { player } from "../../player";
 import { MainBoss } from "../baseBoss";
-import { playSound, fireballSoundBuffer, voidRiftSoundBuffer, CELL_SIZE } from "../../main";
+import { playSound, fireballSoundBuffer, voidRiftSoundBuffer, CELL_SIZE, explosionSoundBuffer, spell2SoundBuffer } from "../../main";
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { Tween, Easing } from '@tweenjs/tween.js';  // Přidáno
 import { playerTakeDamage } from '../../utils';
@@ -256,13 +256,14 @@ export class MeteorStrikeAbility extends Ability {
     }
 
     createExplosion(position) {
+        playSound(explosionSoundBuffer,0.7);
         const explosionGeometry = new THREE.SphereGeometry(0.1, 32, 32);
         const explosionMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 color1: { value: new THREE.Color(0xff4500) },
                 color2: { value: new THREE.Color(0xff8c00) },
-                color3: { value: new THREE.Color(0xffff00) }
+                color3: { value: new THREE.Color(0xff6600) }
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -346,10 +347,11 @@ export class InfernoWaveAbility extends Ability {
         this.cooldown = 15000; // 15 sekund
         this.lastUseTime = 0;
         this.waveCount = 3; // Počet vln
-        this.waveDuration = 2000; // 2 sekundy na vlnu
+        this.waveDuration = 3000; // 3 sekundy na vlnu (prodlouženo pro lepší viditelnost)
         this.waveInterval = 1000; // 1 sekunda mezi vlnami
         this.maxWaveRadius = 12;
         this.damagePerSecond = 50;
+        this.waveWidth = 2; // Šířka ohnivého pruhu
     }
 
     canUse() {
@@ -378,7 +380,8 @@ export class InfernoWaveAbility extends Ability {
                 color1: { value: new THREE.Color(0xff4500) },
                 color2: { value: new THREE.Color(0xff8c00) },
                 waveRadius: { value: 0 },
-                maxRadius: { value: this.maxWaveRadius }
+                maxRadius: { value: this.maxWaveRadius },
+                waveWidth: { value: this.waveWidth }
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -395,15 +398,23 @@ export class InfernoWaveAbility extends Ability {
                 uniform vec3 color2;
                 uniform float waveRadius;
                 uniform float maxRadius;
+                uniform float waveWidth;
                 varying vec2 vUv;
                 varying vec3 vPosition;
                 
                 void main() {
                     float dist = length(vPosition.xz);
-                    float wave = smoothstep(waveRadius - 2.0, waveRadius, dist) * smoothstep(waveRadius + 2.0, waveRadius, dist);
-                    float edge = smoothstep(maxRadius - 2.0, maxRadius, dist);
+                    float wave = smoothstep(waveRadius - waveWidth, waveRadius, dist) * smoothstep(waveRadius + waveWidth, waveRadius, dist);
+                    float edge = smoothstep(maxRadius - 1.0, maxRadius, dist);
                     vec3 color = mix(color1, color2, wave);
                     float alpha = (1.0 - edge) * wave * (0.6 + 0.4 * sin(time * 10.0));
+                    
+                    // Přidáme vizuální indikátor bezpečných zón
+                    float safeZone = smoothstep(waveRadius - waveWidth * 1.5, waveRadius - waveWidth, dist) * 
+                                     smoothstep(waveRadius + waveWidth, waveRadius + waveWidth * 1.5, dist);
+                    vec3 safeColor = vec3(0.0, 1.0, 0.0); // Zelená barva pro bezpečné zóny
+                    color = mix(color, safeColor, safeZone * 0.3); // Mírně naznačíme bezpečné zóny
+                    
                     gl_FragColor = vec4(color, alpha);
                 }
             `,
@@ -412,7 +423,7 @@ export class InfernoWaveAbility extends Ability {
             depthWrite: false
         });
 
-        const waveGeometry = new THREE.PlaneGeometry(this.maxWaveRadius * 2, this.maxWaveRadius * 2, 32, 32);
+        const waveGeometry = new THREE.PlaneGeometry(this.maxWaveRadius * 2, this.maxWaveRadius * 2, 64, 64);
         const wave = new THREE.Mesh(waveGeometry, waveMaterial);
         wave.rotation.x = -Math.PI / 2;
         wave.position.copy(this.boss.position);
@@ -425,7 +436,8 @@ export class InfernoWaveAbility extends Ability {
             duration: this.waveDuration,
             maxRadius: this.maxWaveRadius,
             damagePerSecond: this.damagePerSecond,
-            boss: this.boss
+            boss: this.boss,
+            waveWidth: this.waveWidth
         });
     }
 
@@ -454,8 +466,7 @@ export class PhoenixRebirthAbility extends Ability {
     }
 
     use() {
-        console.log("Phoenix Rebirth Ability used");
-        playSound(voidRiftSoundBuffer);
+        playSound(spell2SoundBuffer);
         this.createPhoenixRebirthEffect();
         this.healBoss();
         this.lastUseTime = Date.now();

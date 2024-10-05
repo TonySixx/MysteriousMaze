@@ -261,7 +261,8 @@ export const MAIN_BOSS_TYPES = [
     attackDamage: 50,
     hasCustomModel: true,
     merlonHeight : 6,
-    cornerWallHeight : 5 
+    cornerWallHeight : 5,
+    healthBarOffsetY: 1,
   },
   {
     name: "Frostlord, Vládce ledu",
@@ -321,7 +322,8 @@ export const MAIN_BOSS_TYPES = [
     attackDamage: 30,
     hasCustomModel: true,
     merlonHeight : 6,
-    cornerWallHeight : 5 
+    cornerWallHeight : 5,
+    healthBarOffsetY: 1,
   },
   {
     name: "Flamelord, Vládce ohně",
@@ -358,7 +360,7 @@ export const MAIN_BOSS_TYPES = [
     attackColor: new THREE.Color(0xFF4500),
     attackCooldown: 1,
     emissiveIntensity: 4,
-    maxHealth: 25000,
+    maxHealth: 250000,
     bossHitBoxMarginY: 4,
     bossHitBoxMarginXZ: 2.6,
     attackSpeed: 0.65,
@@ -378,9 +380,10 @@ export const MAIN_BOSS_TYPES = [
     torchSetIndex: 14,
     flyDuration: 1.5,
     size: 2,
-    attackDamage: 1, //50,
+    attackDamage: 50,
     hasCustomModel: true,
     merlonHeight: 7,
-    cornerWallHeight: 6
+    cornerWallHeight: 6,
+    healthBarOffsetY: 1,
   },
 ];
