@@ -371,8 +371,10 @@ export const MAIN_BOSS_TYPES = [
       { item: itemDatabase.protectorsLapisia, chance: 0.7 },
       { item: itemDatabase.ultimateHealthPotion, chance: 0.6 },
       { item: itemDatabase.ultimateManaPotion, chance: 0.6 },
-      { item: itemDatabase.phoenixFeatherCloak, chance: 0.15 },
-      { item: itemDatabase.infernalStaff, chance: 0.1 },
+      { item: itemDatabase.celestialLightbringer, chance: 0.15 },
+      { item: itemDatabase.cloudweaversMantle, chance: 0.22 },
+      { item: itemDatabase.emeraldSagesAttire, chance: 0.13 },
+
     ],
     ambientLightColor: 0xFF4500,
     nebulaColors: ["#e63900", "#ffbd2e"],

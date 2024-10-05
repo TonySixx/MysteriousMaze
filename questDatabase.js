@@ -316,6 +316,26 @@ const questDefinitions = [
             target: 'Frostlord, Vládce ledu',
             count: 1
         }
+    },
+    {
+        id: 'defeatFlamelord',
+        name: 'defeatFlamelordQuest',
+        description: 'defeatFlamelordQuestDescription',
+        level: 41,
+        rewards: {
+            exp: 1000000,
+            gold: 400,
+            items: [
+                { item: 'powerLapisia', count: 8 },
+                { item: 'protectorsLapisia', count: 8 },
+                { item: 'cloudweaversMantle', count: 1 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Flamelord, Vládce ohně',
+            count: 1
+        }
     }
 ];
 
