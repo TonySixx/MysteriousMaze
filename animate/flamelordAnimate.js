@@ -42,15 +42,17 @@ export function updateInfernoWaves(deltaTime) {
     for (let i = infernoWaves.length - 1; i >= 0; i--) {
         const wave = infernoWaves[i];
         const elapsedTime = Date.now() - wave.startTime;
+        const progress = elapsedTime / wave.duration;
         
-        if (elapsedTime < wave.duration) {
+        if (progress < 1) {
+            const currentRadius = wave.maxRadius * progress;
             wave.mesh.material.uniforms.time.value = elapsedTime / 1000;
+            wave.mesh.material.uniforms.waveRadius.value = currentRadius;
             
             // Kontrola kolize s hráčem
             const distanceToPlayer = player.position.distanceTo(wave.boss.position);
-            if (distanceToPlayer <= wave.radius) {
-                const damageMultiplier = 1 - (distanceToPlayer / wave.radius);
-                playerTakeDamage(wave.damagePerSecond * deltaTime * damageMultiplier);
+            if (distanceToPlayer <= currentRadius + 2 && distanceToPlayer >= currentRadius - 2) {
+                playerTakeDamage(wave.damagePerSecond * deltaTime);
             }
         } else {
             scene.remove(wave.mesh);

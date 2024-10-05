@@ -358,7 +358,7 @@ export const MAIN_BOSS_TYPES = [
     attackColor: new THREE.Color(0xFF4500),
     attackCooldown: 1,
     emissiveIntensity: 3,
-    maxHealth: 250000,
+    maxHealth: 25000,
     bossHitBoxMarginY: 4,
     bossHitBoxMarginXZ: 2.6,
     attackSpeed: 0.65,

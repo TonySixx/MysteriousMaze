@@ -5,6 +5,7 @@ import { MainBoss } from "../baseBoss";
 import { playSound, fireballSoundBuffer, voidRiftSoundBuffer, CELL_SIZE } from "../../main";
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { Tween, Easing } from '@tweenjs/tween.js';  // Přidáno
+import { playerTakeDamage } from '../../utils';
 
 export class FlamelordBoss extends MainBoss {
     constructor(position, id, rng, floor, type) {
@@ -342,10 +343,12 @@ export class MeteorStrikeAbility extends Ability {
 export class InfernoWaveAbility extends Ability {
     constructor(boss) {
         super(boss);
-        this.cooldown = 15000; // 20 sekund
+        this.cooldown = 15000; // 15 sekund
         this.lastUseTime = 0;
-        this.waveDuration = 5000; // 5 sekund
-        this.waveRadius = 12;
+        this.waveCount = 3; // Počet vln
+        this.waveDuration = 2000; // 2 sekundy na vlnu
+        this.waveInterval = 1000; // 1 sekunda mezi vlnami
+        this.maxWaveRadius = 12;
         this.damagePerSecond = 50;
     }
 
@@ -355,18 +358,27 @@ export class InfernoWaveAbility extends Ability {
 
     use() {
         playSound(fireballSoundBuffer);
-        this.createInfernoWaveEffect();
+        this.createInfernoWaves();
         this.lastUseTime = Date.now();
         this.boss.isUsingAbility = false;
     }
 
-    createInfernoWaveEffect() {
+    createInfernoWaves() {
+        for (let i = 0; i < this.waveCount; i++) {
+            setTimeout(() => {
+                this.createInfernoWaveEffect(i);
+            }, i * this.waveInterval);
+        }
+    }
+
+    createInfernoWaveEffect(waveIndex) {
         const waveMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 color1: { value: new THREE.Color(0xff4500) },
                 color2: { value: new THREE.Color(0xff8c00) },
-                waveRadius: { value: this.waveRadius }
+                waveRadius: { value: 0 },
+                maxRadius: { value: this.maxWaveRadius }
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -382,15 +394,16 @@ export class InfernoWaveAbility extends Ability {
                 uniform vec3 color1;
                 uniform vec3 color2;
                 uniform float waveRadius;
+                uniform float maxRadius;
                 varying vec2 vUv;
                 varying vec3 vPosition;
                 
                 void main() {
                     float dist = length(vPosition.xz);
-                    float wave = sin(dist * 0.5 - time * 5.0) * 0.5 + 0.5;
-                    float edge = smoothstep(waveRadius - 2.0, waveRadius, dist);
+                    float wave = smoothstep(waveRadius - 2.0, waveRadius, dist) * smoothstep(waveRadius + 2.0, waveRadius, dist);
+                    float edge = smoothstep(maxRadius - 2.0, maxRadius, dist);
                     vec3 color = mix(color1, color2, wave);
-                    float alpha = (1.0 - edge) * (0.6 + 0.4 * wave);
+                    float alpha = (1.0 - edge) * wave * (0.6 + 0.4 * sin(time * 10.0));
                     gl_FragColor = vec4(color, alpha);
                 }
             `,
@@ -399,7 +412,7 @@ export class InfernoWaveAbility extends Ability {
             depthWrite: false
         });
 
-        const waveGeometry = new THREE.PlaneGeometry(this.waveRadius * 2, this.waveRadius * 2, 32, 32);
+        const waveGeometry = new THREE.PlaneGeometry(this.maxWaveRadius * 2, this.maxWaveRadius * 2, 32, 32);
         const wave = new THREE.Mesh(waveGeometry, waveMaterial);
         wave.rotation.x = -Math.PI / 2;
         wave.position.copy(this.boss.position);
@@ -410,7 +423,7 @@ export class InfernoWaveAbility extends Ability {
             mesh: wave,
             startTime: Date.now(),
             duration: this.waveDuration,
-            radius: this.waveRadius,
+            maxRadius: this.maxWaveRadius,
             damagePerSecond: this.damagePerSecond,
             boss: this.boss
         });
@@ -431,8 +444,8 @@ export class PhoenixRebirthAbility extends Ability {
         this.cooldown = 60000; // 60 sekund
         this.lastUseTime = 0;
         this.healAmount = 0.3; // 30% maximálního zdraví
-        this.damageRadius = 10;
-        this.damageAmount = 100;
+        this.damageRadius = 12;
+        this.damageAmount = 80;
     }
 
     canUse() {
