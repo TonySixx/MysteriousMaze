@@ -67,8 +67,17 @@ export function updatePhoenixRebirthEffects(deltaTime) {
         const elapsedTime = Date.now() - effect.startTime;
         
         if (elapsedTime < effect.duration) {
-            effect.mesh.material.uniforms.time.value = elapsedTime / 1000;
-            effect.mesh.scale.setScalar(1 + (elapsedTime / effect.duration) * 2);
+            const progress = elapsedTime / effect.duration;
+            effect.mesh.material.uniforms.time.value = progress;
+            effect.mesh.scale.setScalar(1 + progress);
+
+            // Aplikujeme poškození hráči, pokud je v dosahu
+            const distanceToPlayer = player.position.distanceTo(effect.boss.position);
+            if (distanceToPlayer <= effect.damageRadius) {
+                const damageFactor = 1 - (distanceToPlayer / effect.damageRadius);
+                const damage = effect.damageAmount * damageFactor * (deltaTime / (effect.duration / 1000));
+                playerTakeDamage(damage);
+            }
         } else {
             scene.remove(effect.mesh);
             phoenixRebirthEffects.splice(i, 1);

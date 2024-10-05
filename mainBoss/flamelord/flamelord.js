@@ -444,8 +444,9 @@ export class PhoenixRebirthAbility extends Ability {
         this.cooldown = 60000; // 60 sekund
         this.lastUseTime = 0;
         this.healAmount = 0.3; // 30% maximálního zdraví
-        this.damageRadius = 12;
+        this.damageRadius = 10;
         this.damageAmount = 80;
+        this.explosionDuration = 3000; // 3 sekundy (prodlouženo z 2 sekund)
     }
 
     canUse() {
@@ -457,18 +458,18 @@ export class PhoenixRebirthAbility extends Ability {
         playSound(voidRiftSoundBuffer);
         this.createPhoenixRebirthEffect();
         this.healBoss();
-        this.damagePlayer();
         this.lastUseTime = Date.now();
         this.boss.isUsingAbility = false;
     }
 
     createPhoenixRebirthEffect() {
-        const phoenixGeometry = new THREE.SphereGeometry(3, 32, 32);
+        const phoenixGeometry = new THREE.SphereGeometry(this.damageRadius, 32, 32);
         const phoenixMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
                 color1: { value: new THREE.Color(0xff4500) },
-                color2: { value: new THREE.Color(0xffd700) }
+                color2: { value: new THREE.Color(0xffd700) },
+                duration: { value: this.explosionDuration / 1000 }
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -481,14 +482,15 @@ export class PhoenixRebirthAbility extends Ability {
                 uniform float time;
                 uniform vec3 color1;
                 uniform vec3 color2;
+                uniform float duration;
                 varying vec2 vUv;
                 
                 void main() {
                     vec2 center = vec2(0.5, 0.5);
                     float dist = distance(vUv, center);
-                    float wave = sin(dist * 20.0 - time * 10.0) * 0.5 + 0.5;
+                    float wave = sin(dist * 20.0 - time * 5.0) * 0.5 + 0.5; // Zpomaleno
                     vec3 color = mix(color1, color2, wave);
-                    float alpha = smoothstep(0.5, 0.0, dist);
+                    float alpha = smoothstep(1.0, 0.0, time / duration) * smoothstep(0.5, 0.0, dist);
                     gl_FragColor = vec4(color, alpha);
                 }
             `,
@@ -503,7 +505,10 @@ export class PhoenixRebirthAbility extends Ability {
         phoenixRebirthEffects.push({
             mesh: phoenix,
             startTime: Date.now(),
-            duration: 3000, // 3 sekundy
+            duration: this.explosionDuration,
+            damageRadius: this.damageRadius,
+            damageAmount: this.damageAmount,
+            boss: this.boss
         });
     }
 
@@ -511,12 +516,6 @@ export class PhoenixRebirthAbility extends Ability {
         const healAmount = this.boss.maxHealth * this.healAmount;
         this.boss.health = Math.min(this.boss.health + healAmount, this.boss.maxHealth);
         this.boss.updateHealthBar();
-    }
-
-    damagePlayer() {
-        if (player.position.distanceTo(this.boss.position) <= this.damageRadius) {
-            playerTakeDamage(this.damageAmount);
-        }
     }
 
     cancelAbility() {

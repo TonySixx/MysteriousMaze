@@ -357,7 +357,7 @@ export const MAIN_BOSS_TYPES = [
     }),
     attackColor: new THREE.Color(0xFF4500),
     attackCooldown: 1,
-    emissiveIntensity: 3,
+    emissiveIntensity: 4,
     maxHealth: 25000,
     bossHitBoxMarginY: 4,
     bossHitBoxMarginXZ: 2.6,
@@ -378,7 +378,7 @@ export const MAIN_BOSS_TYPES = [
     torchSetIndex: 14,
     flyDuration: 1.5,
     size: 2,
-    attackDamage: 0, //50,
+    attackDamage: 1, //50,
     hasCustomModel: true,
     merlonHeight: 7,
     cornerWallHeight: 6
