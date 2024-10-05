@@ -118,27 +118,4 @@ export function updateGlacialNovaEffects(deltaTime) {
     }
   }
 
-  export function updateChronoNovaEffects(deltaTime) {
-    for (let i = chronoNovaEffects.length - 1; i >= 0; i--) {
-      const effect = chronoNovaEffects[i];
-      const elapsedTime = Date.now() - effect.startTime;
-      const progress = elapsedTime / effect.duration;
-
-      if (progress < 1) {
-        if (effect.type === 'charge') {
-          effect.mesh.material.uniforms.time.value = elapsedTime / 1000;
-        } else if (effect.type === 'explosion') {
-          effect.mesh.material.uniforms.time.value = elapsedTime;
-          
-          // Aplikace poškození hráči, pokud je v dosahu
-          if (player.position.distanceTo(effect.boss.position) <= effect.radius) {
-            playerTakeDamage(effect.boss.type.attackDamage * deltaTime);
-          }
-        }
-      } else {
-        scene.remove(effect.mesh);
-        chronoNovaEffects.splice(i, 1);
-      }
-    }
-  }
   

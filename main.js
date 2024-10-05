@@ -5,40 +5,21 @@ import { createClient } from "@supabase/supabase-js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { AudioLoader } from "three";
 
 import {
-  setBossCounter,
-  setBosses,
   spawnBossInMaze,
   bosses,
-  bossCounter,
-  Boss,
 } from "./boss.js";
 import {
   spells,
-  updateFireballs,
-  updateFrostbolts,
-  updateArcaneMissiles,
   lastSpellCastTime,
-  updateChainLightnings,
   updateSpellUpgrades,
-  resetSpells,
   createSkillbar,
-  updateSkillbar,
-  setOriginalStaffRotation,
-  originalStaffRotation,
-  isInspectingStaff,
-  setIsInspectingStaff,
-  setIsSwingingStaff,
 } from "./spells.js";
 import {
   createPlayer,
-  updatePlayerPosition,
   updatePlayerHealthBar,
   updatePlayerManaBar,
-  regenerateMana,
-  regenerateHealth,
   setPlayerHealth,
   setPlayerMana,
   player,
@@ -64,7 +45,6 @@ import {
   getTranslation,
   setLanguage,
   updateTranslations,
-  updateUITexts,
 } from "./langUtils.js";
 import { createCamp } from "./camp.js";
 import {
@@ -75,7 +55,6 @@ import {
   initWeaponModel,
   openInventory,
   originalStaffColor,
-  updatePotionCooldowns,
   updateStaffVisibility,
 } from "./inventory.js";
 import { createMainMenu, stopMainTheme } from "./mainMenu.js";
@@ -95,8 +74,6 @@ import {
 } from "./modals.js";
 import {
   addExperienceForCompletion,
-  destroyAllSideAnimations,
-  disposeObject,
   drawMinimap,
   getBestTime,
   getFloorTextureSet,
@@ -106,15 +83,12 @@ import {
   removeFreezeEffect,
   setUrlParameter,
   submitScore,
-  updateFreezeEffect,
-  updateMagicBalls,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
-import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateAcidExplosions, updateAcidSprays, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateChronoNovaEffects, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updatePoisonClouds, updatePoisonParticles, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTemporalEchoes, updateTimeDilationEffects, updateTimeWarpEffects, updateVineGrab, updateVoidRifts } from "./animate.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
-import { updateFrostAuraEffects, updateGlacialNovaEffects, updateIceTrails, updateIcicleBullets } from "./animate/frostlordAnimate.js";
 import { clearScene } from "./clearScene.js";
+import { animate } from "./animate/mainAnimate.js";
 
 export const version = "3.1.4";
 
@@ -176,7 +150,7 @@ let currentStaffColor = new THREE.Color();
 let targetStaffColor = new THREE.Color();
 const colorTransitionSpeed = 5;
 
-let isMinimapVisible = false;
+export let isMinimapVisible = false;
 let minimapTimeMultiplier = 1;
 let cumulativeTime = 0;
 let lastUpdateTime;
@@ -703,7 +677,7 @@ function toggleBackgroundMusic() {
 
 
 
-function updateFootstepsSound() {
+export function updateFootstepsSound() {
   if (moveForward || moveBackward || moveLeft || moveRight) {
     if (!footstepsSound.isPlaying) {
       footstepsSound.play();
@@ -1041,14 +1015,14 @@ function createKeys(rng) {
   }
 }
 
-function animateKeys(deltaTime) {
+export function animateKeys(deltaTime) {
   scene.children.forEach((child) => {
     if (child.userData.isKey) {
       child.rotation.y += 1 * deltaTime; // Rychlost rotace klíče
     }
   });
 }
-function animateGoal(deltaTime) {
+export function animateGoal(deltaTime) {
   scene.children.forEach((child) => {
     if (child.userData.isGoal) {
       child.rotation.y += 1 * deltaTime; // Rychlost rotace cíle
@@ -1613,7 +1587,7 @@ export function changeStaffColor(color) {
   targetStaffColor.setHex(color);
 }
 
-function updateStaffColor(deltaTime) {
+export function updateStaffColor(deltaTime) {
   currentStaffColor.lerp(targetStaffColor, colorTransitionSpeed * deltaTime);
   if (staffModel) {
     const modelInfo = equipment.weapon.modelInfo;
@@ -1683,7 +1657,7 @@ function onWindowResize() {
   composer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function rotateObjects(deltaTime) {
+export function rotateObjects(deltaTime) {
   scene.children.forEach((child) => {
     if (child.userData.isRotating) {
       child.rotation.y += 1 * deltaTime; // Pomalá rotace kolem osy Y
@@ -1691,7 +1665,7 @@ function rotateObjects(deltaTime) {
   });
 }
 
-function resetStaffColor() {
+export function resetStaffColor() {
   if (Date.now() - lastSpellCastTime > 500) {
     if (originalStaffColor) {
       changeStaffColor(originalStaffColor.getHex());
@@ -1702,7 +1676,7 @@ function resetStaffColor() {
   }
 }
 
-function updateBosses(deltaTime) {
+export function updateBosses(deltaTime) {
   bosses.forEach((boss) => boss.update(deltaTime));
 }
 
@@ -1898,7 +1872,7 @@ function animateStaffRotation(deltaTime) {
 }
 
 // Přidejte tuto funkci pro animaci ohně
-function animateFire(deltaTime) {
+export function animateFire(deltaTime) {
   torches.forEach(({ fire }) => {
     const positions = fire.geometry.attributes.position.array;
     for (let i = 0; i < positions.length; i += 3) {
@@ -2015,7 +1989,7 @@ export function isHighWallArea(x, z) {
 }
 
 // Přidejte tuto funkci
-function updateVisibleObjects() {
+export function updateVisibleObjects() {
   const frustum = new THREE.Frustum();
   const matrix = new THREE.Matrix4().multiplyMatrices(
     camera.projectionMatrix,
@@ -2052,125 +2026,10 @@ function updateVisibleObjects() {
   });
 }
 
-let previousTime = performance.now(); // Definice a inicializace previousTime
-let frameCountForAnimation = 0;
-function animate() {
-  const currentTime = performance.now();
-  const deltaTime = (currentTime - previousTime) / 1000; // Delta time v sekundách
-  previousTime = currentTime;
-
-  requestAnimationFrame(animate);
-  updateFreezeEffect();
-  updatePlayerPosition(deltaTime);
-  animateKeys(deltaTime);
-  animateGoal(deltaTime);
-  rotateObjects(deltaTime);
-  animateFire(deltaTime);
-  updateFireballs(deltaTime);
-  updateFrostbolts(deltaTime);
-  updateArcaneMissiles(deltaTime);
-  updateChainLightnings(deltaTime);
-  updateBosses(deltaTime);
-  updateMagicBalls(deltaTime);
-  updateDeathParticles(deltaTime, currentTime);
-  regenerateMana(deltaTime);
-  regenerateHealth(deltaTime);
-  animateStaffRotation(deltaTime);
-  updatePotionCooldowns(deltaTime);
-  updateFloatingTexts(damageTexts, currentTime);
-  updateFloatingTexts(expTexts, currentTime);
-  updateFloatingTexts(goldTexts, currentTime);
-  updateTeleportParticles(deltaTime, currentTime);
-  updateTeleportParticleSystems(deltaTime, currentTime);
-  updateMainBossDragons(deltaTime, currentTime);
-  animateBossEntry(deltaTime);
-  updateExplosions(deltaTime, currentTime);
-  updateIceExplosions(deltaTime);
-  updateFrostAuras(deltaTime);
-  updateChainExplosions(deltaTime);
-  updateChainLightningsVisuals(deltaTime);
-  updateFireballExplosions(deltaTime);
-  updateStaffSwing(deltaTime);
-  animateStaffInspection(currentTime);
-
-  updateTeleportMove(deltaTime);
-  updateTeleportEffects(deltaTime);
-
-  updateSeedBurst(deltaTime);
-  updateVineGrab(deltaTime);
-  updateObsidianBlast(deltaTime);
-  updateVoidRifts(deltaTime);
-  updateTimeDilationEffects(deltaTime);
-  updateEntanglementBeams(deltaTime);
-  updateTimeWarpEffects(deltaTime);
-  updateTemporalEchoes(deltaTime);
-  updateChronoNovaEffects(deltaTime);
-  updatePoisonClouds(deltaTime);
-  updateAcidSprays(deltaTime);
-  updateAcidExplosions(deltaTime);
-  updatePoisonParticles(deltaTime);
-  updateGlacialNovaEffects(deltaTime);
-  updateIcicleBullets(deltaTime);
-  updateIceTrails(deltaTime);
-  updateFrostAuraEffects(deltaTime);
-
-  animateMerchants(deltaTime);
-  updateQuestBoardInteraction(deltaTime);
-  animateQuestIndicator(deltaTime);
-
-  if (bossChestAndPortalData) {
-    updateBossChestAndPortal(deltaTime);
-  }
-
-  if (staffModel && staffModel.userData.enchantParticles) {
-    staffModel.userData.enchantParticles.userData.update(deltaTime);
-  }
-
-  if (isMinimapVisible) {
-    drawMinimap();
-  }
-
-  updateSkillbar();
-  updateFootstepsSound();
-
-  resetStaffColor();
-  updateStaffColor(deltaTime);
-
-  // Animace všech částicových efektů ve scéně
-  scene.children.forEach((child) => {
-    if (child.userData.animate) {
-      child.userData.animate(deltaTime * 30);
-    }
-  });
-
-  if (nebulaMaterial && nebulaMaterial.material) {
-    nebulaMaterial.material.uniforms.time.value += deltaTime;
-  }
-
-  if (frameCountForAnimation % 2 === 0) {
-    checkObjectInteractions();
-    lightManager.update(player.position, camera); // Aktualizace světel každý druhý snímek
-  }
-  frameCountForAnimation = (frameCountForAnimation + 1) % 2;
-
-  updateVisibleObjects();
-
-  if (showFPS) {
-    updateFPS();
-  }
-
-  camera.children[camera.children.length - 1].renderOrder = 999;
-  if (camera.children[camera.children.length - 1].material?.depthTest) {
-    camera.children[camera.children.length - 1].material.depthTest = false;
-  }
-
-  composer.render();
-}
-
-let showFPS = false;
-let fpsCounter;
-let lastFrameTime = performance.now();
-let frameCount = 0;
+export let showFPS = false;
+export let fpsCounter;
+export let lastFrameTime = performance.now();
+export let frameCount = 0;
 
 function initFPSCounter() {
   fpsCounter = document.createElement("div");
@@ -2184,7 +2043,7 @@ function initFPSCounter() {
   document.body.appendChild(fpsCounter);
 }
 
-function updateFPS() {
+export function updateFPS() {
   const currentTime = performance.now();
   frameCount++;
   if (currentTime - lastFrameTime >= 1000) {
