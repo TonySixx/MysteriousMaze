@@ -752,7 +752,9 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
       roomAmbientLightIntensity: 0.5,
       nebulaColors: bossType.nebulaColors,
       fogDensity: 0.03,
-      flyDuration: bossType.flyDuration || 3
+      flyDuration: bossType.flyDuration || 3,
+      merlonHeight: bossType.merlonHeight,
+      cornerWallHeight: bossType.cornerWallHeight
     };
 
     const { room, spawnTimeout, countdownInterval } = createMainBossRoom(rng, bossRoomOptions);

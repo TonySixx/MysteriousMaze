@@ -304,7 +304,7 @@ const questDefinitions = [
         description: 'defeatFrostlordQuestDescription',
         level: 36,
         rewards: {
-            exp: 350000,
+            exp: 400000,
             gold: 300,
             items: [
                 { item: 'powerLapisia', count: 7 },

@@ -42,7 +42,9 @@ export function createMainBossRoom(rng, options = {}) {
     roomAmbientLightIntensity = 0.5,
     nebulaColors = ["#FF0000", "#FF69B4"],
     fogDensity = 0.05,
-    flyDuration = 3
+    flyDuration = 3,
+    merlonHeight = 1, // Nová option pro výšku merlonů (v násobcích WALL_HEIGHT)
+    cornerWallHeight = 2 // Nová option pro výšku rohových zdí (v násobcích WALL_HEIGHT)
   } = options;
 
   setMazeSize(roomSize);
@@ -80,10 +82,12 @@ export function createMainBossRoom(rng, options = {}) {
     walls.push(wall);
 
     if (isMerlon) {
-      const merlonBlock = new THREE.Mesh(wallGeometry, wallMaterial);
-      merlonBlock.position.set(x, y + WALL_HEIGHT, z);
-      room.add(merlonBlock);
-      walls.push(merlonBlock);
+      for (let i = 0; i < merlonHeight; i++) {
+        const merlonBlock = new THREE.Mesh(wallGeometry, wallMaterial);
+        merlonBlock.position.set(x, y + WALL_HEIGHT * (i + 1), z);
+        room.add(merlonBlock);
+        walls.push(merlonBlock);
+      }
     }
   };
 
@@ -133,7 +137,7 @@ export function createMainBossRoom(rng, options = {}) {
     const cornerX = x * (roomSize / 2 - cornerWallDistance) * CELL_SIZE;
     const cornerZ = z * (roomSize / 2 - cornerWallDistance) * CELL_SIZE;
 
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < cornerWallHeight; i++) {
       const cornerWall = new THREE.Mesh(cornerWallGeometry, wallMaterial);
       cornerWall.position.set(
         cornerX,
@@ -152,6 +156,7 @@ export function createMainBossRoom(rng, options = {}) {
     ];
 
     directions.forEach((dir) => {
+      // Zachováváme původní výšku pochodní (1 * WALL_HEIGHT)
       createTorchOnCenterTower(cornerX, cornerZ, 1, dir, torchColor);
     });
   });

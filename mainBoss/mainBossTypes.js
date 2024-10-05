@@ -68,7 +68,9 @@ export const MAIN_BOSS_TYPES = [
       { item: itemDatabase.greaterManaPotion, chance: 1 },
     ],
     ambientLightColor: 0xb6e0bf,
-    nebulaColors: ["#4ed145", "#e4fc8d"]
+    nebulaColors: ["#4ed145", "#e4fc8d"],
+    merlonHeight : 2,
+    cornerWallHeight : 1 
   },
   {
     name: "Obsidaroth",
@@ -110,6 +112,8 @@ export const MAIN_BOSS_TYPES = [
     torchSetIndex: 4,
     flyDuration: 1,
     size: 1.5,
+    merlonHeight : 3,
+    cornerWallHeight : 2 
   },
   {
     name: "Quantum Guardian",
@@ -152,6 +156,8 @@ export const MAIN_BOSS_TYPES = [
     flyDuration: 1,
     size: 1.7,
     attackDamage: 30,
+    merlonHeight : 4,
+    cornerWallHeight : 3 
   },
   {
     name: "Chronos, Pán času",
@@ -193,6 +199,8 @@ export const MAIN_BOSS_TYPES = [
     flyDuration: 1,
     size: 2,
     attackDamage: 40,
+    merlonHeight : 5,
+    cornerWallHeight : 4 
   },
   {
     name: "Toxicus, Pán moru",
@@ -247,10 +255,12 @@ export const MAIN_BOSS_TYPES = [
     nebulaColors: ["#89d973", "#00662c"],
     textureSetIndex: 10,
     torchSetIndex: 10,
-    flyDuration: 1,
+    flyDuration: 1.5,
     size: 2,
     attackDamage: 50,
     hasCustomModel: true,
+    merlonHeight : 6,
+    cornerWallHeight : 5 
   },
   {
     name: "Frostlord, Vládce ledu",
@@ -305,9 +315,11 @@ export const MAIN_BOSS_TYPES = [
     nebulaColors: ["#87cefa", "#e0ffff"],
     textureSetIndex: 12,
     torchSetIndex: 12,
-    flyDuration: 1,
+    flyDuration: 1.5,
     size: 2,
     attackDamage: 30,
     hasCustomModel: true,
+    merlonHeight : 6,
+    cornerWallHeight : 5 
   },
 ];
