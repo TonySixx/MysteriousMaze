@@ -138,7 +138,8 @@ export var skillTree = {
         damageIncreasePerLevel: [0],
         requiredPlayerLevelPerLevel: [21],
         upgrades: [],
-        baseDamage: 0
+        baseDamage: 0,
+        hideDamage:true
     },
 };
 export const defaultSkillTree = structuredClone(skillTree);
@@ -279,10 +280,12 @@ function createSpellElement(spellKey, spell) {
     spellLevel.textContent = getTranslation('spellLevel', spell.level, spell.maxLevel);
     spellInfo.appendChild(spellLevel);
 
-    const spellDamage = document.createElement('p');
-    spellDamage.className = "spell-damage";
-    spellDamage.textContent = getTranslation('spellDamage', calculateSpellDamage(spell));
-    spellInfo.appendChild(spellDamage);
+    if (!spell.hideDamage) {
+        const spellDamage = document.createElement('p');
+        spellDamage.className = "spell-damage";
+        spellDamage.textContent = getTranslation('spellDamage', calculateSpellDamage(spell));
+        spellInfo.appendChild(spellDamage);
+    }
 
     spellElement.appendChild(spellInfo);
 

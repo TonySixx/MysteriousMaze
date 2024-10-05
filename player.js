@@ -391,8 +391,65 @@ function createPlayer() {
     }
 }
 
-function updatePlayerPosition(deltaTime) {
+function checkCollisionX(newX, currentZ) {
+    const playerRadius = 0.4;
 
+    for (let wall of walls) {
+        // Výpočty hranic stěny
+        const wallMinX = wall.position.x - CELL_SIZE / 2;
+        const wallMaxX = wall.position.x + CELL_SIZE / 2;
+        const wallMinZ = wall.position.z - CELL_SIZE / 2;
+        const wallMaxZ = wall.position.z + CELL_SIZE / 2;
+
+        // Kontrola překrytí podél osy Z
+        if (currentZ + playerRadius > wallMinZ && currentZ - playerRadius < wallMaxZ) {
+            // Kontrola kolize podél osy X
+            if (newX + playerRadius > wallMinX && newX - playerRadius < wallMaxX) {
+                // Detekována kolize podél osy X
+                if (newX > wall.position.x) {
+                    // Hráč je napravo od stěny, posuňte ho doprava
+                    newX = wallMaxX + playerRadius;
+                } else {
+                    // Hráč je nalevo od stěny, posuňte ho doleva
+                    newX = wallMinX - playerRadius;
+                }
+            }
+        }
+    }
+
+    return newX;
+}
+
+function checkCollisionZ(currentX, newZ) {
+    const playerRadius = 0.4;
+
+    for (let wall of walls) {
+        // Výpočty hranic stěny
+        const wallMinX = wall.position.x - CELL_SIZE / 2;
+        const wallMaxX = wall.position.x + CELL_SIZE / 2;
+        const wallMinZ = wall.position.z - CELL_SIZE / 2;
+        const wallMaxZ = wall.position.z + CELL_SIZE / 2;
+
+        // Kontrola překrytí podél osy X
+        if (currentX + playerRadius > wallMinX && currentX - playerRadius < wallMaxX) {
+            // Kontrola kolize podél osy Z
+            if (newZ + playerRadius > wallMinZ && newZ - playerRadius < wallMaxZ) {
+                // Detekována kolize podél osy Z
+                if (newZ > wall.position.z) {
+                    // Hráč je před stěnou, posuňte ho dopředu
+                    newZ = wallMaxZ + playerRadius;
+                } else {
+                    // Hráč je za stěnou, posuňte ho dozadu
+                    newZ = wallMinZ - playerRadius;
+                }
+            }
+        }
+    }
+
+    return newZ;
+}
+
+function updatePlayerPosition(deltaTime) {
     if (player.isFrozen) {
         // Pokud je hráč zmražený, neaktualizujeme jeho pozici
         return;
@@ -450,7 +507,6 @@ function updatePlayerPosition(deltaTime) {
             }
         }
 
-
         // Upravená část pro normalizaci pohybu
         let moveVector = new THREE.Vector3(0, 0, 0);
         if (moveForward) moveVector.z -= 1;
@@ -469,33 +525,22 @@ function updatePlayerPosition(deltaTime) {
     }
 
     const oldPosition = player.position.clone();
-    const newPosition = oldPosition.clone().add(playerVelocity);
+    let newPosition = oldPosition.clone();
+
+    // Aplikujeme rychlost na novou pozici
+    newPosition.add(playerVelocity);
 
     if (!canWalkThroughWalls) {
-        const { normal, collision } = checkCollisions(newPosition);
-        if (collision) {
-            normal.normalize();
-            const dot = playerVelocity.dot(normal);
+        // Vyřešíme kolize podél osy X
+        newPosition.x = checkCollisionX(newPosition.x, oldPosition.z);
 
-            // Only apply sliding if the player is not moving directly into the wall
-            if (Math.abs(dot) < 0.9) {
-                playerVelocity.sub(normal.multiplyScalar(dot));
-                newPosition.copy(oldPosition).add(playerVelocity);
-            } else {
-                // If moving directly into the wall, stop the player
-                newPosition.copy(oldPosition);
-            }
-
-            // Perform a final collision check
-            const finalCollision = checkCollisions(newPosition);
-            if (finalCollision.collision) {
-                newPosition.add(finalCollision.normal);
-            }
-        }
+        // Vyřešíme kolize podél osy Z
+        newPosition.z = checkCollisionZ(newPosition.x, newPosition.z);
     }
 
     player.position.copy(newPosition);
-    // Limit player movement to the maze area
+
+    // Omezení pohybu hráče na oblast bludiště
     player.position.x = Math.max(
         Math.min(player.position.x, (MAZE_SIZE * CELL_SIZE) / 2),
         (-MAZE_SIZE * CELL_SIZE) / 2

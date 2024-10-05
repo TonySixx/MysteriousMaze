@@ -581,6 +581,7 @@ class Boss {
         const speed = 0.3;
         frostbolt.velocity = direction.multiplyScalar(speed);
         frostbolt.isFrostbolt = true;
+        frostbolt.attackDamage = 0;
 
         return frostbolt;
     }
@@ -818,7 +819,7 @@ class Boss {
         const speed = 0.5; // Rychlejší než běžné útoky
         magicArrow.velocity = direction.multiplyScalar(speed);
         magicArrow.isMagicArrow = true;
-        magicArrow.damage = 30; // Větší poškození
+        magicArrow.attackDamage = 30; // Větší poškození
 
         return magicArrow;
     }

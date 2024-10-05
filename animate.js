@@ -316,19 +316,24 @@ export function updateFireballExplosions(deltaTime) {
         const explosion = fireballExplosions[i];
         const positions = explosion.geometry.attributes.position.array;
         const colors = explosion.geometry.attributes.color.array;
+        const sizes = explosion.geometry.attributes.size.array;
 
         for (let j = 0; j < positions.length; j += 3) {
+            // Pohyb částic
             positions[j] += (Math.random() - 0.5) * 0.1;
-            positions[j + 1] += (Math.random() - 0.5) * 0.1;
+            positions[j + 1] += (Math.random() - 0.5) * 0.1 + 0.05; // Mírný pohyb nahoru
             positions[j + 2] += (Math.random() - 0.5) * 0.1;
 
-            colors[j + 1] *= 0.99;  // Postupné ztmavování částic
+            // Postupné ztmavování a zmenšování částic
+            colors[j + 1] *= 0.99;
+            sizes[j / 3] *= 0.99;
         }
 
         explosion.geometry.attributes.position.needsUpdate = true;
         explosion.geometry.attributes.color.needsUpdate = true;
+        explosion.geometry.attributes.size.needsUpdate = true;
 
-        explosion.material.opacity -= 0.02 * deltaTime;
+        explosion.material.opacity -= 0.02 * deltaTime * 60;
 
         if (explosion.material.opacity <= 0) {
             scene.remove(explosion);

@@ -78,17 +78,17 @@ export function updateSpellUpgrades(skillTree) {
       if (spellInfo.upgrades) {
         spellInfo.upgrades.forEach(upgrade => {
           if (upgrade.unlocked) {
-            if (upgrade.name === 'Inferno Touch') {
+            if (upgrade.systemName === 'infernoTouch') {
               spell.burningEffect = true;
-            } else if (upgrade.name === 'Ice Explosion') {
+            } else if (upgrade.systemName === 'iceExplosion') {
               spell.iceExplosion = true;
-            } else if (upgrade.name === 'Multi-shot') {
+            } else if (upgrade.systemName === 'multiShot') {
               spell.multiShot = true;
-            } else if (upgrade.name === 'Chain Explosion') {
+            } else if (upgrade.systemName === 'chainExplosion') {
               spell.chainExplosion = true;
-            } else if (upgrade.name === 'Explozivní jádro') {
+            } else if (upgrade.systemName === 'explosiveCore') {
               spell.explosiveCore = true;
-            } else if (upgrade.name === 'Mrazivá aura') {
+            } else if (upgrade.systemName === 'frostAura') {
               spell.frostAura = true;
             }
           }
@@ -491,7 +491,6 @@ function updateFireballs(deltaTime) {
           if (fireball.explosiveCore) {
             // Způsobí poškození všem bossům v okruhu 3 metrů
             createFireballExplosion(fireball.position);
-
             bosses.forEach(nearbyBoss => {
               if (nearbyBoss.model.position.distanceTo(fireball.position) <= 3) {
                 nearbyBoss.takeDamage(fireball.damage * 0.5);
@@ -1039,9 +1038,10 @@ export function createFireballExplosion(position) {
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
   const colors = new Float32Array(particleCount * 3);
+  const sizes = new Float32Array(particleCount);
 
   for (let i = 0; i < particleCount; i++) {
-    const radius = Math.random() * 3;
+    const radius = Math.random() * 2;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.random() * Math.PI;
 
@@ -1050,24 +1050,31 @@ export function createFireballExplosion(position) {
     positions[i * 3 + 2] = position.z + radius * Math.cos(phi);
 
     colors[i * 3] = 1;  // R
-    colors[i * 3 + 1] = Math.random() * 0.5;  // G
+    colors[i * 3 + 1] = Math.random() * 0.5 + 0.5;  // G
     colors[i * 3 + 2] = 0;  // B
+
+    sizes[i] = Math.random() * 0.1 + 0.05;
   }
 
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
   const material = new THREE.PointsMaterial({
     size: 0.1,
     vertexColors: true,
     blending: THREE.AdditiveBlending,
     transparent: true,
-    opacity: 1
+    opacity: 1,
+    sizeAttenuation: true
   });
 
   const particles = new THREE.Points(geometry, material);
   scene.add(particles);
   fireballExplosions.push(particles);
+
+  // Nastavíme životnost exploze
+  particles.userData = { lifetime: 2000, startTime: Date.now() };
 }
 
 export let originalStaffRotation;
