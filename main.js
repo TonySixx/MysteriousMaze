@@ -239,7 +239,9 @@ function loadSettings() {
 }
 export var manager;
 export async function init() {
-  stopMainTheme();
+  setTimeout(() => {
+    stopMainTheme();
+  }, 10);
   // Create LoadingManager
   manager = new THREE.LoadingManager();
 
