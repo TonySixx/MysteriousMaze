@@ -84,6 +84,11 @@ window.icicleBullets = [];
 window.iceTrails = [];
 window.frostAuraEffects = [];
 
+window.meteors = [];
+window.meteorExplosions = [];
+window.infernoWaves = [];
+window.phoenixRebirthEffects = [];
+
 export const playerDefaultSpeed = 6.5;
 
 export const floorMusic = {

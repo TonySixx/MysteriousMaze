@@ -7,6 +7,7 @@ import { EntanglementBeamAbility, QuantumGuardianBoss, QuantumLeapAbility, TimeD
 import { ChronosBoss, TimeWarpAbility, TemporalEchoAbility, ChronoNovaAbility } from "./chronos/chronos";
 import { ToxicusBoss, PoisonCloudAbility, AcidSprayAbility } from "./toxicus/toxicus";
 import { FrostlordBoss, GlacialNovaAbility, IcicleBarrageAbility, FrostWalkerAbility } from "./frostlord/frostlord";
+import { FlamelordBoss, MeteorStrikeAbility, InfernoWaveAbility, PhoenixRebirthAbility } from "./flamelord/flamelord";
 
 export const MAIN_BOSS_TYPES = [
   {
@@ -321,5 +322,65 @@ export const MAIN_BOSS_TYPES = [
     hasCustomModel: true,
     merlonHeight : 6,
     cornerWallHeight : 5 
+  },
+  {
+    name: "Flamelord, Vládce ohně",
+    bossClass: FlamelordBoss,
+    translationKey: "bossFloor8",
+    abilities: [MeteorStrikeAbility, InfernoWaveAbility, PhoenixRebirthAbility],
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x8B0000,
+      metalness: 0.7,
+      roughness: 0.3,
+    }),
+    tribalMainMaterial: new THREE.MeshStandardMaterial({
+      color: 0x4f4f4f,
+      metalness: 0.5,
+      roughness: 0.1,
+    }),
+    tribalGoldMaterial: new THREE.MeshStandardMaterial({
+      color: 0xff571a,
+      metalness: 0.5,
+      roughness: 0.5,
+      emissive: 0xff571a,
+      emissiveIntensity: 3,
+    }),
+    eyeWhiteMaterial: new THREE.MeshStandardMaterial({
+      color: 0xff9933,
+      emissive: 0xff9933,
+      emissiveIntensity: 2,
+    }),
+    eyeBlackMaterial: new THREE.MeshStandardMaterial({
+      color: 0xff4500,
+      emissive: 0xff9933,
+      emissiveIntensity: 3,
+    }),
+    attackColor: new THREE.Color(0xFF4500),
+    attackCooldown: 1,
+    emissiveIntensity: 3,
+    maxHealth: 250000,
+    bossHitBoxMarginY: 4,
+    bossHitBoxMarginXZ: 2.6,
+    attackSpeed: 0.65,
+    attackSize: 1.5,
+    specialAttackInterval: 8000,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 0.7 },
+      { item: itemDatabase.protectorsLapisia, chance: 0.7 },
+      { item: itemDatabase.ultimateHealthPotion, chance: 0.6 },
+      { item: itemDatabase.ultimateManaPotion, chance: 0.6 },
+      { item: itemDatabase.phoenixFeatherCloak, chance: 0.15 },
+      { item: itemDatabase.infernalStaff, chance: 0.1 },
+    ],
+    ambientLightColor: 0xFF4500,
+    nebulaColors: ["#e63900", "#ffbd2e"],
+    textureSetIndex: 14,
+    torchSetIndex: 15,
+    flyDuration: 1.5,
+    size: 2,
+    attackDamage: 50,
+    hasCustomModel: true,
+    merlonHeight: 7,
+    cornerWallHeight: 6
   },
 ];

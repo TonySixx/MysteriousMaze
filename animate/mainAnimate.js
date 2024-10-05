@@ -5,6 +5,8 @@ import { player, regenerateHealth, regenerateMana, updatePlayerPosition } from "
 import { updateArcaneMissiles, updateChainLightnings, updateFireballs, updateFrostbolts, updateSkillbar } from "../spells";
 import { drawMinimap, updateFreezeEffect, updateMagicBalls } from "../utils";
 import { updateFrostAuraEffects, updateGlacialNovaEffects, updateIceTrails, updateIcicleBullets } from "./frostlordAnimate";
+import { updateMeteors, updateMeteorExplosions, updateInfernoWaves, updatePhoenixRebirthEffects } from "./flamelordAnimate";
+import { update as tweenUpdate } from '@tweenjs/tween.js';  // Přidáno
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
@@ -14,6 +16,9 @@ export function animate() {
   previousTime = currentTime;
 
   requestAnimationFrame(animate);
+  
+  tweenUpdate();  // Přidáno
+
   updateFreezeEffect();
   updatePlayerPosition(deltaTime);
   animateKeys(deltaTime);
@@ -67,6 +72,10 @@ export function animate() {
   updateIcicleBullets(deltaTime);
   updateIceTrails(deltaTime);
   updateFrostAuraEffects(deltaTime);
+  updateMeteors(deltaTime);
+  updateMeteorExplosions(deltaTime);
+  updateInfernoWaves(deltaTime);
+  updatePhoenixRebirthEffects(deltaTime);
 
   animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);
@@ -119,4 +128,6 @@ export function animate() {
   }
 
   composer.render();
+
+
 }
