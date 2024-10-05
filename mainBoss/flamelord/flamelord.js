@@ -345,7 +345,7 @@ export class InfernoWaveAbility extends Ability {
         this.cooldown = 20000; // 20 sekund
         this.lastUseTime = 0;
         this.waveDuration = 5000; // 5 sekund
-        this.waveRadius = 15;
+        this.waveRadius = 12;
         this.damagePerSecond = 50;
     }
 
@@ -365,7 +365,8 @@ export class InfernoWaveAbility extends Ability {
             uniforms: {
                 time: { value: 0 },
                 color1: { value: new THREE.Color(0xff4500) },
-                color2: { value: new THREE.Color(0xff8c00) }
+                color2: { value: new THREE.Color(0xff8c00) },
+                waveRadius: { value: this.waveRadius }
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -380,18 +381,16 @@ export class InfernoWaveAbility extends Ability {
                 uniform float time;
                 uniform vec3 color1;
                 uniform vec3 color2;
+                uniform float waveRadius;
                 varying vec2 vUv;
                 varying vec3 vPosition;
                 
-                float noise(vec3 p) {
-                    return fract(sin(dot(p, vec3(12.9898, 78.233, 45.5432))) * 43758.5453;
-                }
-                
                 void main() {
-                    float n = noise(vPosition * 0.5 + time * 0.5);
-                    float edge = smoothstep(0.8, 1.0, length(vPosition) / ${this.waveRadius.toFixed(1)});
-                    vec3 color = mix(color1, color2, n);
-                    float alpha = (1.0 - edge) * (0.6 + 0.4 * sin(time * 5.0 + n * 10.0));
+                    float dist = length(vPosition.xz);
+                    float wave = sin(dist * 0.5 - time * 5.0) * 0.5 + 0.5;
+                    float edge = smoothstep(waveRadius - 2.0, waveRadius, dist);
+                    vec3 color = mix(color1, color2, wave);
+                    float alpha = (1.0 - edge) * (0.6 + 0.4 * wave);
                     gl_FragColor = vec4(color, alpha);
                 }
             `,
@@ -400,7 +399,7 @@ export class InfernoWaveAbility extends Ability {
             depthWrite: false
         });
 
-        const waveGeometry = new THREE.CircleGeometry(this.waveRadius, 64);
+        const waveGeometry = new THREE.PlaneGeometry(this.waveRadius * 2, this.waveRadius * 2, 32, 32);
         const wave = new THREE.Mesh(waveGeometry, waveMaterial);
         wave.rotation.x = -Math.PI / 2;
         wave.position.copy(this.boss.position);
@@ -441,6 +440,7 @@ export class PhoenixRebirthAbility extends Ability {
     }
 
     use() {
+        console.log("Phoenix Rebirth Ability used");
         playSound(voidRiftSoundBuffer);
         this.createPhoenixRebirthEffect();
         this.healBoss();

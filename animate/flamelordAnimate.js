@@ -47,8 +47,10 @@ export function updateInfernoWaves(deltaTime) {
             wave.mesh.material.uniforms.time.value = elapsedTime / 1000;
             
             // Kontrola kolize s hráčem
-            if (player.position.distanceTo(wave.boss.position) <= wave.radius) {
-                playerTakeDamage(wave.damagePerSecond * deltaTime);
+            const distanceToPlayer = player.position.distanceTo(wave.boss.position);
+            if (distanceToPlayer <= wave.radius) {
+                const damageMultiplier = 1 - (distanceToPlayer / wave.radius);
+                playerTakeDamage(wave.damagePerSecond * deltaTime * damageMultiplier);
             }
         } else {
             scene.remove(wave.mesh);

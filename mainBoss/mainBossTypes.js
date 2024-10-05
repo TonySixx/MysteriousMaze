@@ -378,7 +378,7 @@ export const MAIN_BOSS_TYPES = [
     torchSetIndex: 15,
     flyDuration: 1.5,
     size: 2,
-    attackDamage: 50,
+    attackDamage: 0, //50,
     hasCustomModel: true,
     merlonHeight: 7,
     cornerWallHeight: 6
