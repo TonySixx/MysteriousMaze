@@ -2308,7 +2308,8 @@ export function canSelectFloor(floor) {
   if (floor === 4) return playerLevel >= 16;
   if (floor === 5) return playerLevel >= 21;
   if (floor === 6) return playerLevel >= 26;
-  if (floor === 7) return playerLevel >= 36; // Nové podlaží pro Frostlorda
+  if (floor === 7) return playerLevel >= 31; 
+  if (floor === 8) return playerLevel >= 36; 
   if (floor === 100) return playerLevel >= 7;
   if (floor === 101) return playerLevel >= 12;
   if (floor === 102) return playerLevel >= 16;
