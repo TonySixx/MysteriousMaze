@@ -363,7 +363,7 @@ export const MAIN_BOSS_TYPES = [
     bossHitBoxMarginXZ: 2.6,
     attackSpeed: 0.65,
     attackSize: 1.5,
-    specialAttackInterval: 8000,
+    specialAttackInterval: 12000,
     dropItems: [
       { item: itemDatabase.powerLapisia, chance: 0.7 },
       { item: itemDatabase.protectorsLapisia, chance: 0.7 },
@@ -375,7 +375,7 @@ export const MAIN_BOSS_TYPES = [
     ambientLightColor: 0xFF4500,
     nebulaColors: ["#e63900", "#ffbd2e"],
     textureSetIndex: 14,
-    torchSetIndex: 15,
+    torchSetIndex: 14,
     flyDuration: 1.5,
     size: 2,
     attackDamage: 0, //50,

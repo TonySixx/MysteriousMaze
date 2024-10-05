@@ -79,10 +79,10 @@ export class FlamelordBoss extends MainBoss {
 export class MeteorStrikeAbility extends Ability {
     constructor(boss) {
         super(boss);
-        this.cooldown = 25000; // 25 sekund
+        this.cooldown = 20000;
         this.lastUseTime = 0;
-        this.meteorCount = 15;
-        this.meteorInterval = 500; // 0.5 sekundy mezi meteory
+        this.meteorCount = 20;
+        this.meteorInterval = 400; // 0.4 sekundy mezi meteory
         this.meteorsFired = 0;
         this.lastMeteorTime = 0;
         this.warningDuration = 1000; // 1 sekunda varování
@@ -342,7 +342,7 @@ export class MeteorStrikeAbility extends Ability {
 export class InfernoWaveAbility extends Ability {
     constructor(boss) {
         super(boss);
-        this.cooldown = 20000; // 20 sekund
+        this.cooldown = 15000; // 20 sekund
         this.lastUseTime = 0;
         this.waveDuration = 5000; // 5 sekund
         this.waveRadius = 12;
