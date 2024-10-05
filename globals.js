@@ -15,6 +15,8 @@ window.camera = undefined;
 window.maze = undefined;
 window.composer = undefined;
 window.nebulaMaterial = undefined;
+window.nebula = undefined;
+window.floatingObjects = [];
 
 window.bestTime = Infinity;
 

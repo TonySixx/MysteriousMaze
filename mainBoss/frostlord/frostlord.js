@@ -104,6 +104,15 @@ export class GlacialNovaAbility extends Ability {
     }
   }
 
+  cancelAbility() {
+    if (this.novaEffect) {
+      scene.remove(this.novaEffect);
+      glacialNovaEffects = glacialNovaEffects.filter(effect => effect !== this.novaEffect);
+      this.novaEffect = null;
+    }
+    this.boss.isUsingAbility = false;
+  }
+
   createGlacialNovaEffect() {
     const novaMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -209,7 +218,7 @@ export class GlacialNovaAbility extends Ability {
     particles.position.y = 1;
     scene.add(particles);
 
-    glacialNovaEffects.push({
+    this.novaEffect = {
       mesh: nova,
       particles: particles,
       startTime: Date.now(),
@@ -217,7 +226,9 @@ export class GlacialNovaAbility extends Ability {
       radius: this.novaRadius,
       damagePerSecond: this.damagePerSecond,
       boss: this.boss
-    });
+    };
+    
+    glacialNovaEffects.push(this.novaEffect);
   }
 }
 
@@ -231,13 +242,29 @@ export class IcicleBarrageAbility extends Ability {
     this.icicleInterval = 500;
     this.iciclesFired = 0;
     this.lastIcicleTime = 0;
+    this.icicleTimer = null;
+    this.isActive = false;
   }
 
   canUse() {
-    return Date.now() - this.lastUseTime >= this.cooldown;
+    return Date.now() - this.lastUseTime >= this.cooldown && !this.isActive && !this.boss.isFrozen;
   }
 
-  use(deltaTime) {
+  use() {
+    if (!this.isActive && !this.boss.isFrozen) {
+      this.isActive = true;
+      this.iciclesFired = 0;
+      this.lastIcicleTime = Date.now();
+      this.fireNextSalvo();
+    }
+  }
+
+  fireNextSalvo() {
+    if (!this.isActive || this.boss.isFrozen) {
+      this.finishAbility();
+      return;
+    }
+
     const currentTime = Date.now();
     if (currentTime - this.lastIcicleTime >= this.icicleInterval) {
       this.fireSalvo();
@@ -246,9 +273,34 @@ export class IcicleBarrageAbility extends Ability {
     }
 
     if (this.iciclesFired >= this.icicleCount) {
-      this.iciclesFired = 0;
-      this.lastUseTime = currentTime;
-      this.boss.isUsingAbility = false;
+      this.finishAbility();
+    } else {
+      this.icicleTimer = setTimeout(() => this.fireNextSalvo(), this.icicleInterval);
+    }
+  }
+
+  finishAbility() {
+    this.isActive = false;
+    this.iciclesFired = 0;
+    this.lastUseTime = Date.now();
+    this.boss.isUsingAbility = false;
+    if (this.icicleTimer) {
+      clearTimeout(this.icicleTimer);
+      this.icicleTimer = null;
+    }
+  }
+
+  cancelAbility() {
+    this.finishAbility();
+    if (window.icicleBullets) {
+      window.icicleBullets.forEach(icicle => {
+        if (icicle && icicle.mesh) {
+          scene.remove(icicle.mesh);
+          icicle.mesh.geometry.dispose();
+          icicle.mesh.material.dispose();
+        }
+      });
+      window.icicleBullets = [];
     }
   }
 
@@ -276,7 +328,7 @@ export class IcicleBarrageAbility extends Ability {
 
     scene.add(icicle);
 
-    icicleBullets.push({
+    window.icicleBullets.push({
       mesh: icicle,
       velocity: icicle.velocity,
       damage: 30,
@@ -286,7 +338,7 @@ export class IcicleBarrageAbility extends Ability {
   }
 
   fireSalvo() {
-    if (!canSeePlayer(this.boss.position, player.position)) return;
+    if (!canSeePlayer(this.boss.position, player.position) || this.boss.isFrozen) return;
     playSound(frostBoltSoundBuffer);
 
     if (this.boss.attackAction) {
@@ -294,19 +346,30 @@ export class IcicleBarrageAbility extends Ability {
         this.boss.attackAction.clampWhenFinished = true;
         this.boss.attackAction.setLoop(THREE.LoopOnce);
     }
-  
 
     const targetPosition = player.position.clone();
-    const spread = 8; // Zvětšený rozptyl
+    const spread = 4; // Horizontální rozptyl
+    targetPosition.y += 0.5; // Zaměříme se na střed hráče místo na jeho nohy
 
-    for (let i = 0; i < this.iciclesPerSalvo; i++) {
-      const offset = new THREE.Vector3(
-        (Math.random() - 0.5) * spread,
-        0,
-        (Math.random() - 0.5) * spread
-      );
-      this.fireIcicle(targetPosition.clone().add(offset));
-    }
+    // První rampouch vždy míří přímo na hráče
+    this.fireIcicle(targetPosition);
+
+    // Další dva rampouchy mají horizontální rozptyl
+    const leftOffset = new THREE.Vector3(-spread, 0, 0);
+    const rightOffset = new THREE.Vector3(spread, 0, 0);
+
+    // Vytvoříme vektor směřující od bosse k hráči
+    const directionToPlayer = new THREE.Vector3().subVectors(targetPosition, this.boss.position).normalize();
+
+    // Vytvoříme kolmý vektor k směru k hráči (toto bude náš horizontální směr)
+    const horizontalDirection = new THREE.Vector3(-directionToPlayer.z, 0, directionToPlayer.x).normalize();
+
+    // Aplikujeme horizontální offset
+    const leftTarget = targetPosition.clone().add(horizontalDirection.clone().multiplyScalar(-spread));
+    const rightTarget = targetPosition.clone().add(horizontalDirection.clone().multiplyScalar(spread));
+
+    this.fireIcicle(leftTarget);
+    this.fireIcicle(rightTarget);
   }
 }
 
@@ -319,6 +382,7 @@ export class FrostWalkerAbility extends Ability {
     this.fadeOutDuration = 2000; // Doba, po kterou bude zóna mizet
     this.iceZoneCount = 5;
     this.iceZoneRadius = 4;
+    this.activeIceZones = []; // Inicializace activeIceZones
   }
 
   canUse() {
@@ -336,13 +400,27 @@ export class FrostWalkerAbility extends Ability {
         this.boss.attackAction.clampWhenFinished = true;
         this.boss.attackAction.setLoop(THREE.LoopOnce);
     }
+  }
 
+  cancelAbility() {
+    if (this.activeIceZones) {
+      this.activeIceZones.forEach(iceZone => {
+        if (iceZone && iceZone.mesh) {
+          scene.remove(iceZone.mesh);
+        }
+      });
+      iceTrails = iceTrails.filter(trail => !this.activeIceZones.includes(trail));
+    }
+    this.activeIceZones = [];
+    this.boss.isUsingAbility = false;
   }
 
   createIceZones() {
+    this.activeIceZones = [];
     for (let i = 0; i < this.iceZoneCount; i++) {
       const position = this.getRandomPosition();
-      this.createIceZone(position);
+      const iceZone = this.createIceZone(position);
+      this.activeIceZones.push(iceZone);
     }
   }
 

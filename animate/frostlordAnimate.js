@@ -84,7 +84,7 @@ export function updateGlacialNovaEffects(deltaTime) {
         trail.mesh.material.uniforms.time.value = elapsedTime / 1000;
 
         // Kontrola, zda je hráč v ledové zóně
-        if (player.position.distanceTo(trail.position) <= trail.radius) {
+        if (player.position.distanceTo(trail.position) <= trail.radius && trail.mesh.material.opacity > 0) {
           window.playerSpeed = playerDefaultSpeed * 0.5; // Zpomalení hráče o 50%
         }
 
