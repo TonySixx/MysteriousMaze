@@ -2,7 +2,7 @@ import { getTranslation } from './langUtils.js';
 import { addExperience, addGold, getPlayerLevel } from './player.js';
 import { addItemToInventory, checkSpaceInInventory, createItem, createItemElement, getRarityColor } from './inventory.js';
 import { getItemName } from './itemDatabase.js';
-import { getAllQuests } from './questDatabase.js';
+import { getAllQuests, sortQuestsByLevel } from './questDatabase.js';
 import { showMessage } from './utils.js';
 import { activateSoundBuffer, exitPointerLock, generateSpecificMaze, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
 
@@ -103,7 +103,10 @@ function updateQuestList() {
 
     questList.innerHTML = '';
 
-    quests.forEach(quest => {
+    // Seřazení questů podle úrovně před jejich zobrazením
+    const sortedQuests = sortQuestsByLevel(quests);
+
+    sortedQuests.forEach(quest => {
         const questItem = document.createElement('div');
         questItem.className = 'quest-item';
         questItem.innerHTML = `
@@ -335,14 +338,16 @@ function updateQuestBoardUI() {
 
     // Aktualizace dostupných questů
     availableQuestsList.innerHTML = '<h2>' + getTranslation('availableQuests') + '</h2>';
-    availableQuests.forEach(quest => {
+    const sortedAvailableQuests = sortQuestsByLevel(availableQuests);
+    sortedAvailableQuests.forEach(quest => {
         const questItem = createQuestListItem(quest, 'accept');
         availableQuestsList.appendChild(questItem);
     });
 
     // Aktualizace dokončených questů
     completedQuestsList.innerHTML = '<h2>' + getTranslation('completedQuests') + '</h2>';
-    getCompletedQuests().forEach(quest => {
+    const sortedCompletedQuests = sortQuestsByLevel(getCompletedQuests());
+    sortedCompletedQuests.forEach(quest => {
         const questItem = createQuestListItem(quest, 'claim');
         completedQuestsList.appendChild(questItem);
     });
@@ -352,7 +357,6 @@ function updateQuestBoardUI() {
     if (questDetails) {
         questDetails.innerHTML = "";
     }
-
 }
 
 function createQuestListItem(quest, action) {

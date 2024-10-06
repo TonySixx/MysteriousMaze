@@ -402,21 +402,23 @@ const questDefinitions = [
 ];
 
 export function getAllQuests() {
-    return questDefinitions.map(questDef => ({
-        ...questDef,
-        name: getTranslation(questDef.name),
-        description: getTranslation(questDef.description),
-        isCompleted: false,
-        progress: getInitialProgress(questDef.objective),
-        rewards: {
-            ...questDef.rewards,
-            items: questDef.rewards.items.map(item => ({
-                ...itemDatabase[item.item],
-                count: item.count
-            }))
-        },
-        objective: getInitialObjective(questDef.objective)
-    }));
+    return questDefinitions
+        .map(questDef => ({
+            ...questDef,
+            name: getTranslation(questDef.name),
+            description: getTranslation(questDef.description),
+            isCompleted: false,
+            progress: getInitialProgress(questDef.objective),
+            rewards: {
+                ...questDef.rewards,
+                items: questDef.rewards.items.map(item => ({
+                    ...itemDatabase[item.item],
+                    count: item.count
+                }))
+            },
+            objective: getInitialObjective(questDef.objective)
+        }))
+        .sort((a, b) => a.level - b.level); // Seřazení questů podle úrovně
 }
 
 export function addQuestFromDefiniton(questDef) {
@@ -437,6 +439,11 @@ export function addQuestFromDefiniton(questDef) {
     };
     addAvailableQuest(quest);
 }
+
+export function sortQuestsByLevel(quests) {
+    return quests.sort((a, b) => a.level - b.level);
+}
+
 
 function getInitialProgress(objective) {
     if (objective.hasMultipleObjectives) {
