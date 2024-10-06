@@ -21,7 +21,7 @@ let enchantWindow = null;
 let itemToEnchant = null;
 let lapisiaForEnchant = null;
 
-export const INVENTORY_SIZE = 8 * 6;
+export const INVENTORY_SIZE = 52;
 
 export let hpPotionCooldown = 0;
 export let mpPotionCooldown = 0;
