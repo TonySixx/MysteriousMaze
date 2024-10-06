@@ -319,7 +319,9 @@
     "defeatArcaneLordQuestDescription": "Defeat the Arcane Lord on the ninth floor and claim your ultimate reward.",
     "bossFloor10": "Blood Mage",
     "defeatBloodMageQuest": "Defeat Blood Mage",
-    "defeatBloodMageQuestDescription": "Defeat the Blood Mage on the tenth floor and claim your ultimate reward."
+    "defeatBloodMageQuestDescription": "Defeat the Blood Mage on the tenth floor and claim your ultimate reward.",
+    "completeMazeQuantumWithoutMinimapQuest": "Quantum Maze Master",
+    "completeMazeQuantumWithoutMinimapQuestDescription": "Complete the maze on the fourth floor with seed 'Quantum' without using the minimap."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -641,6 +643,8 @@
     "defeatArcaneLordQuestDescription": "Poraž Arcane Lorda na devátém podlaží a získej svou ultimátní odměnu.",
     "bossFloor10": "Krvavý mág",
     "defeatBloodMageQuest": "Poraž Krvavého mága",
-    "defeatBloodMageQuestDescription": "Poraž Krvavého mága na desátém podlaží a získej svou ultimátní odměnu."
+    "defeatBloodMageQuestDescription": "Poraž Krvavého mága na desátém podlaží a získej svou ultimátní odměnu.",
+    "completeMazeQuantumWithoutMinimapQuest": "Mistr kvantového bludiště",
+    "completeMazeQuantumWithoutMinimapQuestDescription": "Dokončete bludiště na čtvrtém podlaží se seedem 'Quantum' bez použití minimapy."
   }
 }

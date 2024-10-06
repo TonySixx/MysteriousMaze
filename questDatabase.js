@@ -256,6 +256,27 @@ const questDefinitions = [
         }
     },
     {
+        id: 'completeMazeQuantumWithoutMinimap',
+        name: 'completeMazeQuantumWithoutMinimapQuest',
+        description: 'completeMazeQuantumWithoutMinimapQuestDescription',
+        level: 21,
+        rewards: {
+            exp: 30000,
+            gold: 100,
+            items: [
+                { item: 'powerLapisia', count: 3 },
+                { item: 'protectorsLapisia', count: 3 },
+                { item: 'ultimateHealthPotion', count: 3 }
+            ]
+        },
+        objective: {
+            type: 'completeMazeWithoutMinimap',
+            target: 'Quantum',
+            floor: 4,
+            count: 1
+        }
+    },
+    {
         id: 'defeatChronos',
         name: 'defeatChronosQuest',
         description: 'defeatChronosQuestDescription',

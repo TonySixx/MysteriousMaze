@@ -503,6 +503,16 @@ export function updateQuestsOnEvent(eventType, eventData) {
                     return quest;
                 });
             }
+            else if (eventData.seed === "Quantum" && eventData.floor === 4 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeQuantumWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
             break;
         case 'mainBossDeath':
             if (eventData.bossType === "bossFloor1") {
