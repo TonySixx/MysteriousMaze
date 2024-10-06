@@ -7,6 +7,7 @@ import { drawMinimap, updateFreezeEffect, updateMagicBalls } from "../utils";
 import { updateFrostAuraEffects, updateGlacialNovaEffects, updateIceTrails, updateIcicleBullets } from "./frostlordAnimate";
 import { updateMeteors, updateMeteorExplosions, updateInfernoWaves, updatePhoenixRebirthEffects } from "./flamelordAnimate";
 import { update as tweenUpdate } from '@tweenjs/tween.js';  // Přidáno
+import { updateArcaneProjectiles, updateDimensionalRifts, updateArcaneShieldEffect } from "./arcaneLordAnimate";
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
@@ -128,4 +129,8 @@ export function animate() {
   }
 
   composer.render();
+
+  updateArcaneProjectiles(deltaTime);
+  updateDimensionalRifts(deltaTime);
+  updateArcaneShieldEffect(deltaTime);
 }

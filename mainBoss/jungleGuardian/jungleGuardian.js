@@ -2,7 +2,7 @@ import { playSound, seedBurstSoundBuffer, vineGrabSoundBuffer } from "../../main
 import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { player } from "../../player";
-import { Boss, bossCounter, bosses, setBossCounter } from "../../boss";
+import { Boss, bossCounter, bosses, playAttackAnimation, setBossCounter } from "../../boss";
 import { playerTakeDamage } from "../../utils";
 
 export class VineGrabAbility extends Ability {
@@ -18,6 +18,7 @@ export class VineGrabAbility extends Ability {
   
     use() {
       playSound(vineGrabSoundBuffer);
+      playAttackAnimation(this.boss);
       const direction = new THREE.Vector3().subVectors(player.position, this.boss.position).normalize();
       const vineLength = this.boss.position.distanceTo(player.position);
       
@@ -64,6 +65,7 @@ export class VineGrabAbility extends Ability {
     use() {
       // Vytvoření vizuálního efektu s animací
       playSound(seedBurstSoundBuffer);
+      playAttackAnimation(this.boss);
       const particleCount = 500;
       const particles = new THREE.BufferGeometry();
       const positions = new Float32Array(particleCount * 3);
@@ -140,7 +142,7 @@ export class VineGrabAbility extends Ability {
         new THREE.Vector3(-3, 0.5, 3),
         new THREE.Vector3(3, 0.5, -3)
       ];
-  
+      playAttackAnimation(this.boss);
       const dragonStartHeight = 20;
   
       for (let i = 0; i < this.dragonCount; i++) {

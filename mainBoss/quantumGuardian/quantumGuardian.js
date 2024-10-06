@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { player } from "../../player";
-import { Boss, bossCounter, bosses, setBossCounter } from "../../boss";
+import { Boss, bossCounter, bosses, playAttackAnimation, setBossCounter } from "../../boss";
 import { playerTakeDamage, showTimeDilationEffect } from "../../utils";
 import { MainBoss } from "../baseBoss";
 import { blowSoundBuffer, playSound, slowSoundBuffer, spell1SoundBuffer } from "../../main";
@@ -98,6 +98,7 @@ export class TimeDilationAbility extends Ability {
 
   use() {
     playSound(slowSoundBuffer);
+    playAttackAnimation(this.boss);
     const timeDilationEffect = this.createTimeDilationVisualEffect();
     timeDilationEffects.push(timeDilationEffect);
     showTimeDilationEffect(); // Přidáno: zobrazení efektu při aktivaci schopnosti
@@ -163,7 +164,7 @@ export class EntanglementBeamAbility extends Ability {
 
   use() {
     playSound(spell1SoundBuffer);
-
+    playAttackAnimation(this.boss);
     const beamGeometry = new THREE.CylinderGeometry(0.1, 0.1, this.maxRange, 32);
     const beamMaterial = new THREE.MeshStandardMaterial({
       color: 0xb8f8ff,

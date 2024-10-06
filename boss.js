@@ -212,6 +212,12 @@ class Boss {
     }
 
     takeDamage(damage, burningEffect = false) {
+        if (this.arcaneShieldActive) {
+            // Pokud je aktivní Arcane Shield, boss nedostává žádné poškození
+            playSound(aoeBlastSoundBuffer, 0.7);
+            return;
+        }
+
         this.health -= damage;
         this.showDamageText(damage);
         if (this.health <= 0) {
@@ -1076,6 +1082,14 @@ export function canSeePlayer(bossPosition, playerPosition) {
 
     // Boss vidí hráče, pokud není žádná zeď mezi nimi
     return intersects.length === 0;
+}
+
+export function playAttackAnimation(boss) {
+    if (boss.attackAction) {
+        boss.attackAction.reset().play();
+        boss.attackAction.clampWhenFinished = true;
+        boss.attackAction.setLoop(THREE.LoopOnce);
+    }
 }
 
 export { Boss, spawnBossInMaze };

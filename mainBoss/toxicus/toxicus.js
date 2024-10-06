@@ -5,6 +5,7 @@ import { MainBoss } from "../baseBoss";
 import { playSound, seedBurstSoundBuffer, voidRiftSoundBuffer } from "../../main";
 import { Tween } from 'three/examples/jsm/libs/tween.module.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
+import { playAttackAnimation } from '../../boss';
 
 export class ToxicusBoss extends MainBoss {
     constructor(position, id, rng, floor, type) {
@@ -94,6 +95,7 @@ export class PoisonCloudAbility extends Ability {
 
     use() {
         playSound(voidRiftSoundBuffer);
+        playAttackAnimation(this.boss);
         this.createPoisonCloudEffect();
         this.lastUseTime = Date.now();
         this.boss.isUsingAbility = false;
@@ -247,6 +249,7 @@ export class AcidSprayAbility extends Ability {
     }
 
     fireAcidSpray(targetPosition) {
+        playAttackAnimation(this.boss);
         playSound(seedBurstSoundBuffer);
 
         const sprayGroup = new THREE.Group();

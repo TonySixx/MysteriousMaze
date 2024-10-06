@@ -4,7 +4,7 @@ import { player } from "../../player";
 import { MainBoss } from "../baseBoss";
 import { CELL_SIZE, frostBoltHitSoundBuffer, frostBoltSoundBuffer, playSound } from "../../main";
 import { playerTakeDamage } from "../../utils";
-import { canSeePlayer } from '../../boss';
+import { canSeePlayer, playAttackAnimation } from '../../boss';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 
 export class FrostlordBoss extends MainBoss {
@@ -97,11 +97,7 @@ export class GlacialNovaAbility extends Ability {
     this.lastUseTime = Date.now();
     this.boss.isUsingAbility = false;
 
-    if (this.boss.attackAction) {
-        this.boss.attackAction.reset().play();
-        this.boss.attackAction.clampWhenFinished = true;
-        this.boss.attackAction.setLoop(THREE.LoopOnce);
-    }
+    playAttackAnimation(this.boss);
   }
 
   cancelAbility() {
@@ -341,11 +337,7 @@ export class IcicleBarrageAbility extends Ability {
     if (!canSeePlayer(this.boss.position, player.position) || this.boss.isFrozen) return;
     playSound(frostBoltSoundBuffer);
 
-    if (this.boss.attackAction) {
-        this.boss.attackAction.reset().play();
-        this.boss.attackAction.clampWhenFinished = true;
-        this.boss.attackAction.setLoop(THREE.LoopOnce);
-    }
+    playAttackAnimation(this.boss);
 
     const targetPosition = player.position.clone();
     const spread = 4; // Horizontální rozptyl
@@ -395,11 +387,7 @@ export class FrostWalkerAbility extends Ability {
     this.lastUseTime = Date.now();
     this.boss.isUsingAbility = false;
 
-    if (this.boss.attackAction) {
-        this.boss.attackAction.reset().play();
-        this.boss.attackAction.clampWhenFinished = true;
-        this.boss.attackAction.setLoop(THREE.LoopOnce);
-    }
+    playAttackAnimation(this.boss);
   }
 
   cancelAbility() {

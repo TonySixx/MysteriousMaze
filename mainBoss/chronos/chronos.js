@@ -4,6 +4,7 @@ import { player } from "../../player";
 import { playerTakeDamage } from "../../utils";
 import { MainBoss } from "../baseBoss";
 import { playSound, slowSoundBuffer, spell1SoundBuffer, voidRiftSoundBuffer } from "../../main";
+import { playAttackAnimation } from '../../boss';
 
 export class ChronosBoss extends MainBoss {
   constructor(position, id, rng, floor, type) {
@@ -53,6 +54,7 @@ export class TimeWarpAbility extends Ability {
 
   use() {
     playSound(spell1SoundBuffer);
+    playAttackAnimation(this.boss);
     this.boss.timeWarpActive = true;
     this.boss.timeWarpStartTime = Date.now();
     this.createTimeWarpEffect();
@@ -116,6 +118,7 @@ export class TemporalEchoAbility extends Ability {
 
   use() {
     playSound(slowSoundBuffer);
+    playAttackAnimation(this.boss);
     this.createTemporalEchoes();
     this.lastUseTime = Date.now();
     this.boss.isUsingAbility = false;
@@ -174,6 +177,7 @@ export class ChronoNovaAbility extends Ability {
     this.isCharging = true;
     playSound(voidRiftSoundBuffer);
     this.createChargeEffect();
+    playAttackAnimation(this.boss);
 
     this.chargeTimer = setTimeout(() => {
       playSound(spell1SoundBuffer);

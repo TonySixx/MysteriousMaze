@@ -8,6 +8,7 @@ import { ChronosBoss, TimeWarpAbility, TemporalEchoAbility, ChronoNovaAbility } 
 import { ToxicusBoss, PoisonCloudAbility, AcidSprayAbility } from "./toxicus/toxicus";
 import { FrostlordBoss, GlacialNovaAbility, IcicleBarrageAbility, FrostWalkerAbility } from "./frostlord/frostlord";
 import { FlamelordBoss, MeteorStrikeAbility, InfernoWaveAbility, PhoenixRebirthAbility } from "./flamelord/flamelord";
+import { ArcaneLordBoss, ArcaneBarrageAbility, DimensionalRiftAbility, ArcaneShieldAbility } from "./arcaneLord/arcaneLord";
 
 export const MAIN_BOSS_TYPES = [
   {
@@ -386,6 +387,66 @@ export const MAIN_BOSS_TYPES = [
     hasCustomModel: true,
     merlonHeight: 7,
     cornerWallHeight: 6,
+    healthBarOffsetY: 1,
+  },
+  {
+    name: "Arcane Lord, Vládce arkánové magie",
+    bossClass: ArcaneLordBoss,
+    translationKey: "bossFloor9",
+    abilities: [ArcaneBarrageAbility, DimensionalRiftAbility, ArcaneShieldAbility],
+    tribalMainMaterial: new THREE.MeshStandardMaterial({
+      color: 0x4B0082,
+      metalness: 0.5,
+      roughness: 0.5,
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x550080,
+      metalness: 0.7,
+      roughness: 0.3,
+    }),
+    tribalGoldMaterial: new THREE.MeshStandardMaterial({
+      color: 0x8A2BE2,
+      metalness: 0.5,
+      roughness: 0.5,
+      emissive: 0x9547fc,
+      emissiveIntensity: 4,
+    }),
+    eyeWhiteMaterial: new THREE.MeshStandardMaterial({
+      color: 0x000000,
+    }),
+    eyeBlackMaterial: new THREE.MeshStandardMaterial({
+      color: 0xcc66ff,
+      emissive: 0xcc66ff,
+      emissiveIntensity: 5,
+    }),
+    attackColor: new THREE.Color(0x8A2BE2),
+    attackCooldown: 0.9,
+    emissiveIntensity: 4,
+    maxHealth: 300000,
+    bossHitBoxMarginY: 4.6,
+    bossHitBoxMarginXZ: 3,
+    attackSpeed: 0.6,
+    attackSize: 1.5,
+    specialAttackInterval: 10000,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 0.75 },
+      { item: itemDatabase.protectorsLapisia, chance: 0.75 },
+      { item: itemDatabase.ultimateHealthPotion, chance: 0.7 },
+      { item: itemDatabase.ultimateManaPotion, chance: 0.7 },
+      { item: itemDatabase.arcaneMasterStaff, chance: 0.15 },
+      { item: itemDatabase.dimensionalVeil, chance: 0.2 },
+      { item: itemDatabase.astralWalkerBoots, chance: 0.18 },
+    ],
+    ambientLightColor: 0x702ca0,
+    nebulaColors: ["#8A2BE2", "#4B0082"],
+    textureSetIndex: 16,
+    torchSetIndex: 16,
+    flyDuration: 1.5,
+    size: 2.2,
+    attackDamage: 60,
+    hasCustomModel: true,
+    merlonHeight: 8,
+    cornerWallHeight: 7,
     healthBarOffsetY: 1,
   },
 ];

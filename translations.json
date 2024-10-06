@@ -283,7 +283,8 @@
     "defeatFrostlordQuestDescription": "Defeat Frostlord, the Lord of Ice, on the seventh floor and claim your ultimate reward.",
     "bossFloor8": "Flamelord, Lord of Fire",
     "defeatFlamelordQuest": "Defeat Flamelord",
-    "defeatFlamelordQuestDescription": "Defeat Flamelord, the Lord of Fire, on the eighth floor and claim your ultimate reward."
+    "defeatFlamelordQuestDescription": "Defeat Flamelord, the Lord of Fire, on the eighth floor and claim your ultimate reward.",
+    "bossFloor9": "Arcane Lord, Lord of Arcane Magic"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -569,6 +570,7 @@
     "defeatFrostlordQuestDescription": "Poraž Frostlorda, Vládce ledu, na sedmém podlaží a získej svou ultimátní odměnu.",
     "bossFloor8": "Flamelord, Vládce ohně",
     "defeatFlamelordQuest": "Poraž Flamelorda",
-    "defeatFlamelordQuestDescription": "Poraž Flamelorda, Vládce ohně, na osmém podlaží a získej svou ultimátní odměnu."
+    "defeatFlamelordQuestDescription": "Poraž Flamelorda, Vládce ohně, na osmém podlaží a získej svou ultimátní odměnu.",
+    "bossFloor9": "Arcane Lord, Vládce arkánové magie"
   }
 }

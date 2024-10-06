@@ -6,6 +6,7 @@ import { playSound, fireballSoundBuffer, voidRiftSoundBuffer, CELL_SIZE, explosi
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { Tween, Easing } from '@tweenjs/tween.js';  // Přidáno
 import { playerTakeDamage } from '../../utils';
+import { playAttackAnimation } from '../../boss';
 
 export class FlamelordBoss extends MainBoss {
     constructor(position, id, rng, floor, type) {
@@ -149,6 +150,7 @@ export class MeteorStrikeAbility extends Ability {
 
     fireMeteor(targetPosition) {
         playSound(fireballSoundBuffer);
+        playAttackAnimation(this.boss);
 
         const meteorGroup = new THREE.Group();
 
@@ -360,6 +362,7 @@ export class InfernoWaveAbility extends Ability {
 
     use() {
         this.createInfernoWaves();
+        playAttackAnimation(this.boss);
         this.lastUseTime = Date.now();
         this.boss.isUsingAbility = false;
     }
@@ -448,6 +451,7 @@ export class PhoenixRebirthAbility extends Ability {
 
     use() {
         playSound(spell2SoundBuffer);
+        playAttackAnimation(this.boss);
         this.createPhoenixRebirthEffect();
         this.healBoss();
         this.lastUseTime = Date.now();

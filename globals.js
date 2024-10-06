@@ -488,3 +488,7 @@ export const textureSets = [
       bossProbability: 1
     },
   };
+
+window.arcaneProjectiles = []
+window.dimensionalRifts = []
+window.arcaneShieldEffect = null

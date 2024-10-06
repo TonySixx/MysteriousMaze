@@ -2,7 +2,7 @@ import { CELL_SIZE, playSound, spell1SoundBuffer, voidRiftSoundBuffer } from "..
 import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { player } from "../../player";
-import { Boss, bossCounter, bosses, setBossCounter } from "../../boss";
+import { Boss, bossCounter, bosses, playAttackAnimation, setBossCounter } from "../../boss";
 import { playerTakeDamage } from "../../utils";
 import { MainBoss } from "../baseBoss";
 
@@ -22,6 +22,7 @@ export class ObsidianBlastAbility extends Ability {
 
   use() {
     playSound(spell1SoundBuffer);
+    playAttackAnimation(this.boss);
     const roomSize = 10 * CELL_SIZE; // Předpokládáme, že velikost místnosti je 10x10
     const possiblePositions = [
       new THREE.Vector3(-roomSize / 2, 0.5, -roomSize / 2),
@@ -100,6 +101,7 @@ export class ShadowCloneAbility extends Ability {
 
   use() {
     playSound(spell1SoundBuffer);
+    playAttackAnimation(this.boss);
     const clonePositions = [
       new THREE.Vector3(-3, 0.5, -3),
       new THREE.Vector3(3, 0.5, 3),
@@ -148,6 +150,7 @@ export class VoidRiftAbility extends Ability {
 
   use() {
     playSound(voidRiftSoundBuffer,0.8);
+    playAttackAnimation(this.boss);
     for (let i = 0; i < this.riftCount; i++) {
       const riftPosition = new THREE.Vector3(
         (Math.random() - 0.5) * (this.roomSize/2),

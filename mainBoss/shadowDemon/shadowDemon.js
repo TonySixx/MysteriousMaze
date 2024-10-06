@@ -1,3 +1,4 @@
+import { playAttackAnimation } from "../../boss";
 import { Ability } from "../mainBossUtils";
 
 export class MultiShotAbility extends Ability {
@@ -10,6 +11,7 @@ export class MultiShotAbility extends Ability {
     }
   
     use(deltaTime) {
+      playAttackAnimation(this.boss);
       const currentTime = Date.now();
       if (currentTime - this.lastShotTime >= this.shotInterval) {
         this.boss.multiShot();
@@ -40,6 +42,7 @@ export class MultiShotAbility extends Ability {
   
     use() {
       this.boss.spawnDragons();
+      playAttackAnimation(this.boss);
       this.used = true;
       this.boss.isUsingAbility = false;
     }
