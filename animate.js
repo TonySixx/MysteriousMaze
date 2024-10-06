@@ -5,7 +5,7 @@ import { addItemToInventory, checkSpaceInInventory, createItem, getRarityColor }
 import { getItemName } from "./itemDatabase";
 import { getTranslation } from "./langUtils";
 import { CELL_SIZE, chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, playSound, setSelectedFloor, showFloorSelectBtn, spell2SoundBuffer, teleportSoundBuffer } from "./main";
-import { player, checkCollisions } from "./player";
+import { player, checkCollisions, checkCollisionZ, checkCollisionX } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { createTeleportEffect, inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
 import { freezePlayer, playerTakeDamage, showMessage, showTimeDilationEffect } from "./utils";
@@ -676,20 +676,46 @@ export function initiateTeleportMove(startPosition, destination) {
 export function updateTeleportMove(deltaTime) {
   if (!activeTeleport) return;
 
-  const step = Math.min(activeTeleport.teleportSpeed * deltaTime, activeTeleport.totalDistance - activeTeleport.distanceTraveled);
-  const t = (activeTeleport.distanceTraveled + step) / activeTeleport.totalDistance;
+  const step = Math.min(
+    activeTeleport.teleportSpeed * deltaTime,
+    activeTeleport.totalDistance - activeTeleport.distanceTraveled
+  );
+  const t =
+    (activeTeleport.distanceTraveled + step) / activeTeleport.totalDistance;
 
-  // Přímý výpočet pozice
-  player.position.lerpVectors(activeTeleport.startPosition, activeTeleport.destination, t);
+  // Výpočet nové pozice pomocí interpolace
+  const oldPosition = player.position.clone();
+  let newPosition = new THREE.Vector3();
+  newPosition.lerpVectors(
+    activeTeleport.startPosition,
+    activeTeleport.destination,
+    t
+  );
 
-  // Kontrola kolizí
-  const { collision } = checkCollisions(player.position);
+  // Vyřešíme kolize podél osy X
+  const adjustedX = checkCollisionX(newPosition.x, oldPosition.z);
+  const collisionX = adjustedX !== newPosition.x;
+  newPosition.x = adjustedX;
+
+  // Vyřešíme kolize podél osy Z
+  const adjustedZ = checkCollisionZ(newPosition.x, newPosition.z);
+  const collisionZ = adjustedZ !== newPosition.z;
+  newPosition.z = adjustedZ;
+
+  // Kontrola, zda došlo ke kolizi
+  const collision = collisionX || collisionZ;
 
   if (collision) {
+    // Aktualizujeme pozici hráče před zastavením teleportace
+    player.position.copy(newPosition);
     createTeleportEffect(player.position);
     activeTeleport = null;
     return;
   }
+
+
+  // Aktualizujeme pozici hráče
+  player.position.copy(newPosition);
 
   activeTeleport.distanceTraveled += step;
 

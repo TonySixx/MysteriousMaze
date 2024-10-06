@@ -391,7 +391,7 @@ function createPlayer() {
     }
 }
 
-function checkCollisionX(newX, currentZ) {
+export function checkCollisionX(newX, currentZ) {
     const playerRadius = 0.4;
 
     for (let wall of walls) {
@@ -420,7 +420,7 @@ function checkCollisionX(newX, currentZ) {
     return newX;
 }
 
-function checkCollisionZ(currentX, newZ) {
+export function checkCollisionZ(currentX, newZ) {
     const playerRadius = 0.4;
 
     for (let wall of walls) {
