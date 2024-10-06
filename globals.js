@@ -492,3 +492,7 @@ export const textureSets = [
 window.arcaneProjectiles = []
 window.dimensionalRifts = []
 window.arcaneShieldEffect = null
+
+window.bloodVortexes = []
+window.bloodRitualEffect = null
+window.bloodLances = [];

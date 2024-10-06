@@ -9,6 +9,7 @@ import { ToxicusBoss, PoisonCloudAbility, AcidSprayAbility } from "./toxicus/tox
 import { FrostlordBoss, GlacialNovaAbility, IcicleBarrageAbility, FrostWalkerAbility } from "./frostlord/frostlord";
 import { FlamelordBoss, MeteorStrikeAbility, InfernoWaveAbility, PhoenixRebirthAbility } from "./flamelord/flamelord";
 import { ArcaneLordBoss, ArcaneBarrageAbility, DimensionalRiftAbility, ArcaneShieldAbility } from "./arcaneLord/arcaneLord";
+import { BloodMageBoss, BloodVortexAbility, BloodRitualAbility, BloodLanceAbility } from "./bloodMage/bloodMage";
 
 export const MAIN_BOSS_TYPES = [
   {
@@ -390,7 +391,7 @@ export const MAIN_BOSS_TYPES = [
     healthBarOffsetY: 1,
   },
   {
-    name: "Arcane Lord, Vládce arkánové magie",
+    name: "Arcane Lord",
     bossClass: ArcaneLordBoss,
     translationKey: "bossFloor9",
     abilities: [ArcaneBarrageAbility, DimensionalRiftAbility, ArcaneShieldAbility],
@@ -447,5 +448,67 @@ export const MAIN_BOSS_TYPES = [
     merlonHeight: 8,
     cornerWallHeight: 7,
     healthBarOffsetY: 1,
+  },
+  {
+    name: "Blood Mage",
+    bossClass: BloodMageBoss,
+    translationKey: "bossFloor10",
+    abilities: [BloodVortexAbility, BloodRitualAbility, BloodLanceAbility],
+    tribalMainMaterial: new THREE.MeshStandardMaterial({
+      color: 0x5c0a0a,
+      roughness: 0.5,
+      metalness: 0.1,
+
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x492727,
+      metalness: 0.7,
+      roughness: 0.3,
+    }),
+    tribalGoldMaterial: new THREE.MeshStandardMaterial({
+      color: 0xff4d4d,
+      emissive: 0xff4d4d,
+      metalness: 0.5,
+      roughness: 0.5,
+      emissiveIntensity: 1,
+    }),
+    eyeBlackMaterial: new THREE.MeshStandardMaterial({
+      color: 0xff4d4d,
+      emissive: 0xff4d4d,
+      emissiveIntensity: 5,
+    }),
+    eyeWhiteMaterial: new THREE.MeshStandardMaterial({
+      color: 0xFF0000,
+      emissive: 0xFF0000,
+      emissiveIntensity: 5,
+    }),
+    attackColor: new THREE.Color(0x8B0000),
+    attackCooldown: 0.8,
+    emissiveIntensity: 6,
+    maxHealth: 400000,
+    bossHitBoxMarginY: 5,
+    bossHitBoxMarginXZ: 3.5,
+    attackSpeed: 1,
+    attackSize: 1,
+    specialAttackInterval: 8000,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 0.8 },
+      { item: itemDatabase.protectorsLapisia, chance: 0.8 },
+      { item: itemDatabase.ultimateHealthPotion, chance: 0.8 },
+      { item: itemDatabase.ultimateManaPotion, chance: 0.8 },
+      { item: itemDatabase.bloodMageRobe, chance: 0.2 },
+      { item: itemDatabase.bloodRuneStaff, chance: 0.15 },
+    ],
+    ambientLightColor: 0xc39d9d,
+    nebulaColors: ["#fe1638", "#ec4141"],
+    textureSetIndex: 17,
+    torchSetIndex: 17,
+    flyDuration: 1.5,
+    size: 2.4,
+    attackDamage: 60,
+    hasCustomModel: true,
+    merlonHeight: 9,
+    cornerWallHeight: 8,
+    healthBarOffsetY: 1.2,
   },
 ];

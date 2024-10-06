@@ -9,6 +9,7 @@ import { updateMeteors, updateMeteorExplosions, updateInfernoWaves, updatePhoeni
 import { update as tweenUpdate } from '@tweenjs/tween.js';  // Přidáno
 import { updateArcaneProjectiles, updateDimensionalRifts, updateArcaneShieldEffect } from "./arcaneLordAnimate";
 import { updateProtectiveShield } from '../animate.js';
+import { updateBloodVortexes, updateBloodRitual, updateBloodLances } from "./bloodMageAnimate";
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
@@ -135,5 +136,9 @@ export function animate() {
   }
 
   composer.render();
+
+  updateBloodVortexes(deltaTime);
+  updateBloodRitual(deltaTime);
+  updateBloodLances(deltaTime);
 
 }
