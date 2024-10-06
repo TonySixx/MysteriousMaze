@@ -336,6 +336,26 @@ const questDefinitions = [
             target: 'Flamelord, Vládce ohně',
             count: 1
         }
+    },
+    {
+        id: 'defeatArcaneLord',
+        name: 'defeatArcaneLordQuest',
+        description: 'defeatArcaneLordQuestDescription',
+        level: 46,
+        rewards: {
+            exp: 3000000,
+            gold: 500,
+            items: [
+                { item: 'powerLapisia', count: 8 },
+                { item: 'protectorsLapisia', count: 8 },
+                { item: 'ultimateHealthPotion', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Arcane Lord',
+            count: 1
+        }
     }
 ];
 
