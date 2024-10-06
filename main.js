@@ -2188,9 +2188,9 @@ export function canSelectFloor(floor) {
   if (floor === 100) return playerLevel >= 7;
   if (floor === 101) return playerLevel >= 12;
   if (floor === 102) return playerLevel >= 16;
-  if (floor === 103) return playerLevel >= 20;
-  if (floor === 104) return playerLevel >= 25;
-  if (floor === 105) return playerLevel >= 30;
+  if (floor === 103) return playerLevel >= 21;
+  if (floor === 104) return playerLevel >= 26;
+  if (floor === 105) return playerLevel >= 31;
   if (floor === 106) return playerLevel >= 36; // Boss podlaží pro Frostlorda
   if (floor === 107) return playerLevel >= 41; // Boss podlaží pro Flamelorda
   if (floor === 108) return playerLevel >= 46; // Boss podlaží pro Arcane Lorda
