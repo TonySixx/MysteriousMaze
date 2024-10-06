@@ -370,7 +370,7 @@ function castFireball() {
   return false;
 }
 
-export function createIceExplosion(position) {
+export function createIceExplosion(position, madeByPlayer = false) {
   const explosionGeometry = new THREE.SphereGeometry(3, 32, 32);
   const explosionMaterial = new THREE.MeshBasicMaterial({
     color: 0x87CEFA,
@@ -381,6 +381,16 @@ export function createIceExplosion(position) {
   explosion.position.copy(position);
   scene.add(explosion);
   iceExplosions.push(explosion);
+
+  if (madeByPlayer) {
+    // Efekt na nepřátele
+    bosses.forEach(boss => {
+      if (boss.position.distanceTo(position) <= 5) {
+        if (boss.isFrozen == false) boss.freeze(1000); // Zmrazí bosse na 1 sekundu
+        boss.takeDamage(50 + (calculatePlayerDamage() * 0.5)); // Způsobí 50+50% poškození
+      }
+    });
+  }
 }
 
 function castFrostbolt() {
@@ -563,7 +573,7 @@ function updateFrostbolts(deltaTime) {
         createExplosion(frostbolt.position, 0xa6d9ff);
         boss.freeze();
         if (frostbolt.iceExplosion) {
-          createIceExplosion(frostbolt.position);
+          createIceExplosion(frostbolt.position, true);
         }
         scene.remove(frostbolt);
         frostBalls.splice(i, 1);
@@ -605,7 +615,7 @@ function updateArcaneMissiles(deltaTime) {
     arcaneMissile.userData.animate();
 
     for (let boss of bosses) {
-     if (checkProjectileCollisionWithBosses(arcaneMissile, boss)) {
+      if (checkProjectileCollisionWithBosses(arcaneMissile, boss)) {
         createExplosion(arcaneMissile.position, 0xf7c6bfa);
         scene.remove(arcaneMissile);
         arcaneMissiles.splice(i, 1);
@@ -741,7 +751,7 @@ export function updateChainLightnings(deltaTime) {
 
     // Kolize s bossy
     for (let boss of bosses) {
-     if (checkProjectileCollisionWithBosses(lightning, boss)) {
+      if (checkProjectileCollisionWithBosses(lightning, boss)) {
         createExplosion(lightning.position, 0xbac5ff);
         boss.takeDamage(lightning.damage);
         scene.remove(lightning);
@@ -980,7 +990,7 @@ export function updateSkillbar() {
     // Zobrazíme kouzlo pouze pokud je odemčené
     if (isSpellUnlocked(spell.id)) {
       spellElement.style.display = 'block';
-      
+
       // Aktualizace cooldownu
       const cooldownElement = spellElement.querySelector('.spell-cooldown');
       if (!spell.isReady()) {
@@ -1014,7 +1024,7 @@ export function createChainExplosion(position) {
   // Poškození nepřátel v dosahu
   bosses.forEach(boss => {
     if (boss.position.distanceTo(position) <= explosionRadius) {
-      boss.takeDamage(100 + (calculatePlayerDamage() * 0.2));
+      boss.takeDamage(100 + (calculatePlayerDamage() * 0.7));
     }
   });
 }
@@ -1132,8 +1142,8 @@ export function setOriginalStaffRotation() {
 
 
 
-function getNoFloorCheck(){
-  return selectedFloor === 999 || (selectedFloor >= 100  && selectedFloor <= 200);
+function getNoFloorCheck() {
+  return selectedFloor === 999 || (selectedFloor >= 100 && selectedFloor <= 200);
 }
 
 export { spells, Spell, castFireball, castFrostbolt, castArcaneMissile, updateFireballs, updateFrostbolts, updateArcaneMissiles };
