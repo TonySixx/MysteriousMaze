@@ -215,6 +215,48 @@ const questDefinitions = [
         }
     },
     {
+        id: 'completeMazesFloor4',
+        name: 'completeMazesFloor4Quest',
+        description: 'completeMazesFloor4QuestDescription',
+        level: 17,
+        rewards: {
+            exp: 15000,
+            gold: 100,
+            items: [
+                { item: 'ultimateHealthPotion', count: 2 },
+                { item: 'ultimateManaPotion', count: 2 },
+                { item: 'protectorsLapisia', count: 3 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 4
+        }
+    },
+    {
+        id: 'completeMazeQuantumWithoutMinimap',
+        name: 'completeMazeQuantumWithoutMinimapQuest',
+        description: 'completeMazeQuantumWithoutMinimapQuestDescription',
+        level: 18,
+        rewards: {
+            exp: 20000,
+            gold: 100,
+            items: [
+                { item: 'powerLapisia', count: 3 },
+                { item: 'protectorsLapisia', count: 3 },
+                { item: 'ultimateHealthPotion', count: 3 }
+            ]
+        },
+        objective: {
+            type: 'completeMazeWithoutMinimap',
+            target: 'Quantum',
+            floor: 4,
+            count: 1
+        }
+    },
+    {
         id: 'defeatQuantumGuardian',
         name: 'defeatQuantumGuardianQuest',
         description: 'defeatQuantumGuardianQuestDescription',
@@ -235,45 +277,45 @@ const questDefinitions = [
         }
     },
     {
-        id: 'completeMazesFloor4',
-        name: 'completeMazesFloor4Quest',
-        description: 'completeMazesFloor4QuestDescription',
+        id: 'completeMazeClockWithoutMinimap',
+        name: 'completeMazeClockWithoutMinimapQuest',
+        description: 'completeMazeClockWithoutMinimapQuestDescription',
         level: 21,
         rewards: {
-            exp: 30000,
+            exp: 40000,
             gold: 150,
             items: [
-                { item: 'ultimateHealthPotion', count: 2 },
+                { item: 'ultimateHealthPotion', count: 3 },
                 { item: 'ultimateManaPotion', count: 2 },
-                { item: 'protectorsLapisia', count: 3 }
+                { item: 'protectorsLapisia', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'completeMazeWithoutMinimap',
+            target: 'Clock',
+            floor: 5,
+            count: 1
+        }
+    },
+    {
+        id: 'completeMazesFloor5',
+        name: 'completeMazesFloor5Quest',
+        description: 'completeMazesFloor5QuestDescription',
+        level: 21,
+        rewards: {
+            exp: 40000,
+            gold: 150,
+            items: [
+                { item: 'ultimateHealthPotion', count: 3 },
+                { item: 'ultimateManaPotion', count: 3 },
+                { item: 'powerLapisia', count: 5 }
             ]
         },
         objective: {
             type: 'completeMazes',
             count: 3,
             uniqueSeeds: true,
-            floor: 4
-        }
-    },
-    {
-        id: 'completeMazeQuantumWithoutMinimap',
-        name: 'completeMazeQuantumWithoutMinimapQuest',
-        description: 'completeMazeQuantumWithoutMinimapQuestDescription',
-        level: 21,
-        rewards: {
-            exp: 30000,
-            gold: 100,
-            items: [
-                { item: 'powerLapisia', count: 3 },
-                { item: 'protectorsLapisia', count: 3 },
-                { item: 'ultimateHealthPotion', count: 3 }
-            ]
-        },
-        objective: {
-            type: 'completeMazeWithoutMinimap',
-            target: 'Quantum',
-            floor: 4,
-            count: 1
+            floor: 5
         }
     },
     {
@@ -299,6 +341,27 @@ const questDefinitions = [
         }
     },
     {
+        id: 'completeMazesFloor6',
+        name: 'completeMazesFloor6Quest',
+        description: 'completeMazesFloor6QuestDescription',
+        level: 27,
+        rewards: {
+            exp: 70000,
+            gold: 100,
+            items: [
+                { item: 'ultimateHealthPotion', count: 4 },
+                { item: 'ultimateManaPotion', count: 4 },
+                { item: 'powerLapisia', count: 6 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 6
+        }
+    },
+    {
         id: 'defeatToxicus',
         name: 'defeatToxicusQuest',
         description: 'defeatToxicusQuestDescription',
@@ -320,6 +383,27 @@ const questDefinitions = [
         }
     },
     {
+        id: 'completeMazesFloor7',
+        name: 'completeMazesFloor7Quest',
+        description: 'completeMazesFloor7QuestDescription',
+        level: 32,
+        rewards: {
+            exp: 150000,
+            gold: 200,
+            items: [
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 },
+                { item: 'powerLapisia', count: 7 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 7
+        }
+    },
+    {
         id: 'defeatFrostlord',
         name: 'defeatFrostlordQuest',
         description: 'defeatFrostlordQuestDescription',
@@ -336,6 +420,27 @@ const questDefinitions = [
             type: 'kill',
             target: 'Frostlord, Vládce ledu',
             count: 1
+        }
+    },
+    {
+        id: 'completeMazesFloor8',
+        name: 'completeMazesFloor8Quest',
+        description: 'completeMazesFloor8QuestDescription',
+        level: 37,
+        rewards: {
+            exp: 350000,
+            gold: 250,
+            items: [
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 },
+                { item: 'powerLapisia', count: 7 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 8
         }
     },
     {
@@ -359,6 +464,27 @@ const questDefinitions = [
         }
     },
     {
+        id: 'completeMazesFloor9',
+        name: 'completeMazesFloor9Quest',
+        description: 'completeMazesFloor9QuestDescription',
+        level: 42,
+        rewards: {
+            exp: 900000,
+            gold: 350,
+            items: [
+                { item: 'ultimateHealthPotion', count: 6 },
+                { item: 'ultimateManaPotion', count: 6 },
+                { item: 'powerLapisia', count: 8 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 9
+        }
+    },
+    {
         id: 'defeatArcaneLord',
         name: 'defeatArcaneLordQuest',
         description: 'defeatArcaneLordQuestDescription',
@@ -376,6 +502,27 @@ const questDefinitions = [
             type: 'kill',
             target: 'Arcane Lord',
             count: 1
+        }
+    },
+    {
+        id: 'completeMazesFloor10',
+        name: 'completeMazesFloor10Quest',
+        description: 'completeMazesFloor10QuestDescription',
+        level: 47,
+        rewards: {
+            exp: 2000000,
+            gold: 400,
+            items: [
+                { item: 'ultimateHealthPotion', count: 6 },
+                { item: 'ultimateManaPotion', count: 6 },
+                { item: 'powerLapisia', count: 8 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 10
         }
     },
     {
@@ -397,6 +544,69 @@ const questDefinitions = [
             type: 'kill',
             target: 'Blood Mage',
             count: 1
+        }
+    },
+    {
+        id: 'completeMazesFloor11',
+        name: 'completeMazesFloor11Quest',
+        description: 'completeMazesFloor11QuestDescription',
+        level: 52,
+        rewards: {
+            exp: 7000000,
+            gold: 400,
+            items: [
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 },
+                { item: 'powerLapisia', count: 8 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 11
+        }
+    },
+    {
+        id: 'completeMazesFloor12',
+        name: 'completeMazesFloor12Quest',
+        description: 'completeMazesFloor12QuestDescription',
+        level: 57,
+        rewards: {
+            exp: 10000000,
+            gold: 500,
+            items: [
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 },
+                { item: 'powerLapisia', count: 10 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 12
+        }
+    },
+    {
+        id: 'completeMazesFloor13',
+        name: 'completeMazesFloor13Quest',
+        description: 'completeMazesFloor13QuestDescription',
+        level: 60,
+        rewards: {
+            exp: 0,
+            gold: 550,
+            items: [
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 },
+                { item: 'powerLapisia', count: 10 }
+            ]
+        },
+        objective: {
+            type: 'completeMazes',
+            count: 3,
+            uniqueSeeds: true,
+            floor: 13
         }
     }
 ];

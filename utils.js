@@ -238,10 +238,10 @@ export function getCameraDirection() {
 
 export function addExperienceForCompletion(floor) {
   const playerLevel = getPlayerLevel(); // Předpokládáme, že tato funkce existuje
-  const dungeonLevel = floor * 1; // Každé podlaží odpovídá 5 úrovním
+  const dungeonLevel = floor * 5; // Každé podlaží odpovídá 5 úrovním
 
   // Základní zkušenosti za dokončení bludiště
-  const baseExperience = 300 * dungeonLevel; // Např. 300 zkušeností za každou úroveň bludiště
+  const baseExperience = 300 * floor; // Např. 300 zkušeností za každou úroveň bludiště
 
   // Modifikátor na základě rozdílu úrovní
   const levelDifference = dungeonLevel - playerLevel;
@@ -257,7 +257,7 @@ export function addExperienceForCompletion(floor) {
   }
 
   //Bonus za počet bossů v bludišti
-  const bossBonus = totalBossesInMaze * 200;
+  const bossBonus = (totalBossesInMaze * 200) * (floor) ;
 
   // Celkové zkušenosti
   const totalExperience = Math.round((baseExperience + bossBonus) * levelModifier);
