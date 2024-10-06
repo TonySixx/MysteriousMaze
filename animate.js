@@ -854,34 +854,22 @@ export function updatePoisonClouds(deltaTime) {
 }
 
 function addPoisonParticle(position, radius) {
-  const particle = new THREE.Mesh(
-    new THREE.SphereGeometry(0.1, 8, 8),
-    new THREE.MeshBasicMaterial({ color: 0x00FF00, transparent: true, opacity: 0.7 })
-  );
-  particle.position.copy(position).add(new THREE.Vector3(
+  const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+  const particleMaterial = new THREE.MeshBasicMaterial({ color: 0x00FF00, transparent: true, opacity: 0.7 });
+  const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
+  
+  particleMesh.position.copy(position).add(new THREE.Vector3(
     (Math.random() - 0.5) * radius * 2,
     (Math.random() - 0.5) * radius * 2,
     (Math.random() - 0.5) * radius * 2
   ));
-  scene.add(particle);
+  scene.add(particleMesh);
 
-  const duration = 1000 + Math.random() * 1000;
-  const startTime = Date.now();
-
-  function animateParticle() {
-    const elapsedTime = Date.now() - startTime;
-    if (elapsedTime < duration) {
-      particle.position.y += 0.01;
-      particle.material.opacity = 0.7 * (1 - elapsedTime / duration);
-      requestAnimationFrame(animateParticle);
-    } else {
-      scene.remove(particle);
-      particle.geometry.dispose();
-      particle.material.dispose();
-    }
-  }
-
-  animateParticle();
+  poisonParticles.push({
+    mesh: particleMesh,
+    startTime: Date.now(),
+    duration: 1000 + Math.random() * 1000
+  });
 }
 
 export function updateAcidSprays(deltaTime) {
@@ -1008,15 +996,45 @@ export function updateAcidExplosions(deltaTime) {
   }
   
   export function updatePoisonParticles(deltaTime) {
+    const currentTime = Date.now();
     for (let i = poisonParticles.length - 1; i >= 0; i--) {
       const particle = poisonParticles[i];
-      const elapsedTime = Date.now() - particle.startTime;
+      if (!particle) {
+        console.warn(`Undefined particle at index ${i}`);
+        poisonParticles.splice(i, 1);
+        continue;
+      }
+
+      const elapsedTime = currentTime - particle.startTime;
       
       if (elapsedTime < particle.duration) {
-        particle.mesh.position.y += 0.01;
-        particle.mesh.material.opacity = 0.7 * (1 - elapsedTime / particle.duration);
+        if (particle.position && particle.position.y !== undefined) {
+          particle.position.y += 0.01;
+        } else if (particle.mesh && particle.mesh.position && particle.mesh.position.y !== undefined) {
+          particle.mesh.position.y += 0.01;
+        } else {
+          console.warn(`Invalid particle structure at index ${i}:`, particle);
+          poisonParticles.splice(i, 1);
+          continue;
+        }
+
+        if (particle.material && particle.material.opacity !== undefined) {
+          particle.material.opacity = 0.7 * (1 - elapsedTime / particle.duration);
+        } else if (particle.mesh && particle.mesh.material && particle.mesh.material.opacity !== undefined) {
+          particle.mesh.material.opacity = 0.7 * (1 - elapsedTime / particle.duration);
+        } else {
+          console.warn(`Cannot update opacity for particle at index ${i}:`, particle);
+        }
       } else {
-        scene.remove(particle.mesh);
+        if (particle.mesh) {
+          scene.remove(particle.mesh);
+          if (particle.mesh.geometry) particle.mesh.geometry.dispose();
+          if (particle.mesh.material) particle.mesh.material.dispose();
+        } else {
+          scene.remove(particle);
+          if (particle.geometry) particle.geometry.dispose();
+          if (particle.material) particle.material.dispose();
+        }
         poisonParticles.splice(i, 1);
       }
     }

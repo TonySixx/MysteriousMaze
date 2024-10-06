@@ -128,6 +128,4 @@ export function animate() {
   }
 
   composer.render();
-
-
 }

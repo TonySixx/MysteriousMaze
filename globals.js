@@ -286,6 +286,61 @@ export const textureSets = [
       ],
       torchColor: { light: 0xffab87, particles: 0xffab87 },
     },
+    {
+      wallTexture: "textures/wall-purple-stone.jpg",
+      floorTexture: "textures/floor-purple.jpg",
+      ceilingTexture: "textures/wall-purple-stone.jpg",
+      specialTextures: [
+        "textures/wall-purple-stone.jpg",
+        "textures/wall-purple-stone.jpg",
+        "textures/wall-purple-stone.jpg",
+      ],
+      torchColor: { light: 0xce8fff, particles: 0xce8fff },
+    },
+    {
+      wallTexture: "textures/wall-red.jpg",
+      floorTexture: "textures/floor-dark.jpg",
+      ceilingTexture: "textures/wall-red.jpg",
+      specialTextures: [
+        "textures/wall-red.jpg",
+        "textures/wall-red.jpg",
+        "textures/wall-red.jpg",
+      ],
+      torchColor: { light: 0xff3d3d, particles: 0xff3d3d },
+    },
+    {
+      wallTexture: "textures/wall-triangle.jpg",
+      floorTexture: "textures/floor-diamond.jpg",
+      ceilingTexture: "textures/wall-triangle.jpg",
+      specialTextures: [
+        "textures/wall-triangle.jpg",
+        "textures/wall-triangle.jpg",
+        "textures/wall-triangle.jpg",
+      ],
+      torchColor: { light: 0x708aff, particles: 0x708aff },
+    },
+    {
+      wallTexture: "textures/wall-dark.jpg",
+      floorTexture: "textures/floor-dark.jpg",
+      ceilingTexture: "textures/wall-dark.jpg",
+      specialTextures: [
+        "textures/wall-dark.jpg",
+        "textures/wall-dark.jpg",
+        "textures/wall-dark.jpg",
+      ],
+      torchColor: { light: 0xa496ff, particles: 0xa496ff },
+    },
+    {
+      wallTexture: "textures/wall-tur2.jpg",
+      floorTexture: "textures/floor-gray.jpg",
+      ceilingTexture: "textures/wall-tur2.jpg",
+      specialTextures: [
+        "textures/wall-tur2.jpg",
+        "textures/wall-tur2.jpg",
+        "textures/wall-tur2.jpg",
+      ],
+      torchColor: { light: 0x9cfff3, particles: 0x9cfff3 },
+    },
   ];
 
   export const floorsConfig = {
@@ -376,5 +431,60 @@ export const textureSets = [
         maxSize: 5
       },
       bossProbability: 1
-    }
+    },
+    9: {
+      minSize: 40,
+      maxSize: 50,
+      textureSets: textureSets.slice(16, 17),
+      hallConfig: {
+        probability: 0.2,
+        minSize: 5,
+        maxSize: 5
+      },
+      bossProbability: 1
+    },
+    10: {
+      minSize: 40,
+      maxSize: 50,
+      textureSets: textureSets.slice(17, 18),
+      hallConfig: {
+        probability: 0.2,
+        minSize: 5,
+        maxSize: 5
+      },
+      bossProbability: 1
+    },
+    11: {
+      minSize: 40,
+      maxSize: 50,
+      textureSets: textureSets.slice(18, 19),
+      hallConfig: {
+        probability: 0.2,
+        minSize: 5,
+        maxSize: 5
+      },
+      bossProbability: 1
+    },
+    12: {
+      minSize: 40,
+      maxSize: 50,
+      textureSets: textureSets.slice(19, 20),
+      hallConfig: {
+        probability: 0.2,
+        minSize: 5,
+        maxSize: 5
+      },
+      bossProbability: 1
+    },
+    13: {
+      minSize: 40,
+      maxSize: 50,
+      textureSets: textureSets.slice(20, 21),
+      hallConfig: {
+        probability: 0.2,
+        minSize: 5,
+        maxSize: 5
+      },
+      bossProbability: 1
+    },
   };

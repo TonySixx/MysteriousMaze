@@ -2180,6 +2180,11 @@ export function canSelectFloor(floor) {
   if (floor === 6) return playerLevel >= 26;
   if (floor === 7) return playerLevel >= 31; 
   if (floor === 8) return playerLevel >= 36; 
+  if (floor === 9) return playerLevel >= 41;
+  if (floor === 10) return playerLevel >= 46;
+  if (floor === 11) return playerLevel >= 51;
+  if (floor === 12) return playerLevel >= 56;
+  if (floor === 13) return playerLevel >= 60;
   if (floor === 100) return playerLevel >= 7;
   if (floor === 101) return playerLevel >= 12;
   if (floor === 102) return playerLevel >= 16;
