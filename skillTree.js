@@ -119,7 +119,7 @@ export var skillTree = {
             {
                 name: 'Chain Explosion',
                 systemName: 'chainExplosion',
-                description: 'Poslední zasažený nepřítel exploduje a způsobí 100 poškození všem nepřátelům v okruhu 5 metrů',
+                description: 'Poslední zasažený nepřítel exploduje a způsobí (100 + 20% z bonusového poškození hráče) poškození všem nepřátelům v okruhu 5 metrů',
                 requiredLevel: 15,
                 unlocked: false,
                 icon: chainExplosionIcon,

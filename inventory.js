@@ -871,10 +871,10 @@ function removeItemFromEquipment(slot) {
       }
 
       updateStaffVisibility();
+      updatePlayerStats(); // Přidáme volání této funkce
       renderInventory();
       renderEquipment();
       saveInventoryToLocalStorage();
-      updatePlayerStats(); // Přidáme volání této funkce
       return true;
     } else {
       console.log(`Couldn't remove ${item.name} from ${slot} slot: inventory full`);
