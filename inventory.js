@@ -1,7 +1,7 @@
 import { addGold, expToNextLevel, getGold, getPlayerLevel, getSkillPoints, playerExp, updatePlayerStats } from './player.js';
 import { getTranslation } from './langUtils.js';
 import { setPlayerHealth, setPlayerMana, getPlayerHealth, getPlayerMana, getPlayerMaxHealth, getPlayerMaxMana, getPlayerName, calculatePlayerDamage } from './player.js';
-import { activateSoundBuffer, breakSoundBuffer,  changeStaffColor, coinSoundBuffer,  errorSoundBuffer, exitPointerLock, itemSoundBuffer, manager, playSound, potionSoundBuffer, requestPointerLock, successSoundBuffer } from './main.js';
+import { activateSoundBuffer, breakSoundBuffer, changeStaffColor, coinSoundBuffer, errorSoundBuffer, exitPointerLock, itemSoundBuffer, manager, playSound, potionSoundBuffer, requestPointerLock, successSoundBuffer } from './main.js';
 import { getItemName, itemDatabase, getDefaultPlayerPreview, ITEM_TYPES, ITEM_RARITIES } from './itemDatabase.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { setOriginalStaffRotation } from './spells.js';
@@ -115,6 +115,7 @@ function openEnchantWindow() {
       <div id="lapisiaEnchantSlot" class="enchant-slot" data-type="lapisia"></div>
     </div>
     <p style="font-weight: bold; color:#e9b266" id="enchantChance"></p>
+    <p style="font-size: 13px; color:#66e9e9" id="enchantBonus"></p>
     <div style="display: flex; justify-content: center">
     <button id="performEnchant" disabled>${getTranslation('performEnchant')}</button>
     <button id="closeEnchant">${getTranslation('close')}</button>
@@ -147,17 +148,34 @@ function openEnchantWindow() {
 
 function updateEnchantChance() {
   const chanceElement = document.getElementById('enchantChance');
+  const bonusElement = document.getElementById('enchantBonus');
   if (itemToEnchant) {
     const currentEnchantLevel = itemToEnchant.enchantLevel || 0;
     const chance = calculateEnchantSuccessChance(currentEnchantLevel);
     chanceElement.textContent = `${getTranslation('enchantChance')}: ${(chance * 100).toFixed(0)}%`;
+
+    let bonusText = '';
+    if (itemToEnchant.type === ITEM_TYPES.WEAPON) {
+      const baseAttackBonus = itemDatabase[getItemName(itemToEnchant)].attackBonus || 0;
+      const enchantBonus = Math.max(10, Math.round(baseAttackBonus * 0.2));
+      bonusText = `${getTranslation('attackBonus')}: +${enchantBonus}`;
+    } else if (itemToEnchant.type === ITEM_TYPES.ARMOR) {
+      const baseHpBonus = itemDatabase[getItemName(itemToEnchant)].hpBonus || 0;
+      const enchantBonus = Math.max(5, Math.round(baseHpBonus * 0.1));
+      bonusText = `${getTranslation('hpBonus')}: +${enchantBonus}`;
+    }
+    bonusElement.textContent = `${getTranslation('potentialBonus')}: ${bonusText}`;
+    bonusElement.style.display = 'block';
   } else {
-    if (chanceElement)
+    if (chanceElement) {
       chanceElement.textContent = '';
+    }
+    if (bonusElement) {
+      bonusElement.style.display = 'none';
+    }
   }
 }
 
-// Funkce pro zpracování přetažení předmětu do slotu pro enchantování
 // Funkce pro zpracování přetažení předmětu do slotu pro enchantování
 function dropForEnchant(event, slotType) {
   event.preventDefault();
@@ -170,11 +188,11 @@ function dropForEnchant(event, slotType) {
     itemToEnchant = item;
     renderEnchantSlot('itemEnchantSlot', item);
     updateEnchantChance();
-    
+
     // Kontrola kompatibility s existující lapisií
     if (lapisiaForEnchant) {
       if ((item.type === ITEM_TYPES.WEAPON && lapisiaForEnchant.type !== ITEM_TYPES.POWER_LAPISIA) ||
-          (item.type === ITEM_TYPES.ARMOR && lapisiaForEnchant.type !== ITEM_TYPES.PROTECTORS_LAPISIA)) {
+        (item.type === ITEM_TYPES.ARMOR && lapisiaForEnchant.type !== ITEM_TYPES.PROTECTORS_LAPISIA)) {
         // Pokud lapisia není kompatibilní, odstraníme ji
         lapisiaForEnchant = null;
         renderEnchantSlot('lapisiaEnchantSlot', null);
@@ -182,7 +200,7 @@ function dropForEnchant(event, slotType) {
     }
   } else if (slotType === 'lapisia' &&
     ((item.type === ITEM_TYPES.POWER_LAPISIA && itemToEnchant?.type === ITEM_TYPES.WEAPON) ||
-     (item.type === ITEM_TYPES.PROTECTORS_LAPISIA && itemToEnchant?.type === ITEM_TYPES.ARMOR))) {
+      (item.type === ITEM_TYPES.PROTECTORS_LAPISIA && itemToEnchant?.type === ITEM_TYPES.ARMOR))) {
     lapisiaForEnchant = item;
     renderEnchantSlot('lapisiaEnchantSlot', item);
     document.getElementById('lapisiaEnchantSlot').style.opacity = '1';
@@ -264,9 +282,13 @@ function performEnchant() {
   if (isSuccess) {
     itemToEnchant.enchantLevel = (itemToEnchant.enchantLevel || 0) + 1;
     if (itemToEnchant.type === ITEM_TYPES.WEAPON) {
-      itemToEnchant.attackBonus = (itemToEnchant.attackBonus || 0) + 10;
+      const baseAttackBonus = itemDatabase[getItemName(itemToEnchant)].attackBonus || 0;
+      const enchantBonus = Math.max(10, Math.round(baseAttackBonus * 0.2));
+      itemToEnchant.attackBonus = (itemToEnchant.attackBonus || 0) + enchantBonus;
     } else if (itemToEnchant.type === ITEM_TYPES.ARMOR) {
-      itemToEnchant.hpBonus = (itemToEnchant.hpBonus || 0) + 5;
+      const baseHpBonus = itemDatabase[getItemName(itemToEnchant)].hpBonus || 0;
+      const enchantBonus = Math.max(5, Math.round(baseHpBonus * 0.1));
+      itemToEnchant.hpBonus = (itemToEnchant.hpBonus || 0) + enchantBonus;
     }
     playSound(activateSoundBuffer);
     showMessage(getTranslation('enchantSuccess'));
@@ -277,9 +299,13 @@ function performEnchant() {
   } else {
     itemToEnchant.enchantLevel = Math.max(0, (itemToEnchant.enchantLevel || 0) - 1);
     if (itemToEnchant.type === ITEM_TYPES.WEAPON) {
-      itemToEnchant.attackBonus = Math.max(0, (itemToEnchant.attackBonus || 0) - 10);
+      const baseAttackBonus = itemDatabase[getItemName(itemToEnchant)].attackBonus || 0;
+      const enchantBonus = Math.max(10, Math.round(baseAttackBonus * 0.2));
+      itemToEnchant.attackBonus = Math.max(0, (itemToEnchant.attackBonus || 0) - enchantBonus);
     } else if (itemToEnchant.type === ITEM_TYPES.ARMOR) {
-      itemToEnchant.hpBonus = Math.max(0, (itemToEnchant.hpBonus || 0) - 5);
+      const baseHpBonus = itemDatabase[getItemName(itemToEnchant)].hpBonus || 0;
+      const enchantBonus = Math.max(5, Math.round(baseHpBonus * 0.1));
+      itemToEnchant.hpBonus = Math.max(0, (itemToEnchant.hpBonus || 0) - enchantBonus);
     }
     playSound(breakSoundBuffer);
     showMessage(getTranslation('enchantFail'));
@@ -878,7 +904,7 @@ function showContextMenu(event) {
   if (item.sellable) {
     menuItems += `<li data-action="sell" data-item-id="${item.id}">${getTranslation('sellItem')} (${item.sellPrice.toLocaleString()} ${getTranslation('gold')})</li>`;
   }
- 
+
 
   if (menuItems === '') return;
 
@@ -996,11 +1022,11 @@ function addItemsForTesting() {
 
 }
 
-export function checkSpaceInInventory(slotsNeeded = 1){
+export function checkSpaceInInventory(slotsNeeded = 1) {
   const emptySlots = inventory.filter((i) => i === null).length;
   if (emptySlots < slotsNeeded) {
     playSound(errorSoundBuffer);
-    showMessage(getTranslation("inventoryFull",slotsNeeded));
+    showMessage(getTranslation("inventoryFull", slotsNeeded));
     return false;
   }
   return true;
@@ -1012,7 +1038,7 @@ export function usePotion(type) {
   const cooldown = type === 'hp' ? hpPotionCooldown : mpPotionCooldown;
 
   if (potion && potion.count > 0 && cooldown <= 0) {
-    playSound(potionSoundBuffer,0.6);
+    playSound(potionSoundBuffer, 0.6);
     let restoreAmount;
 
     if (typeof potion.restoreAmount === 'number') {
@@ -1125,13 +1151,13 @@ function updateWeaponModel() {
       }
       setOriginalStaffRotation();
 
-     // Přidáme částicový systém, pokud je úroveň enchantu dostatečně vysoká
-     const effectOptions = enchantEffectsOpt[modelInfo.name];
-     const enchantParticles = createEnchantEffect(equipment.weapon, effectOptions.enchantEffectOffsetY || modelInfo.castEffectOffsetY, null, effectOptions);
-     if (enchantParticles) {
-       staffModel.add(enchantParticles);
-       staffModel.userData.enchantParticles = enchantParticles;
-     }
+      // Přidáme částicový systém, pokud je úroveň enchantu dostatečně vysoká
+      const effectOptions = enchantEffectsOpt[modelInfo.name];
+      const enchantParticles = createEnchantEffect(equipment.weapon, effectOptions.enchantEffectOffsetY || modelInfo.castEffectOffsetY, null, effectOptions);
+      if (enchantParticles) {
+        staffModel.add(enchantParticles);
+        staffModel.userData.enchantParticles = enchantParticles;
+      }
 
       // Přidáme model ke kameře
       camera.add(staffModel);
@@ -1161,7 +1187,7 @@ function updateWeaponEnchantEffect(weapon) {
     const modelInfo = weapon.modelInfo;
     const effectOptions = enchantEffectsOpt[modelInfo.name];
     const enchantParticles = createEnchantEffect(weapon, effectOptions.enchantEffectOffsetY || modelInfo.castEffectOffsetY, null, effectOptions);
-    
+
     if (enchantParticles) {
       staffModel.add(enchantParticles);
       staffModel.userData.enchantParticles = enchantParticles;
