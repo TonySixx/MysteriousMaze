@@ -356,6 +356,27 @@ const questDefinitions = [
             target: 'Arcane Lord',
             count: 1
         }
+    },
+    {
+        id: 'defeatBloodMage',
+        name: 'defeatBloodMageQuest',
+        description: 'defeatBloodMageQuestDescription',
+        level: 51,
+        rewards: {
+            exp: 9000000,
+            gold: 550,
+            items: [
+                { item: 'powerLapisia', count: 8 },
+                { item: 'protectorsLapisia', count: 8 },
+                { item: 'ultimateManaPotion', count: 5 },
+                { item: "stormcallersAegis", count: 1 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Blood Mage',
+            count: 1
+        }
     }
 ];
 

@@ -89,6 +89,14 @@ window.meteorExplosions = [];
 window.infernoWaves = [];
 window.phoenixRebirthEffects = [];
 
+window.arcaneProjectiles = []
+window.dimensionalRifts = []
+window.arcaneShieldEffect = null
+
+window.bloodVortexes = []
+window.bloodRitualEffect = null
+window.bloodLances = [];
+
 export const playerDefaultSpeed = 6.5;
 
 export const floorMusic = {
@@ -489,10 +497,3 @@ export const textureSets = [
     },
   };
 
-window.arcaneProjectiles = []
-window.dimensionalRifts = []
-window.arcaneShieldEffect = null
-
-window.bloodVortexes = []
-window.bloodRitualEffect = null
-window.bloodLances = [];

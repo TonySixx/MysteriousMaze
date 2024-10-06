@@ -289,8 +289,9 @@
     "protectiveShieldDescription": "After teleportation, a protective shield is activated for 2 seconds",
     "defeatArcaneLordQuest": "Defeat Arcane Lord",
     "defeatArcaneLordQuestDescription": "Defeat the Arcane Lord on the ninth floor and claim your ultimate reward.",
-    "bossFloor10": "Blood Mage"
-
+    "bossFloor10": "Blood Mage",
+    "defeatBloodMageQuest": "Defeat Blood Mage",
+    "defeatBloodMageQuestDescription": "Defeat the Blood Mage on the tenth floor and claim your ultimate reward."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -582,6 +583,8 @@
     "protectiveShieldDescription": "Po teleportaci se aktivuje ochranný štít na 2 sekundy",
     "defeatArcaneLordQuest": "Poraž Arcane Lorda",
     "defeatArcaneLordQuestDescription": "Poraž Arcane Lorda na devátém podlaží a získej svou ultimátní odměnu.",
-    "bossFloor10": "Krvavý mág"
+    "bossFloor10": "Krvavý mág",
+    "defeatBloodMageQuest": "Poraž Krvavého mága",
+    "defeatBloodMageQuestDescription": "Poraž Krvavého mága na desátém podlaží a získej svou ultimátní odměnu."
   }
 }
