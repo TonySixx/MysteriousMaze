@@ -27,7 +27,7 @@ export var skillTree = {
         description: 'Základní ohnivý útok',
         icon: fireballIcon,
         baseDamage: 100,
-        damageIncreasePerLevel: [20, 30, 40, 60, 80, 100, 120, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65],
+        damageIncreasePerLevel: [20, 30, 40, 60, 80, 100, 120, 65, 65, 65, 65, 65, 65, 70, 75, 80, 85],
         requiredPlayerLevelPerLevel: [1, 2, 5, 7, 9, 11, 13, 15, 17, 20, 24, 28, 33, 39, 45, 51, 57, 60],
         upgrades: [
             {
@@ -56,7 +56,7 @@ export var skillTree = {
         level: 1,
         maxLevel: 16,
         baseDamage: 50,
-        damageIncreasePerLevel: [20, 30, 40, 50, 35, 35, 35, 35, 35, 35, 35],
+        damageIncreasePerLevel: [20, 30, 40, 50, 35, 35, 35, 35, 35, 40, 45],
         description: 'Mrazivý útok, který zmrazí nepřítele na 2 sekundy',
         icon: frostboltIcon,
         requiredPlayerLevelPerLevel: [1, 4, 7, 10, 13, 16, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55],
@@ -89,7 +89,7 @@ export var skillTree = {
         description: 'Rychlý magický projektil',
         icon: arcaneMissileIcon,
         baseDamage: 50,
-        damageIncreasePerLevel: [10, 20, 30, 40, 50, 25, 25, 25, 25, 25, 25, 25, 25, 25],
+        damageIncreasePerLevel: [10, 20, 30, 40, 50, 25, 25, 25, 25, 25, 25, 25, 25, 30],
         requiredPlayerLevelPerLevel: [1, 3, 6, 9, 12, 15, 18, 22, 26, 30, 34, 38, 42, 46, 50],
         upgrades: [
             {
@@ -108,8 +108,8 @@ export var skillTree = {
         systemName: 'chainLightning',
         level: 0,
         maxLevel: 17,
-        baseDamage: 300,
-        damageIncreasePerLevel: [50, 100, 150, 200, 250, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75],
+        baseDamage: 1000,
+        damageIncreasePerLevel: [100, 150, 200, 250, 250, 100, 100, 100, 100, 100, 100, 100, 100, 200, 300, 300],
         description: 'Blesk, který přeskakuje mezi nepřáteli',
         icon: chainLightningIcon,
         requiredLevel: 10,
