@@ -135,7 +135,7 @@ export class MainBoss extends Boss {
         updateQuestsOnEvent('mainBossDeath', { bossType: this.type.translationKey });
 
         // Přidání truhly po poražení bosse
-        const loader = new GLTFLoader(manager);
+        const loader = new GLTFLoader();
         loader.load("models/Chest.glb", (gltf) => {
             const chest = gltf.scene;
             chest.position.x = 0;

@@ -1022,11 +1022,13 @@ function addItemsForTesting() {
 
 }
 
-export function checkSpaceInInventory(slotsNeeded = 1) {
+export function checkSpaceInInventory(slotsNeeded = 1, showMessage = true) {
   const emptySlots = inventory.filter((i) => i === null).length;
   if (emptySlots < slotsNeeded) {
     playSound(errorSoundBuffer);
-    showMessage(getTranslation("inventoryFull", slotsNeeded));
+    if (showMessage) {
+      showMessage(getTranslation("inventoryFull", slotsNeeded));
+    }
     return false;
   }
   return true;
