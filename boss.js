@@ -374,6 +374,12 @@ class Boss {
     }
 
     freeze(time = 2000) {
+        if (this.arcaneShieldActive) {
+            // Pokud je aktivní Arcane Shield, boss nelze zmrazit
+            playSound(aoeBlastSoundBuffer, 0.7);
+            return;
+        }
+
         this.isFrozen = true;
         this.setFrozenAppearance(true);
         playSound(frostBoltHitSoundBuffer, 0.7);
@@ -716,12 +722,12 @@ class Boss {
         const positions = new Float32Array(particleCount * 3);
         const velocities = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
-    
+
         for (let i = 0; i < particleCount; i++) {
             const angle = Math.random() * Math.PI * 2;
             const zAngle = Math.random() * Math.PI - Math.PI / 2;
             const radius = Math.random() * (isMainBoss ? 8 : 5);
-    
+
             positions[i * 3] = Math.cos(angle) * Math.cos(zAngle) * radius;
             positions[i * 3 + 1] = Math.sin(zAngle) * radius;
             positions[i * 3 + 2] = Math.sin(angle) * Math.cos(zAngle) * radius;
@@ -729,16 +735,16 @@ class Boss {
             colors[i * 3] = Math.random();
             colors[i * 3 + 1] = Math.random();
             colors[i * 3 + 2] = Math.random();
-    
+
             velocities[i * 3] = Math.cos(angle) * Math.cos(zAngle) * (Math.random() * 0.5 + 0.5);
             velocities[i * 3 + 1] = Math.sin(zAngle) * (Math.random() * 0.5 + 0.5);
             velocities[i * 3 + 2] = Math.sin(angle) * Math.cos(zAngle) * (Math.random() * 0.5 + 0.5);
         }
-    
+
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    
+
         const material = new THREE.PointsMaterial({
             size: isMainBoss ? 0.2 : 0.1, // Větší velikost částic pro hlavního bosse
             vertexColors: true,
@@ -746,11 +752,11 @@ class Boss {
             transparent: true,
             opacity: 0.8
         });
-    
+
         const particles = new THREE.Points(geometry, material);
         particles.position.copy(this.position);
         scene.add(particles);
-    
+
         // Přidáme částice do pole pro pozdější odstranění
         deathParticles.push({
             particles: particles,
