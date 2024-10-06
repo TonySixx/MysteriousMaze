@@ -1,11 +1,12 @@
 import { Vector3 } from "three";
-import { BLOCKING_WALL, CELL_SIZE, frostBoltHitSoundBuffer, hurtSoundBuffer, MAZE_SIZE, playerDeath, playSound, selectedFloor, supabase } from "./main";
+import { aoeBlastSoundBuffer, BLOCKING_WALL, CELL_SIZE, frostBoltHitSoundBuffer, hurtSoundBuffer, MAZE_SIZE, playerDeath, playSound, selectedFloor, supabase } from "./main";
 import { addExperience, getPlayerLevel, player, playerHealth, setPlayerHealth, updatePlayerHealthBar } from "./player";
 import * as THREE from 'three';
 import { equipment } from "./inventory";
 import { bosses } from "./boss";
 import { floorMusic, floorsConfig } from "./globals";
 import { updateQuestsOnEvent } from "./quests";
+import { isProtectiveShieldActive } from './animate.js';
 
 export function destroyAllSideAnimations() {
   if (merchantAnimationId !== null) {
@@ -419,7 +420,7 @@ export function showTeleportEffect() {
   if (!teleportOverlay) {
     teleportOverlay = createTeleportOverlay();
   }
-  
+
   const currentTime = Date.now();
   if (currentTime - lastTeleportEffectTime >= teleportEffectCooldown) {
     teleportOverlay.style.opacity = '0.7';
@@ -442,7 +443,7 @@ export function showDamageEffect() {
   if (!damageOverlay) {
     damageOverlay = createDamageOverlay();
   }
-  
+
   damageOverlay.style.opacity = '0.7';
   setTimeout(() => {
     damageOverlay.style.opacity = '0';
@@ -453,16 +454,26 @@ let lastDamageEffectTime = 0;
 const damageEffectCooldown = 500; // 500 ms cooldown
 
 export function playerTakeDamage(damage) {
+  if (isProtectiveShieldActive()) {
+    const currentTime = Date.now(); 
+    if (currentTime - lastDamageEffectTime >= damageEffectCooldown) {
+      playSound(aoeBlastSoundBuffer, 0.7);
+      playSound(hurtSoundBuffer, 0.7);
+      lastDamageEffectTime = currentTime;
+    }
+    return; // Pokud je aktivní ochranný štít, neaplikujeme žádné poškození
+  }
+
   setPlayerHealth(playerHealth - damage);
   updatePlayerHealthBar();
-  
+
   const currentTime = Date.now();
   if (currentTime - lastDamageEffectTime >= damageEffectCooldown) {
     showDamageEffect();
-    playSound(hurtSoundBuffer, 0.7); // Předpokládám, že máte funkci pro přehrání zvuku zranění
+    playSound(hurtSoundBuffer, 0.7);
     lastDamageEffectTime = currentTime;
   }
-  
+
   if (playerHealth <= 0) {
     playerDeath();
   }

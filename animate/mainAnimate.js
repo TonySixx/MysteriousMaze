@@ -8,6 +8,7 @@ import { updateFrostAuraEffects, updateGlacialNovaEffects, updateIceTrails, upda
 import { updateMeteors, updateMeteorExplosions, updateInfernoWaves, updatePhoenixRebirthEffects } from "./flamelordAnimate";
 import { update as tweenUpdate } from '@tweenjs/tween.js';  // Přidáno
 import { updateArcaneProjectiles, updateDimensionalRifts, updateArcaneShieldEffect } from "./arcaneLordAnimate";
+import { updateProtectiveShield } from '../animate.js';
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
@@ -52,6 +53,8 @@ export function animate() {
   updateFireballExplosions(deltaTime);
   updateStaffSwing(deltaTime);
   animateStaffInspection(currentTime);
+  updateProtectiveShield(deltaTime);
+
 
   updateTeleportMove(deltaTime);
   updateTeleportEffects(deltaTime);
@@ -77,6 +80,9 @@ export function animate() {
   updateMeteorExplosions(deltaTime);
   updateInfernoWaves(deltaTime);
   updatePhoenixRebirthEffects(deltaTime);
+  updateArcaneProjectiles(deltaTime);
+  updateDimensionalRifts(deltaTime);
+  updateArcaneShieldEffect(deltaTime);
 
   animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);
@@ -130,7 +136,4 @@ export function animate() {
 
   composer.render();
 
-  updateArcaneProjectiles(deltaTime);
-  updateDimensionalRifts(deltaTime);
-  updateArcaneShieldEffect(deltaTime);
 }

@@ -14,6 +14,7 @@ import { updateSkillbar, updateSpellUpgrades } from './spells.js';
 import { getSkillPoints } from './player.js';
 import { activateSoundBuffer, exitPointerLock, playSound, requestPointerLock } from './main.js';
 import { getTranslation } from './langUtils.js';
+import shieldIcon from './public/spells/shield-icon.png';
 
 let skillTreeModal = null;
 
@@ -137,7 +138,17 @@ export var skillTree = {
         cost: 3,
         damageIncreasePerLevel: [0],
         requiredPlayerLevelPerLevel: [21],
-        upgrades: [],
+        upgrades: [
+            {
+                name: 'Ochranný štít',
+                systemName: 'protectiveShield',
+                description: 'Po teleportaci se aktivuje ochranný štít na 2 sekundy',
+                requiredLevel: 35,
+                cost: 2,
+                unlocked: false,
+                icon: shieldIcon
+            }
+        ],
         baseDamage: 0,
         hideDamage:true
     },

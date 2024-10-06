@@ -284,7 +284,9 @@
     "bossFloor8": "Flamelord, Lord of Fire",
     "defeatFlamelordQuest": "Defeat Flamelord",
     "defeatFlamelordQuestDescription": "Defeat Flamelord, the Lord of Fire, on the eighth floor and claim your ultimate reward.",
-    "bossFloor9": "Arcane Lord, Lord of Arcane Magic"
+    "bossFloor9": "Arcane Lord",
+    "protectiveShield": "Protective Shield",
+    "protectiveShieldDescription": "After teleportation, a protective shield is activated for 2 seconds"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -571,6 +573,8 @@
     "bossFloor8": "Flamelord, Vládce ohně",
     "defeatFlamelordQuest": "Poraž Flamelorda",
     "defeatFlamelordQuestDescription": "Poraž Flamelorda, Vládce ohně, na osmém podlaží a získej svou ultimátní odměnu.",
-    "bossFloor9": "Arcane Lord, Vládce arkánové magie"
+    "bossFloor9": "Arcane Lord",
+    "protectiveShield": "Ochranný štít",
+    "protectiveShieldDescription": "Po teleportaci se aktivuje ochranný štít na 2 sekundy"
   }
 }

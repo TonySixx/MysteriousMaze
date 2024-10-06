@@ -12,6 +12,7 @@ import { bosses } from "./boss.js";
 import { calculateSpellDamage, isSpellUnlocked } from "./skillTree.js";
 import { checkProjectileCollisionWithBosses, createCastEffect, createExplosion, getCameraDirection, showTeleportEffect } from "./utils.js";
 import { initiateTeleportMove } from "./animate.js";
+import { createProtectiveShield } from './animate.js';
 
 export let fireBalls = [];
 export let frostBalls = [];
@@ -90,6 +91,8 @@ export function updateSpellUpgrades(skillTree) {
               spell.explosiveCore = true;
             } else if (upgrade.systemName === 'frostAura') {
               spell.frostAura = true;
+            } else if (upgrade.systemName === 'protectiveShield') {
+              spell.protectiveShield = true;
             }
           }
         });
@@ -873,6 +876,12 @@ function castTeleport() {
 
     // Přidáme volání nové funkce pro zobrazení efektu teleportu
     showTeleportEffect();
+
+    // Aktivace ochranného štítu, pokud je upgrade odemčen
+    const teleportSpell = spells.find(spell => spell.name === 'Teleport');
+    if (teleportSpell && teleportSpell.protectiveShield) {
+      createProtectiveShield();
+    }
 
     return true;
   }
