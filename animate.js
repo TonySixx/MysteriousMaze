@@ -209,7 +209,7 @@ export function updateBossChestAndPortal(deltaTime) {
   const chestDistance = player.position.distanceTo(chest.position);
   if (chestDistance < 2) {
     interactionText.style.display = "block";
-    if (keys.f && !chestOpened && checkSpaceInInventory(1, false)) {
+    if (keys.f && !chestOpened && checkSpaceInInventory(1)) {
       bossChestAndPortalData.chestOpened = true;
       openChest(chest);
       keys.f = false;
@@ -243,7 +243,7 @@ function openChest(chest) {
   bossChestAndPortalData.items.forEach(drop => {
     if (Math.random() < drop.chance) {
       gotItem = true;
-      if (checkSpaceInInventory(1)) {
+      if (checkSpaceInInventory(1, false)) {
         addItemToInventory(createItem(getItemName(drop.item)));
         showMessage("You have obtained: " + "<span style='color: " + getRarityColor(drop.item.rarity) + "'>" + drop.item.name + "</span>", true);
       }
