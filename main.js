@@ -71,6 +71,7 @@ import {
   showHintModal,
   showScoreModal,
   showSettingsModal,
+  switchFloorTab,
 } from "./modals.js";
 import {
   addExperienceForCompletion,
@@ -474,6 +475,17 @@ export async function init() {
     document.addEventListener("click", onMouseClick, false);
     document.addEventListener("mousedown", onMouseDown);
     window.addEventListener("resize", onWindowResize);
+
+    const floorSelectModal = document.getElementById("floorSelectModal");
+
+    // Přidáme event listener pro přepínání záložek
+    const tabButtons = floorSelectModal.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabName = button.getAttribute('data-tab');
+        switchFloorTab(tabName);
+      });
+    });
 
     document
       .getElementById("mazeSearchInput")

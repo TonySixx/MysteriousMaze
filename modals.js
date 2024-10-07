@@ -561,3 +561,14 @@ function generateRandomItem(floor) {
 
   return createItem(getItemName(selectedItem), 1);
 }
+
+export function switchFloorTab(tabName) {
+  const tabs = document.querySelectorAll('.tab-content');
+  const buttons = document.querySelectorAll('.tab-button');
+
+  tabs.forEach(tab => tab.classList.remove('active'));
+  buttons.forEach(button => button.classList.remove('active'));
+
+  document.getElementById(`${tabName}Tab`).classList.add('active');
+  document.querySelector(`.tab-button[data-tab="${tabName}"]`).classList.add('active');
+}

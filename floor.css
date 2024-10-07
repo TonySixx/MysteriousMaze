@@ -26,8 +26,6 @@
 }
 
 .floor-group {
-  margin-bottom: 30px;
-  border-bottom: 1px solid #c8a97e;
   padding-bottom: 20px;
 }
 
@@ -64,8 +62,7 @@
 }
 
 .floor-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
+  margin-bottom: 5px;
   position: relative;
   z-index: 2;
 }
@@ -112,46 +109,60 @@
 }
 
 .floor-option.locked::after {
-  content: '🔒';
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 36px;
-  color: #e9b266;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  width: 128px;
+  height: 128px;
+  background-image: url('/others/maze/icon_lock.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
   z-index: 3;
 }
 
-/* Styly pro podlaží bludiště */
-.maze-floor .floor-icon {
-  color: #3498db;
+/* Styly pro záložky */
+.tab-container {
+  display: flex;
+  border-bottom: 2px solid #c8a97e;
+  margin-bottom: 20px;
 }
 
-/* Styly pro bossy */
-.boss-floor {
-  border: 2px solid #e74c3c;
-}
-
-.boss-floor .floor-icon {
-  color: #e74c3c;
-}
-
-/* Styly pro tábor */
-.camp-floor .floor-icon {
-  color: #2ecc71;
-}
-
-.close {
+.tab-button {
+  background-color: transparent;
+  border: none;
   color: #c8a97e;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  transition: 0.3s;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.close:hover,
-.close:focus {
+.tab-button:hover {
+  background-color: rgba(200, 169, 126, 0.1);
   color: #e9b266;
-  text-decoration: none;
 }
+
+.tab-button.active {
+  color: #e9b266;
+  border-bottom: 2px solid #e9b266;
+  margin-bottom: -2px;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Upravíme styl pro scrollování, pokud je obsah příliš dlouhý */
+.floor-select-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Ostatní existující styly... */
