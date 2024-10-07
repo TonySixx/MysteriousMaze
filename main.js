@@ -48,6 +48,7 @@ import {
 } from "./langUtils.js";
 import { createCamp } from "./camp.js";
 import {
+  addItemsForTesting,
   addItemToInventory,
   closeInventory,
   createItem,
@@ -630,6 +631,7 @@ function processConsoleCommand(command) {
       break;
     case "gold.cmd":
       addGold(5000);
+      addItemsForTesting();
       break;
     default:
       console.log("Neznámý příkaz:", command);

@@ -57,7 +57,7 @@ export function initInventory() {
     equipItem(staff.id, 'weapon');
     addItemToInventory(createItem(getItemName(itemDatabase.healthPotion), 5));
     addItemToInventory(createItem(getItemName(itemDatabase.manaPotion), 5));
-    addItemsForTesting();
+    //addItemsForTesting();
   }
 
   console.log("Inventory initialized:", inventory);
@@ -992,7 +992,7 @@ export function debugInventory() {
   console.log("Current equipment:", equipment);
 }
 
-function addItemsForTesting() {
+export function addItemsForTesting() {
   addItemToInventory(createItem(getItemName(itemDatabase.apprenticeShardStaff)));
   addItemToInventory(createItem(getItemName(itemDatabase.healthPotion)));
   addItemToInventory(createItem(getItemName(itemDatabase.manaPotion)));
