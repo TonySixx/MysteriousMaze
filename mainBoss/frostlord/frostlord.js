@@ -24,7 +24,6 @@ export class FrostlordBoss extends MainBoss {
         this.model.scale.set(this.type.size || 1, this.type.size || 1, this.type.size || 1);
         this.model.traverse((child) => {
             if (child.isMesh) {
-                console.log(child.name);
                 if (child.name === "Tribal_Flying_1") {
                     child.material = this.type.tribalMainMaterial;
                 } else if (child.name === "Tribal_Flying_2") {

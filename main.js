@@ -91,7 +91,7 @@ import { toggleQuestWindow } from "./quests.js";
 import { clearScene } from "./clearScene.js";
 import { animate } from "./animate/mainAnimate.js";
 
-export const version = "3.4.0";
+export const version = "3.4.1";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -979,9 +979,6 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
   updatePlayerHealthBar();
   updatePlayerManaBar();
 
-  console.log("Maze created");
-  console.log("lights " + lightManager.lights.length);
-  console.log("bosses " + bosses.length);
 }
 
 export function getHash(str) {
@@ -1444,7 +1441,6 @@ function showGoalMessage(keyCount, totalKeys) {
 export function teleportPlayer(teleport) {
   const currentTime = performance.now();
   if (currentTime - lastTeleportTime > teleportCooldown) {
-    console.log("Teleportuji se");
     playSound(teleportSoundBuffer);
     const otherTeleport = scene.children.find(
       (otherChild) =>
@@ -1658,10 +1654,8 @@ function loadTreasureModel(manager) {
     loader.load(
       "models/TreasureChest.glb",
       (gltf) => {
-        console.log("Treasure model loaded successfully", gltf);
         treasureModel = gltf.scene;
         treasureModel.scale.set(0.5, 0.5, 0.5);
-        console.log("Treasure model processed");
         resolve(treasureModel);
       },
       undefined,

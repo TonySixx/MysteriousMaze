@@ -564,14 +564,12 @@ export function checkCeilingCollision() {
         // V oblasti s vysokými stěnami
         if (player.position.y >= WALL_HEIGHT - ceilingBuffer) {
             player.position.y = WALL_HEIGHT - ceilingBuffer;
-            console.log("Kolize s vysokým stropem");
             return true;
         }
     } else {
         // V normální oblasti
         if (player.position.y >= MAX_JUMP_HEIGHT - ceilingBuffer) {
             player.position.y = MAX_JUMP_HEIGHT - ceilingBuffer;
-            console.log("Kolize s normálním stropem");
             return true;
         }
     }

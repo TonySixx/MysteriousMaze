@@ -785,7 +785,6 @@ export function updateChainLightnings(deltaTime) {
         chainLightnings.splice(i, 1);
 
         if (wall.userData.isBlockingWall) {
-          console.log("Destroying blocking wall at", wall.position);
           scene.remove(wall);
           walls.splice(j, 1);
           // Aktualizujte matici bludiště

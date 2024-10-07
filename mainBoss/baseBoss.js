@@ -56,7 +56,6 @@ export class MainBoss extends Boss {
             this.model.scale.set(this.type.size || 1, this.type.size || 1, this.type.size || 1);
             this.model.traverse((child) => {
                 if (child.isMesh) {
-                    console.log(child.name);
                     if (child.name === "Ghost_Skull_1") {
                         child.material = this.type.mainMaterial;
                     } else if (child.name === "Ghost_Skull_2") {
