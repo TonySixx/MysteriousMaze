@@ -353,7 +353,23 @@
     "completeMazesFloor13Quest": "Explorer of 13th Floor",
     "completeMazesFloor13QuestDescription": "Complete 3 different mazes (with unique seeds) on the thirteenth floor and prove your advanced exploration skills.",
     "defeatThunderlordQuest": "Defeat Thunderlord",
-    "defeatThunderlordQuestDescription": "Defeat Thunderlord, the Lord of Thunder, on the eleventh floor and claim your ultimate reward."
+    "defeatThunderlordQuestDescription": "Defeat Thunderlord, the Lord of Thunder, on the eleventh floor and claim your ultimate reward.",
+    "completeMazeToxicWithoutMinimapQuest": "Master of Toxic Maze",
+    "completeMazeToxicWithoutMinimapQuestDescription": "Complete the maze on the sixth floor with seed 'Toxic' without using the minimap.",
+    "completeMazeSnowWithoutMinimapQuest": "Master of Snow Maze",
+    "completeMazeSnowWithoutMinimapQuestDescription": "Complete the maze on the seventh floor with seed 'Snow' without using the minimap.",
+    "completeMazeHellWithoutMinimapQuest": "Master of Hell Maze",
+    "completeMazeHellWithoutMinimapQuestDescription": "Complete the maze on the eighth floor with seed 'Hell' without using the minimap.",
+    "completeMazePurpleWithoutMinimapQuest": "Master of Purple Maze",
+    "completeMazePurpleWithoutMinimapQuestDescription": "Complete the maze on the ninth floor with seed 'Purple' without using the minimap.",
+    "completeMazeRuneWithoutMinimapQuest": "Master of Rune Maze",
+    "completeMazeRuneWithoutMinimapQuestDescription": "Complete the maze on the tenth floor with seed 'Rune' without using the minimap.",
+    "completeMazeLightWithoutMinimapQuest": "Master of Light Maze",
+    "completeMazeLightWithoutMinimapQuestDescription": "Complete the maze on the eleventh floor with seed 'Light' without using the minimap.",
+    "completeMazeDarknessWithoutMinimapQuest": "Master of Darkness Maze",
+    "completeMazeDarknessWithoutMinimapQuestDescription": "Complete the maze on the twelfth floor with seed 'Darkness' without using the minimap.",
+    "completeMazeMysteriousMazeWithoutMinimapQuest": "Master of Mysterious Maze",
+    "completeMazeMysteriousMazeWithoutMinimapQuestDescription": "Complete the maze on the thirteenth floor with seed 'MysteriousMaze' without using the minimap."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -709,6 +725,22 @@
     "completeMazesFloor13Quest": "Průzkumník 13. podlaží",
     "completeMazesFloor13QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na třináctém podlaží a prokažte své pokročilé průzkumnické schopnosti.",
     "defeatThunderlordQuest": "Poraž Thunderlorda",
-    "defeatThunderlordQuestDescription": "Poraž Thunderlorda, Vládce blesků, na jedenáctém podlaží a získej svou ultimátní odměnu."
+    "defeatThunderlordQuestDescription": "Poraž Thunderlorda, Vládce blesků, na jedenáctém podlaží a získej svou ultimátní odměnu.",
+    "completeMazeToxicWithoutMinimapQuest": "Mistr toxického bludiště",
+    "completeMazeToxicWithoutMinimapQuestDescription": "Dokončete bludiště na šestém podlaží se seedem 'Toxic' bez použití minimapy.",
+    "completeMazeSnowWithoutMinimapQuest": "Mistr sněžného bludiště",
+    "completeMazeSnowWithoutMinimapQuestDescription": "Dokončete bludiště na sedmém podlaží se seedem 'Snow' bez použití minimapy.",
+    "completeMazeHellWithoutMinimapQuest": "Mistr pekelného bludiště",
+    "completeMazeHellWithoutMinimapQuestDescription": "Dokončete bludiště na osmém podlaží se seedem 'Hell' bez použití minimapy.",
+    "completeMazePurpleWithoutMinimapQuest": "Mistr fialového bludiště",
+    "completeMazePurpleWithoutMinimapQuestDescription": "Dokončete bludiště na devátém podlaží se seedem 'Purple' bez použití minimapy.",
+    "completeMazeRuneWithoutMinimapQuest": "Mistr runového bludiště",
+    "completeMazeRuneWithoutMinimapQuestDescription": "Dokončete bludiště na desátém podlaží se seedem 'Rune' bez použití minimapy.",
+    "completeMazeLightWithoutMinimapQuest": "Mistr světelného bludiště",
+    "completeMazeLightWithoutMinimapQuestDescription": "Dokončete bludiště na jedenáctém podlaží se seedem 'Light' bez použití minimapy.",
+    "completeMazeDarknessWithoutMinimapQuest": "Mistr temného bludiště",
+    "completeMazeDarknessWithoutMinimapQuestDescription": "Dokončete bludiště na dvanáctém podlaží se seedem 'Darkness' bez použití minimapy.",
+    "completeMazeMysteriousMazeWithoutMinimapQuest": "Mistr tajemného bludiště",
+    "completeMazeMysteriousMazeWithoutMinimapQuestDescription": "Dokončete bludiště na třináctém podlaží se seedem 'MysteriousMaze' bez použití minimapy."
   }
 }

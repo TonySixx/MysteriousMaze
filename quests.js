@@ -527,6 +527,86 @@ export function updateQuestsOnEvent(eventType, eventData) {
                     return quest;
                 });
             }
+            else if (eventData.seed === "Toxic" && eventData.floor === 6 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeToxicWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "Snow" && eventData.floor === 7 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeSnowWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "Hell" && eventData.floor === 8 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeHellWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "Purple" && eventData.floor === 9 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazePurpleWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "Rune" && eventData.floor === 10 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeRuneWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "Light" && eventData.floor === 11 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeLightWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "Darkness" && eventData.floor === 12 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeDarknessWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "MysteriousMaze" && eventData.floor === 13 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeMysteriousMazeWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
             break;
         case 'mainBossDeath':
             if (eventData.bossType === "bossFloor1") {
