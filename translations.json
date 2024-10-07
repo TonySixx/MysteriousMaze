@@ -327,6 +327,7 @@
     "defeatArcaneLordQuest": "Defeat Arcane Lord",
     "defeatArcaneLordQuestDescription": "Defeat the Arcane Lord on the ninth floor and claim your ultimate reward.",
     "bossFloor10": "Blood Mage",
+    "bossFloor11": "Thunderlord, Lord of Thunder",
     "defeatBloodMageQuest": "Defeat Blood Mage",
     "defeatBloodMageQuestDescription": "Defeat the Blood Mage on the tenth floor and claim your ultimate reward.",
     "completeMazeQuantumWithoutMinimapQuest": "Quantum Maze Master",
@@ -350,7 +351,9 @@
     "completeMazesFloor12Quest": "Explorer of 12th Floor",
     "completeMazesFloor12QuestDescription": "Complete 3 different mazes (with unique seeds) on the twelfth floor and prove your advanced exploration skills.",
     "completeMazesFloor13Quest": "Explorer of 13th Floor",
-    "completeMazesFloor13QuestDescription": "Complete 3 different mazes (with unique seeds) on the thirteenth floor and prove your advanced exploration skills."
+    "completeMazesFloor13QuestDescription": "Complete 3 different mazes (with unique seeds) on the thirteenth floor and prove your advanced exploration skills.",
+    "defeatThunderlordQuest": "Defeat Thunderlord",
+    "defeatThunderlordQuestDescription": "Defeat Thunderlord, the Lord of Thunder, on the eleventh floor and claim your ultimate reward."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -680,6 +683,7 @@
     "defeatArcaneLordQuest": "Poraž Arcane Lorda",
     "defeatArcaneLordQuestDescription": "Poraž Arcane Lorda na devátém podlaží a získej svou ultimátní odměnu.",
     "bossFloor10": "Krvavý mág",
+    "bossFloor11": "Thunderlord, Vládce blesků",
     "defeatBloodMageQuest": "Poraž Krvavého mága",
     "defeatBloodMageQuestDescription": "Poraž Krvavého mága na desátém podlaží a získej svou ultimátní odměnu.",
     "completeMazeQuantumWithoutMinimapQuest": "Mistr kvantového bludiště",
@@ -703,6 +707,8 @@
     "completeMazesFloor12Quest": "Průzkumník 12. podlaží",
     "completeMazesFloor12QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na dvanáctém podlaží a prokažte své pokročilé průzkumnické schopnosti.",
     "completeMazesFloor13Quest": "Průzkumník 13. podlaží",
-    "completeMazesFloor13QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na třináctém podlaží a prokažte své pokročilé průzkumnické schopnosti."
+    "completeMazesFloor13QuestDescription": "Dokončete 3 různá bludiště (s unikátními seedy) na třináctém podlaží a prokažte své pokročilé průzkumnické schopnosti.",
+    "defeatThunderlordQuest": "Poraž Thunderlorda",
+    "defeatThunderlordQuestDescription": "Poraž Thunderlorda, Vládce blesků, na jedenáctém podlaží a získej svou ultimátní odměnu."
   }
 }

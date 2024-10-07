@@ -589,6 +589,27 @@ const questDefinitions = [
         }
     },
     {
+        id: 'defeatThunderlord',
+        name: 'defeatThunderlordQuest',
+        description: 'defeatThunderlordQuestDescription',
+        level: 56,
+        rewards: {
+            exp: 12000000,
+            gold: 600,
+            items: [
+                { item: 'powerLapisia', count: 10 },
+                { item: 'protectorsLapisia', count: 10 },
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Thunderlord, Vládce blesků',
+            count: 1
+        }
+    },    
+    {
         id: 'completeMazesFloor13',
         name: 'completeMazesFloor13Quest',
         description: 'completeMazesFloor13QuestDescription',
