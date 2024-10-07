@@ -97,6 +97,10 @@ window.bloodVortexes = []
 window.bloodRitualEffect = null
 window.bloodLances = [];
 
+window.lightningStrikes = [];
+window.ballLightnings = [];
+window.electromagneticPulse = null;
+
 export const playerDefaultSpeed = 6.5;
 
 export const floorMusic = {
@@ -496,4 +500,3 @@ export const textureSets = [
       bossProbability: 1
     },
   };
-

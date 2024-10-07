@@ -2207,6 +2207,7 @@ export function canSelectFloor(floor) {
   if (floor === 107) return playerLevel >= 41; // Boss podlaží pro Flamelorda
   if (floor === 108) return playerLevel >= 46; // Boss podlaží pro Arcane Lorda
   if (floor === 109) return playerLevel >= 51; // Boss podlaží pro Blood Mage
+  if (floor === 110) return playerLevel >= 56; // Boss podlaží pro Thunderlord
   return false;
 }
 

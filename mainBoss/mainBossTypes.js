@@ -10,6 +10,7 @@ import { FrostlordBoss, GlacialNovaAbility, IcicleBarrageAbility, FrostWalkerAbi
 import { FlamelordBoss, MeteorStrikeAbility, InfernoWaveAbility, PhoenixRebirthAbility } from "./flamelord/flamelord";
 import { ArcaneLordBoss, ArcaneBarrageAbility, DimensionalRiftAbility, ArcaneShieldAbility } from "./arcaneLord/arcaneLord";
 import { BloodMageBoss, BloodVortexAbility, BloodRitualAbility, BloodLanceAbility } from "./bloodMage/bloodMage";
+import { BallLightningAbility, ElectromagneticPulseAbility, LightningStrikeAbility, ThunderlordBoss } from "./thunderlord/thunderlord";
 
 export const MAIN_BOSS_TYPES = [
   {
@@ -507,6 +508,61 @@ export const MAIN_BOSS_TYPES = [
     flyDuration: 1.5,
     size: 2.4,
     attackDamage: 60,
+    hasCustomModel: true,
+    merlonHeight: 9,
+    cornerWallHeight: 8,
+    healthBarOffsetY: 1.2,
+  },
+  {
+    name: "Thunderlord, Vládce blesků",
+    bossClass: ThunderlordBoss,
+    translationKey: "bossFloor11",
+    abilities: [LightningStrikeAbility, BallLightningAbility, ElectromagneticPulseAbility],
+    tribalMainMaterial: new THREE.MeshStandardMaterial({
+      color: 0x4169E1,
+      metalness: 0.7,
+      roughness: 0.3,
+      emissive: 0x4169E1,
+      emissiveIntensity: 0,
+    }),
+    tribalGoldMaterial: new THREE.MeshStandardMaterial({
+      color: 0x243cf2,
+      metalness: 0.8,
+      roughness: 0.2,
+      emissive: 0x243cf2,
+      emissiveIntensity: 5,
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x00BFFF,
+      metalness: 0.6,
+      roughness: 0.4,
+    }),
+    eyeWhiteMaterial: new THREE.MeshStandardMaterial({
+      color: 0xfffc69,
+      emissive: 0xfffc69,
+      emissiveIntensity: 3,
+    }),
+    eyeBlackMaterial: new THREE.MeshStandardMaterial({
+      color: 0xfffc69,
+      emissive: 0xfffc69,
+      emissiveIntensity: 4,
+    }),
+    attackColor: new THREE.Color(0x002fff),
+    attackCooldown: 0.7,
+    emissiveIntensity: 7,
+    maxHealth: 500000,
+    bossHitBoxMarginY: 5.2,
+    bossHitBoxMarginXZ: 3.5,
+    attackSpeed: 1,
+    attackSize: 0.8,
+    specialAttackInterval: 7000,
+    ambientLightColor: 0x3b3969 ,
+    nebulaColors: ["#7a49a5", "#607cf7"],
+    textureSetIndex: 18,
+    torchSetIndex: 18,
+    flyDuration: 1.5,
+    size: 2.5,
+    attackDamage: 70,
     hasCustomModel: true,
     merlonHeight: 9,
     cornerWallHeight: 8,

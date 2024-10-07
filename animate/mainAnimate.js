@@ -10,6 +10,7 @@ import { update as tweenUpdate } from '@tweenjs/tween.js';  // Přidáno
 import { updateArcaneProjectiles, updateDimensionalRifts, updateArcaneShieldEffect } from "./arcaneLordAnimate";
 import { updateProtectiveShield } from '../animate.js';
 import { updateBloodVortexes, updateBloodRitual, updateBloodLances } from "./bloodMageAnimate";
+import { updateLightningStrikes, updateBallLightnings, updateElectromagneticPulse } from "./thunderlordAnimate";
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
@@ -84,6 +85,12 @@ export function animate() {
   updateArcaneProjectiles(deltaTime);
   updateDimensionalRifts(deltaTime);
   updateArcaneShieldEffect(deltaTime);
+  updateBloodVortexes(deltaTime);
+  updateBloodRitual(deltaTime);
+  updateBloodLances(deltaTime);
+  updateLightningStrikes(deltaTime);
+  updateBallLightnings(deltaTime);
+  updateElectromagneticPulse(deltaTime);
 
   animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);
@@ -137,8 +144,6 @@ export function animate() {
 
   composer.render();
 
-  updateBloodVortexes(deltaTime);
-  updateBloodRitual(deltaTime);
-  updateBloodLances(deltaTime);
+
 
 }
