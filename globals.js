@@ -445,57 +445,57 @@ export const textureSets = [
       bossProbability: 1
     },
     9: {
-      minSize: 40,
-      maxSize: 50,
+      minSize: 31,
+      maxSize: 41,
       textureSets: textureSets.slice(16, 17),
       hallConfig: {
-        probability: 0.2,
-        minSize: 5,
-        maxSize: 5
+        probability: 0.1,
+        minSize: 2,
+        maxSize: 3
       },
       bossProbability: 1
     },
     10: {
-      minSize: 40,
-      maxSize: 50,
+      minSize: 21,
+      maxSize: 36,
       textureSets: textureSets.slice(17, 18),
       hallConfig: {
         probability: 0.2,
-        minSize: 5,
+        minSize: 4,
         maxSize: 5
       },
       bossProbability: 1
     },
     11: {
-      minSize: 40,
-      maxSize: 50,
+      minSize: 29,
+      maxSize: 39,
       textureSets: textureSets.slice(18, 19),
       hallConfig: {
-        probability: 0.2,
-        minSize: 5,
-        maxSize: 5
+        probability: 0.3,
+        minSize: 1,
+        maxSize: 2
       },
       bossProbability: 1
     },
     12: {
-      minSize: 40,
-      maxSize: 50,
+      minSize: 22,
+      maxSize: 32,
       textureSets: textureSets.slice(19, 20),
       hallConfig: {
         probability: 0.2,
-        minSize: 5,
-        maxSize: 5
+        minSize: 2,
+        maxSize: 2
       },
       bossProbability: 1
     },
     13: {
-      minSize: 40,
-      maxSize: 50,
+      minSize: 38,
+      maxSize: 42,
       textureSets: textureSets.slice(20, 21),
       hallConfig: {
-        probability: 0.2,
-        minSize: 5,
-        maxSize: 5
+        probability: 0.15,
+        minSize: 1,
+        maxSize: 8
       },
       bossProbability: 1
     },
