@@ -369,7 +369,21 @@
     "completeMazeDarknessWithoutMinimapQuest": "Master of Darkness Maze",
     "completeMazeDarknessWithoutMinimapQuestDescription": "Complete the maze on the twelfth floor with seed 'Darkness' without using the minimap.",
     "completeMazeMysteriousMazeWithoutMinimapQuest": "Master of Mysterious Maze",
-    "completeMazeMysteriousMazeWithoutMinimapQuestDescription": "Complete the maze on the thirteenth floor with seed 'MysteriousMaze' without using the minimap."
+    "completeMazeMysteriousMazeWithoutMinimapQuestDescription": "Complete the maze on the thirteenth floor with seed 'MysteriousMaze' without using the minimap.",
+    "defeatToxicAndPlasmaDragonsQuest": "Hunt for Toxic and Plasma Dragons",
+    "defeatToxicAndPlasmaDragonsQuestDescription": "Defeat 3 Toxic Dragons and 3 Plasma Dragons on the sixth floor to prove your courage!",
+    "defeatPolarAndVolcanicDragonsQuest": "Polar and Volcanic Dragons Challenge",
+    "defeatPolarAndVolcanicDragonsQuestDescription": "Defeat 5 Polar Dragons and 5 Volcanic Dragons on the seventh floor and become a master of extreme elements!",
+    "defeatSolarLunarAndGalacticDragonsQuest": "Celestial Dragons Hunt",
+    "defeatSolarLunarAndGalacticDragonsQuestDescription": "Defeat 3 Solar Dragons, 3 Lunar Dragons, and 3 Galactic Dragons on the eighth floor to harness the power of the cosmos!",
+    "defeatArcaneAndInfinityDragonsQuest": "Arcane and Infinity Dragons Challenge",
+    "defeatArcaneAndInfinityDragonsQuestDescription": "Defeat 5 Arcane Dragons and 5 Infinity Dragons on the ninth floor and unlock the secrets of magic and infinity!",
+    "defeatBloodAndDarkEtherealDragonsQuest": "Blood and Dark Ethereal Dragons Hunt",
+    "defeatBloodAndDarkEtherealDragonsQuestDescription": "Defeat 5 Blood Dragons and 5 Dark Ethereal Dragons on the tenth floor and master the forces of darkness!",
+    "defeatBalanceAndEternityDragonsQuest": "Balance and Eternity Dragons Hunt",
+    "defeatBalanceAndEternityDragonsQuestDescription": "Defeat 5 Balance Dragons and 5 Eternity Dragons on the eleventh floor and achieve perfect harmony!",
+    "defeatCreationAndDestructionDragonsQuest": "Creation and Destruction Dragons Challenge",
+    "defeatCreationAndDestructionDragonsQuestDescription": "Defeat 8 Creation Dragons and 8 Destruction Dragons on the twelfth floor and become the ultimate dragon slayer!"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -741,6 +755,20 @@
     "completeMazeDarknessWithoutMinimapQuest": "Mistr temného bludiště",
     "completeMazeDarknessWithoutMinimapQuestDescription": "Dokončete bludiště na dvanáctém podlaží se seedem 'Darkness' bez použití minimapy.",
     "completeMazeMysteriousMazeWithoutMinimapQuest": "Mistr tajemného bludiště",
-    "completeMazeMysteriousMazeWithoutMinimapQuestDescription": "Dokončete bludiště na třináctém podlaží se seedem 'MysteriousMaze' bez použití minimapy."
+    "completeMazeMysteriousMazeWithoutMinimapQuestDescription": "Dokončete bludiště na třináctém podlaží se seedem 'MysteriousMaze' bez použití minimapy.",
+    "defeatToxicAndPlasmaDragonsQuest": "Lov toxických a plazmových draků",
+    "defeatToxicAndPlasmaDragonsQuestDescription": "Porazte 3 toxické draky a 3 plazmové draky na šestém podlaží a prokažte svou odvahu!",
+    "defeatPolarAndVolcanicDragonsQuest": "Výzva polárních a vulkanických draků",
+    "defeatPolarAndVolcanicDragonsQuestDescription": "Porazte 5 polárních draků a 5 vulkanických draků na sedmém podlaží a staňte se mistrem extrémních živlů!",
+    "defeatSolarLunarAndGalacticDragonsQuest": "Lov nebeských draků",
+    "defeatSolarLunarAndGalacticDragonsQuestDescription": "Porazte 3 sluneční draky, 3 měsíční draky a 3 galaktické draky na osmém podlaží a ovládněte sílu kosmu!",
+    "defeatArcaneAndInfinityDragonsQuest": "Výzva arkánových a nekonečných draků",
+    "defeatArcaneAndInfinityDragonsQuestDescription": "Porazte 5 arkánových draků a 5 draků nekonečna na devátém podlaží a odhalte tajemství magie a nekonečna!",
+    "defeatBloodAndDarkEtherealDragonsQuest": "Lov krvavých a temných éterických draků",
+    "defeatBloodAndDarkEtherealDragonsQuestDescription": "Porazte 5 krvavých draků a 5 temných éterických draků na desátém podlaží a ovládněte síly temnoty!",
+    "defeatBalanceAndEternityDragonsQuest": "Lov draků rovnováhy a věčnosti",
+    "defeatBalanceAndEternityDragonsQuestDescription": "Porazte 5 draků rovnováhy a 5 draků věčnosti na jedenáctém podlaží a dosáhněte dokonalé harmonie!",
+    "defeatCreationAndDestructionDragonsQuest": "Výzva draků stvoření a zániku",
+    "defeatCreationAndDestructionDragonsQuestDescription": "Porazte 8 draků stvoření a 8 draků zániku na dvanáctém podlaží a staňte se ultimátním drakobijcem!"
   }
 }

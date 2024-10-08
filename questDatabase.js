@@ -384,6 +384,31 @@ const questDefinitions = [
         }
     },
     {
+        id: 'defeatToxicAndPlasmaDragons',
+        name: 'defeatToxicAndPlasmaDragonsQuest',
+        description: 'defeatToxicAndPlasmaDragonsQuestDescription',
+        level: 28,
+        rewards: {
+            exp: 80000,
+            gold: 100,
+            items: [
+                { item: 'powerLapisia', count: 5 },
+                { item: 'protectorsLapisia', count: 5 },
+                { item: 'ultimateHealthPotion', count: 3 },
+                { item: 'ultimateManaPotion', count: 3 }
+            ]
+        },
+        objective: {
+            type: 'killMultiple',
+            hasMultipleObjectives: true,
+            targets: [
+                { translationKey: 'toxicDragon', count: 3 },
+                { translationKey: 'plasmaDragon', count: 3 }
+            ],
+            floor: 6
+        }
+    },
+    {
         id: 'defeatToxicus',
         name: 'defeatToxicusQuest',
         description: 'defeatToxicusQuestDescription',
@@ -448,6 +473,31 @@ const questDefinitions = [
         }
     },
     {
+        id: 'defeatPolarAndVolcanicDragons',
+        name: 'defeatPolarAndVolcanicDragonsQuest',
+        description: 'defeatPolarAndVolcanicDragonsQuestDescription',
+        level: 33,
+        rewards: {
+            exp: 200000,
+            gold: 250,
+            items: [
+                { item: 'powerLapisia', count: 5 },
+                { item: 'protectorsLapisia', count: 5 },
+                { item: 'ultimateHealthPotion', count: 4 },
+                { item: 'ultimateManaPotion', count: 4 }
+            ]
+        },
+        objective: {
+            type: 'killMultiple',
+            hasMultipleObjectives: true,
+            targets: [
+                { translationKey: 'polarDragon', count: 5 },
+                { translationKey: 'volcanicDragon', count: 5 }
+            ],
+            floor: 7
+        }
+    },
+    {
         id: 'defeatFrostlord',
         name: 'defeatFrostlordQuest',
         description: 'defeatFrostlordQuestDescription',
@@ -507,6 +557,32 @@ const questDefinitions = [
             seed: 'Hell',
             floor: 8,
             count: 1
+        }
+    },
+    {
+        id: 'defeatSolarLunarAndGalacticDragons',
+        name: 'defeatSolarLunarAndGalacticDragonsQuest',
+        description: 'defeatSolarLunarAndGalacticDragonsQuestDescription',
+        level: 38,
+        rewards: {
+            exp: 300000,
+            gold: 300,
+            items: [
+                { item: 'powerLapisia', count: 6 },
+                { item: 'protectorsLapisia', count: 6 },
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'killMultiple',
+            hasMultipleObjectives: true,
+            targets: [
+                { translationKey: 'solarDragon', count: 3 },
+                { translationKey: 'lunarDragon', count: 3 },
+                { translationKey: 'galacticDragon', count: 3 }
+            ],
+            floor: 8
         }
     },
     {
@@ -573,6 +649,31 @@ const questDefinitions = [
         }
     },
     {
+        id: 'defeatArcaneAndInfinityDragons',
+        name: 'defeatArcaneAndInfinityDragonsQuest',
+        description: 'defeatArcaneAndInfinityDragonsQuestDescription',
+        level: 43,
+        rewards: {
+            exp: 800000,
+            gold: 350,
+            items: [
+                { item: 'powerLapisia', count: 7 },
+                { item: 'protectorsLapisia', count: 7 },
+                { item: 'ultimateHealthPotion', count: 6 },
+                { item: 'ultimateManaPotion', count: 6 }
+            ]
+        },
+        objective: {
+            type: 'killMultiple',
+            hasMultipleObjectives: true,
+            targets: [
+                { translationKey: 'arcaneDragon', count: 5 },
+                { translationKey: 'infinityDragon', count: 5 }
+            ],
+            floor: 9
+        }
+    },
+    {
         id: 'defeatArcaneLord',
         name: 'defeatArcaneLordQuest',
         description: 'defeatArcaneLordQuestDescription',
@@ -633,6 +734,31 @@ const questDefinitions = [
             seed: 'Rune',
             floor: 10,
             count: 1
+        }
+    },
+    {
+        id: 'defeatBloodAndDarkEtherealDragons',
+        name: 'defeatBloodAndDarkEtherealDragonsQuest',
+        description: 'defeatBloodAndDarkEtherealDragonsQuestDescription',
+        level: 48,
+        rewards: {
+            exp: 1600000,
+            gold: 400,
+            items: [
+                { item: 'powerLapisia', count: 8 },
+                { item: 'protectorsLapisia', count: 8 },
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'killMultiple',
+            hasMultipleObjectives: true,
+            targets: [
+                { translationKey: 'bloodDragon', count: 5 },
+                { translationKey: 'darkEtherealDragon', count: 5 }
+            ],
+            floor: 10
         }
     },
     {
@@ -700,6 +826,31 @@ const questDefinitions = [
         }
     },
     {
+        id: 'defeatBalanceAndEternityDragons',
+        name: 'defeatBalanceAndEternityDragonsQuest',
+        description: 'defeatBalanceAndEternityDragonsQuestDescription',
+        level: 53,
+        rewards: {
+            exp: 5000000,
+            gold: 300,
+            items: [
+                { item: 'powerLapisia', count: 9 },
+                { item: 'protectorsLapisia', count: 9 },
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'killMultiple',
+            hasMultipleObjectives: true,
+            targets: [
+                { translationKey: 'eternityDragon', count: 5 },
+                { translationKey: 'balanceDragon', count: 5 }
+            ],
+            floor: 11
+        }
+    },
+    {
         id: 'defeatThunderlord',
         name: 'defeatThunderlordQuest',
         description: 'defeatThunderlordQuestDescription',
@@ -761,6 +912,31 @@ const questDefinitions = [
             seed: 'Darkness',
             floor: 12,
             count: 1
+        }
+    },
+    {
+        id: 'defeatCreationAndDestructionDragons',
+        name: 'defeatCreationAndDestructionDragonsQuest',
+        description: 'defeatCreationAndDestructionDragonsQuestDescription',
+        level: 58,
+        rewards: {
+            exp: 10000000,
+            gold: 200,
+            items: [
+                { item: 'powerLapisia', count: 10 },
+                { item: 'protectorsLapisia', count: 10 },
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'killMultiple',
+            hasMultipleObjectives: true,
+            targets: [
+                { translationKey: 'creationDragon', count: 8 },
+                { translationKey: 'destructionDragon', count: 8 }
+            ],
+            floor: 12
         }
     },
     {
