@@ -345,14 +345,15 @@ export class MeteorStrikeAbility extends Ability {
 export class InfernoWaveAbility extends Ability {
     constructor(boss) {
         super(boss);
-        this.cooldown = 15000; // 15 sekund
+        this.cooldown = 15000;
         this.lastUseTime = 0;
-        this.waveCount = 3; // Počet vln
-        this.waveDuration = 2500; // 2.5 sekundy na vlnu
-        this.waveInterval = 2000; // 2 sekundy mezi vlnami
+        this.waveCount = 3;
+        this.waveDuration = 2500;
+        this.waveInterval = 2000;
         this.maxWaveRadius = 12;
         this.damagePerSecond = 40;
         this.waveWidth = 2;
+        this.waveTimers = []; // Nové pole pro ukládání časovačů
     }
 
     canUse() {
@@ -368,9 +369,10 @@ export class InfernoWaveAbility extends Ability {
 
     createInfernoWaves() {
         for (let i = 0; i < this.waveCount; i++) {
-            setTimeout(() => {
+            const timer = setTimeout(() => {
                 this.createInfernoWaveEffect(i);
             }, i * this.waveInterval);
+            this.waveTimers.push(timer); // Uložení časovače do pole
         }
     }
 
@@ -425,10 +427,16 @@ export class InfernoWaveAbility extends Ability {
     }
 
     cancelAbility() {
+        // Zrušení všech aktivních časovačů
+        this.waveTimers.forEach(timer => clearTimeout(timer));
+        this.waveTimers = []; // Vyčištění pole časovačů
+
+        // Odstranění všech existujících vln
         infernoWaves.forEach(wave => {
             scene.remove(wave.mesh);
         });
         infernoWaves = [];
+
         this.boss.isUsingAbility = false;
     }
 }

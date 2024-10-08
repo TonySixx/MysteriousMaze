@@ -39,6 +39,8 @@ export function updateMeteorExplosions(deltaTime) {
 }
 
 export function updateInfernoWaves(deltaTime) {
+    const heightThreshold = 0.09; // Maximální výška, při které hráč může být zasažen (můžete upravit podle potřeby)
+    
     for (let i = infernoWaves.length - 1; i >= 0; i--) {
         const wave = infernoWaves[i];
         const elapsedTime = (Date.now() - wave.startTime) / 1000;
@@ -56,7 +58,9 @@ export function updateInfernoWaves(deltaTime) {
             const stripes = Math.sin((uvX * 10.0) + elapsedTime * 5.0);
             const stripeThreshold = 0.1;
 
-            if (Math.abs(stripes) > (1.0 - stripeThreshold)) {
+            // Přidána kontrola výšky hráče
+            if (Math.abs(stripes) > (1.0 - stripeThreshold) && player.position.y <= heightThreshold) {
+                console.log("Zasažení hráče infernem!",player.position.y);
                 playerTakeDamage(wave.damagePerSecond * deltaTime);
             }
         } else {
@@ -65,7 +69,6 @@ export function updateInfernoWaves(deltaTime) {
         }
     }
 }
-
 export function updatePhoenixRebirthEffects(deltaTime) {
     for (let i = phoenixRebirthEffects.length - 1; i >= 0; i--) {
         const effect = phoenixRebirthEffects[i];
