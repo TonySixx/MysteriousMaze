@@ -251,6 +251,9 @@ export function loadPlayerProgress() {
 
 
 export function addExperience(exp) {
+    if (playerLevel === 60){
+        return; //MAX LEVEL
+    }
     playerExp += exp;
     while (playerExp >= expToNextLevel) {
         levelUp();

@@ -94,13 +94,15 @@ export function updateDimensionalRifts(deltaTime) {
 }
 
 export function updateArcaneShieldEffect(deltaTime) {
-    if (arcaneShieldEffect) {
+    if (arcaneShieldEffect && arcaneShieldEffect.mesh && arcaneShieldEffect.mesh.material && arcaneShieldEffect.mesh.material.uniforms) {
         const elapsedTime = Date.now() - arcaneShieldEffect.startTime;
         
         if (elapsedTime < arcaneShieldEffect.duration) {
             arcaneShieldEffect.mesh.material.uniforms.time.value = elapsedTime / 1000;
         } else {
-            arcaneShieldEffect.mesh.parent.remove(arcaneShieldEffect.mesh);
+            if (arcaneShieldEffect.mesh.parent) {
+                arcaneShieldEffect.mesh.parent.remove(arcaneShieldEffect.mesh);
+            }
             arcaneShieldEffect = null;
         }
     }
