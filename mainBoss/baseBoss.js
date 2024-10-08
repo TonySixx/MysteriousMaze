@@ -20,6 +20,7 @@ import {
     teleportSoundBuffer,
 } from "../main.js";
 import { updateQuestsOnEvent } from "../quests.js";
+import { getTranslation } from "../langUtils.js";
 
 export class MainBoss extends Boss {
     constructor(position, id, rng, floor, type) {
@@ -43,7 +44,7 @@ export class MainBoss extends Boss {
         if (!this.type.hasCustomModel) {
             this.loadMainBossModel();
         }
-
+        this.type.name = getTranslation(this.type.translationKey);
         this.changeDirection();
         this.createHealthUI();
     }

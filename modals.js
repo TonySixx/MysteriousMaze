@@ -3,6 +3,7 @@ import { addItemToInventory, checkSpaceInInventory, createItem, createItemElemen
 import { getItemName, ITEM_RARITIES, ITEM_TYPES, itemDatabase } from "./itemDatabase";
 import { currentLanguage, getTranslation, setLanguage, updateTranslations, updateUITexts } from "./langUtils";
 import { chestSoundBuffer, exitPointerLock, init, itemSoundBuffer, playSound, requestPointerLock, selectedFloor, startGame, supabase, teleportPairsCount, totalKeys } from "./main";
+import { MAIN_BOSS_TYPES_DESCRIPTIONS } from "./mainBoss/mainBossTypesDesc";
 import { getBestTime, showMessage } from "./utils";
 
 export function showHintModal() {
@@ -136,40 +137,74 @@ function generateControlsContent() {
 }
 
 function generateHintContent() {
+  const isInMainBossRoom = selectedFloor >= 100 && selectedFloor <= 200;
+  const isInCamp = selectedFloor === 999;
+  if (isInCamp) {
+    return generateCampHintContent();
+  } else if (isInMainBossRoom) {
+    return generateMainBossHintContent();
+  } else {
+    return generateMazeHintContent();
+  }
+}
+
+function generateCampHintContent() {
+  return `
+    <h3>${getTranslation("campHintTitle")}</h3>
+    <p>${getTranslation("campHintDescription")}</p>
+  `;
+}
+
+function generateMainBossHintContent() {
+  const bossType = MAIN_BOSS_TYPES_DESCRIPTIONS[selectedFloor - 100];
   let content = `
-      <h3>${getTranslation("hintTitle")}</h3>
-      <p>${getTranslation("hintKeys", [totalKeys])}</p>
-      <p>${getTranslation("hintTeleports", [teleportPairsCount * 2])}</p>
-      <h3>${getTranslation("bosses", [bosses.length])}</h3>
-    `;
+    <h3>${getTranslation("defeatBoss", [getTranslation(bossType.name)])}</h3>
+    <p>${getTranslation("bossAbilities")}</p>
+    <ul>
+  `;
+
+  bossType.abilities.forEach(ability => {
+    content += `<li>${getTranslation(ability.name)}: ${getTranslation(ability.description)}</li>`;
+  });
+
+  return content;
+}
+
+function generateMazeHintContent() {
+  let content = `
+    <h3>${getTranslation("hintTitle")}</h3>
+    <p>${getTranslation("hintKeys", [totalKeys])}</p>
+    <p>${getTranslation("hintTeleports", [teleportPairsCount * 2])}</p>
+    <h3>${getTranslation("bosses", [bosses.length])}</h3>
+  `;
 
   bosses.forEach((boss) => {
     content += `
-        <div class="boss-info">
-          <h4>${boss.type.name}</h4>
-          <p>${getTranslation("bossHealth", [boss.maxHealth])}</p>
-          <p>${getTranslation("specialAttacks")} ${getReadableAttackNames(
+      <div class="boss-info">
+        <h4>${boss.type.name}</h4>
+        <p>${getTranslation("bossHealth", [boss.maxHealth])}</p>
+        <p>${getTranslation("specialAttacks")} ${getReadableAttackNames(
       boss.type.specialAttacks
     )
-        .map((name) => `<span class="attack-name">${name}</span>`)
-        .join(", ")}</p>
-          <p class="tactic">${getTranslation("tactics")} ${getBossTactics(
-          boss.type.specialAttacks
-        )}</p>
-        </div>
-      `;
+      .map((name) => `<span class="attack-name">${name}</span>`)
+      .join(", ")}</p>
+        <p class="tactic">${getTranslation("tactics")} ${getBossTactics(
+        boss.type.specialAttacks
+      )}</p>
+      </div>
+    `;
   });
 
   content += `
-      <h3>${getTranslation("hintTips")}</h3>
-      <ul>
-        <li>${getTranslation("hintTip1")}</li>
-        <li>${getTranslation("hintTip2")}</li>
-        <li>${getTranslation("hintTip3")}</li>
-        <li>${getTranslation("hintTip4")}</li>
-        <li>${getTranslation("hintTip5")}</li>
-      </ul>
-    `;
+    <h3>${getTranslation("hintTips")}</h3>
+    <ul>
+      <li>${getTranslation("hintTip1")}</li>
+      <li>${getTranslation("hintTip2")}</li>
+      <li>${getTranslation("hintTip3")}</li>
+      <li>${getTranslation("hintTip4")}</li>
+      <li>${getTranslation("hintTip5")}</li>
+    </ul>
+  `;
 
   return content;
 }
