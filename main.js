@@ -1516,6 +1516,8 @@ export async function startGame() {
   }
 
   isMinimapVisible = false;
+  minimapTimeMultiplier = 1;
+  document.getElementById("timeCount")?.classList.toggle("minimap-open", isMinimapVisible);
   canOpenMinimap = true;
   if (minimapCooldownTimer) {
     clearTimeout(minimapCooldownTimer);
@@ -1578,7 +1580,7 @@ function hideTeleportPrompt() {
 
 // Přidejte novou funkci pro přepínání minimapy
 export function toggleMinimap() {
-  if (selectedFloor === 999 || selectedFloor >= 100) { playSound(errorSoundBuffer); return; } // Nelze použít minimapu v táboře nebo boss room
+  if (selectedFloor === 999 || selectedFloor >= 100) {playSound(errorSoundBuffer); return; } // Nelze použít minimapu v táboře nebo boss room
   if (!canOpenMinimap && !isMinimapVisible) return;
 
   isMinimapVisible = !isMinimapVisible;
