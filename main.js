@@ -687,16 +687,17 @@ function onMouseDown(event) {
   }
 }
 
+export let isMusicEnabled = true;
 function toggleBackgroundMusic() {
+  isMusicEnabled = !isMusicEnabled;
   if (currentBackgroundMusic) {
-    if (isMusicPlaying) {
-      currentBackgroundMusic.pause();
-      document.getElementById("toggleMusicIcon").style.color = "red";
-    } else {
+    if (isMusicEnabled) {
       currentBackgroundMusic.play();
       document.getElementById("toggleMusicIcon").style.color = "white";
+    } else {
+      currentBackgroundMusic.pause();
+      document.getElementById("toggleMusicIcon").style.color = "red";
     }
-    isMusicPlaying = !isMusicPlaying;
   }
 }
 

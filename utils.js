@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { aoeBlastSoundBuffer, BLOCKING_WALL, CELL_SIZE, frostBoltHitSoundBuffer, hurtSoundBuffer, MAZE_SIZE, playerDeath, playSound, selectedFloor, supabase } from "./main";
+import { aoeBlastSoundBuffer, BLOCKING_WALL, CELL_SIZE, frostBoltHitSoundBuffer, hurtSoundBuffer, isMusicEnabled, MAZE_SIZE, playerDeath, playSound, selectedFloor, supabase } from "./main";
 import { addExperience, getPlayerLevel, player, playerHealth, setPlayerHealth, updatePlayerHealthBar } from "./player";
 import * as THREE from 'three';
 import { equipment } from "./inventory";
@@ -927,7 +927,11 @@ export function loadAndPlayMusic(floor, audioLoader) {
     currentBackgroundMusic.setBuffer(buffer);
     currentBackgroundMusic.setLoop(true);
     currentBackgroundMusic.setVolume(0.35);
-    currentBackgroundMusic.play();
+    
+    // Přehrajeme hudbu pouze pokud je povolena
+    if (isMusicEnabled) {
+      currentBackgroundMusic.play();
+    }
   });
 }
 
