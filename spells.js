@@ -844,8 +844,10 @@ function chainLightningEffect(position) {
 // Přidejte novou funkci pro vytvoření mrazivé aury
 export function createFrostAura() {
   const auraGeometry = new THREE.SphereGeometry(5, 32, 32);
-  const auraMaterial = new THREE.MeshBasicMaterial({
+  const auraMaterial = new THREE.MeshStandardMaterial({
     color: 0x87CEFA,
+    emissive: 0x87CEFA,
+    emissiveIntensity: 1.2,
     transparent: true,
     opacity: 0.3,
     side: THREE.DoubleSide

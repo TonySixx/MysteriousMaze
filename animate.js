@@ -949,7 +949,7 @@ export function updatePoisonClouds(deltaTime) {
 
 function addPoisonParticle(position, radius) {
   const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-  const particleMaterial = new THREE.MeshBasicMaterial({ color: 0x00FF00, transparent: true, opacity: 0.7 });
+  const particleMaterial = new THREE.MeshStandardMaterial({ color: 0x00FF00, emissive: 0x00FF00,emissiveIntensity:2.5, transparent: true, opacity: 0.7 });
   const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
 
   particleMesh.position.copy(position).add(new THREE.Vector3(

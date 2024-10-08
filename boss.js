@@ -46,7 +46,7 @@ class Boss {
         this.slowParticles = null;
         this.type = type || this.selectBossType(floor, rng);
         this.originalMaterial = null;
-        this.frozenMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEFA, emissive: 0x4169E1 });
+        this.frozenMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEFA, emissive: 0xa1c3ff, emissiveIntensity: 0.6})
         this.attackCooldown = this.type.attackCooldown;
         this.attackSpeed = this.type.attackSpeed;
         this.attackDamage = this.type.attackDamage || 20;
@@ -580,7 +580,7 @@ class Boss {
 
     createFrostbolt(startPosition, targetPosition) {
         const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-        const material = new THREE.MeshBasicMaterial({
+        const material = new THREE.MeshStandardMaterial({
             color: 0x87CEFA,
             emissive: 0x87CEFA,
             emissiveIntensity: 2
@@ -627,11 +627,13 @@ class Boss {
         playSound(aoeBlastSoundBuffer);
         const blastRadius = 5;
         const blastGeometry = new THREE.SphereGeometry(blastRadius, 32, 32);
-        const blastMaterial = new THREE.MeshBasicMaterial({
+        const blastMaterial = new THREE.MeshStandardMaterial({
             color: this.type.attackColor,
             transparent: true,
-            opacity: 0.3,
-            side: THREE.DoubleSide
+            opacity: 0.35,
+            side: THREE.DoubleSide,
+            emissive: this.type.attackColor,
+            emissiveIntensity: 2
         });
         const blast = new THREE.Mesh(blastGeometry, blastMaterial);
         blast.position.copy(this.position);
@@ -816,10 +818,10 @@ class Boss {
 
     createMagicArrow(startPosition, targetPosition) {
         const geometry = new THREE.ConeGeometry(0.1, 0.5, 8);
-        const material = new THREE.MeshBasicMaterial({
+        const material = new THREE.MeshStandardMaterial({
             color: 0xc9a6ff,
             emissive: 0xc9a6ff,
-            emissiveIntensity: 5
+            emissiveIntensity: 4
         });
         const magicArrow = new THREE.Mesh(geometry, material);
         magicArrow.position.copy(startPosition);
