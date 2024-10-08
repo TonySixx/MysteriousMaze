@@ -97,6 +97,8 @@ export function stopMainTheme() {
   if (mainTheme) {
     mainTheme.stop();
     mainTheme.disconnect();
+    mainTheme.buffer = null;
+    mainTheme = null;
   }
 }
 
