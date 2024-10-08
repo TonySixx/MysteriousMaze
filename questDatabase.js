@@ -652,7 +652,7 @@ const questDefinitions = [
         id: 'defeatArcaneAndInfinityDragons',
         name: 'defeatArcaneAndInfinityDragonsQuest',
         description: 'defeatArcaneAndInfinityDragonsQuestDescription',
-        level: 43,
+        level: 44,
         rewards: {
             exp: 800000,
             gold: 350,
@@ -740,7 +740,7 @@ const questDefinitions = [
         id: 'defeatBloodAndDarkEtherealDragons',
         name: 'defeatBloodAndDarkEtherealDragonsQuest',
         description: 'defeatBloodAndDarkEtherealDragonsQuestDescription',
-        level: 48,
+        level: 49,
         rewards: {
             exp: 1600000,
             gold: 400,
@@ -829,7 +829,7 @@ const questDefinitions = [
         id: 'defeatBalanceAndEternityDragons',
         name: 'defeatBalanceAndEternityDragonsQuest',
         description: 'defeatBalanceAndEternityDragonsQuestDescription',
-        level: 53,
+        level: 54,
         rewards: {
             exp: 5000000,
             gold: 300,
@@ -918,7 +918,7 @@ const questDefinitions = [
         id: 'defeatCreationAndDestructionDragons',
         name: 'defeatCreationAndDestructionDragonsQuest',
         description: 'defeatCreationAndDestructionDragonsQuestDescription',
-        level: 58,
+        level: 59,
         rewards: {
             exp: 10000000,
             gold: 200,
