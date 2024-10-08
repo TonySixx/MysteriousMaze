@@ -220,39 +220,40 @@ export function showNameModal(playerName) {
           <input type="text" id="playerNameInput" value="${playerName || ""}" placeholder="${getTranslation("playerName")}">
           <select id="languageSelect">
               <option value="en">English</option>
-              <option value="cs">Čeština</option>
+    
           </select>
           <button id="submitName" disabled>${getTranslation("confirm")}</button>
       </div>
   `;
+  /*   <option value="cs">Čeština</option> */
   nameModal.style.display = "flex";
 
   const input = document.getElementById("playerNameInput");
   const submitButton = document.getElementById("submitName");
 
   input.addEventListener("input", function () {
-      submitButton.disabled = this.value.trim() === "";
+    submitButton.disabled = this.value.trim() === "";
   });
 
   document.getElementById("languageSelect").value = currentLanguage;
   document.getElementById("languageSelect").addEventListener("change", (e) => {
-      setLanguage(e.target.value);
-      const playerName = document.getElementById("playerNameInput").value;
-      showNameModal(playerName); // Refresh modal with new language
+    setLanguage(e.target.value);
+    const playerName = document.getElementById("playerNameInput").value;
+    showNameModal(playerName); // Refresh modal with new language
   });
 
   submitButton.addEventListener("click", () => {
-      const name = input.value.trim();
-      if (name !== "") {
-          playerName = name;
-          localStorage.setItem("playerName", playerName);
-          document.getElementById("playerName").textContent = playerName;
-          getBestTime();
-          hideNameModal();
-          updateTranslations();
-          updateUITexts();
-          init(); // Spustíme hru po zadání jména
-      }
+    const name = input.value.trim();
+    if (name !== "") {
+      playerName = name;
+      localStorage.setItem("playerName", playerName);
+      document.getElementById("playerName").textContent = playerName;
+      getBestTime();
+      hideNameModal();
+      updateTranslations();
+      updateUITexts();
+      init(); // Spustíme hru po zadání jména
+    }
   });
 
   // Inicializace stavu tlačítka
@@ -500,13 +501,13 @@ function openChest(chestElement, floor) {
     chestElement.style.pointerEvents = 'auto';
   }
 
-   // Znemožníme klikání na ostatní truhly
-   document.querySelectorAll('.chest').forEach(chest => {
+  // Znemožníme klikání na ostatní truhly
+  document.querySelectorAll('.chest').forEach(chest => {
     if (chest !== chestElement) {
-      chest.style.pointerEvents = 'none';    
+      chest.style.pointerEvents = 'none';
     }
-     // Odstraníme event listener i z ostatních truhel
-     chest.removeEventListener('click', chest.openChestHandler);
+    // Odstraníme event listener i z ostatních truhel
+    chest.removeEventListener('click', chest.openChestHandler);
   });
 
   // Povolíme tlačítko pro pokračování

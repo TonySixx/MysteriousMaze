@@ -383,7 +383,13 @@
     "defeatBalanceAndEternityDragonsQuest": "Balance and Eternity Dragons Hunt",
     "defeatBalanceAndEternityDragonsQuestDescription": "Defeat 5 Balance Dragons and 5 Eternity Dragons on the eleventh floor and achieve perfect harmony!",
     "defeatCreationAndDestructionDragonsQuest": "Creation and Destruction Dragons Challenge",
-    "defeatCreationAndDestructionDragonsQuestDescription": "Defeat 8 Creation Dragons and 8 Destruction Dragons on the twelfth floor and become the ultimate dragon slayer!"
+    "defeatCreationAndDestructionDragonsQuestDescription": "Defeat 8 Creation Dragons and 8 Destruction Dragons on the twelfth floor and become the ultimate dragon slayer!",
+    "fullscreen": "Fullscreen",
+    "newGame": "New Game",
+    "loadGame": "Load Game",
+    "confirmNewGame": "Start New Game",
+    "confirmNewGameMessage": "Are you sure you want to start a new game? Your current progress will be lost.",
+    "cancel": "Cancel"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -769,6 +775,12 @@
     "defeatBalanceAndEternityDragonsQuest": "Lov draků rovnováhy a věčnosti",
     "defeatBalanceAndEternityDragonsQuestDescription": "Porazte 5 draků rovnováhy a 5 draků věčnosti na jedenáctém podlaží a dosáhněte dokonalé harmonie!",
     "defeatCreationAndDestructionDragonsQuest": "Výzva draků stvoření a zániku",
-    "defeatCreationAndDestructionDragonsQuestDescription": "Porazte 8 draků stvoření a 8 draků zániku na dvanáctém podlaží a staňte se ultimátním drakobijcem!"
+    "defeatCreationAndDestructionDragonsQuestDescription": "Porazte 8 draků stvoření a 8 draků zániku na dvanáctém podlaží a staňte se ultimátním drakobijcem!",
+    "fullscreen": "Celá obrazovka",
+    "newGame": "Nová hra",
+    "loadGame": "Načíst hru",
+    "confirmNewGame": "Začít novou hru",
+    "confirmNewGameMessage": "Opravdu chcete začít novou hru? Váš současný postup bude ztracen.",
+    "cancel": "Zrušit"
   }
 }

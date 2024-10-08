@@ -2,7 +2,7 @@ import { init, version } from "./main";
 import { AudioLoader, Audio, AudioListener } from "three";
 import { showGameGuide } from "./gameGuide.js";
 import { getTranslation } from "./langUtils";
-
+import { showMessage } from "./utils";
 
 let mainTheme;
 
@@ -45,15 +45,22 @@ function createMainMenu() {
   const menuContainer = document.getElementById('main-menu');
 
   const title = document.createElement('h1');
+  title.id = 'game-title'; // Přidáme ID pro snadnější stylování
   title.textContent = 'Mysterious Maze';
 
   const newGameBtn = document.createElement('button');
-  newGameBtn.textContent = 'New Game';
-  newGameBtn.addEventListener('click', startNewGame);
+  newGameBtn.textContent = getTranslation('newGame');
+  newGameBtn.addEventListener('click', confirmNewGame);
 
   const loadGameBtn = document.createElement('button');
-  loadGameBtn.textContent = 'Load Game';
+  loadGameBtn.textContent = getTranslation('loadGame');
   loadGameBtn.addEventListener('click', loadGame);
+
+  // Vytvoříme nový element pro text celé obrazovky
+  const fullscreenText = document.createElement('div');
+  fullscreenText.id = 'fullscreen-text';
+  fullscreenText.textContent = `${getTranslation('fullscreen')} [F11]`;
+  fullscreenText.addEventListener('click', toggleFullscreen);
 
   // Kontrola existence záznamu playerName v localStorage
   if (localStorage.getItem('playerName') && majorVersionMatch) {
@@ -67,10 +74,11 @@ function createMainMenu() {
   menuContainer.appendChild(title);
   menuContainer.appendChild(newGameBtn);
   menuContainer.appendChild(loadGameBtn);
+  menuContainer.appendChild(fullscreenText); // Přidáme text pro celou obrazovku
 
   document.body.appendChild(menuContainer);
   playMainTheme();
-}
+} 
 
 // Funkce pro spuštění nové hry
 function startNewGame() {
@@ -100,5 +108,85 @@ function hideMainMenu() {
   }
 }
 
-// Exportujeme funkci pro vytvoření menu, abychom ji mohli použít v main.js
-export { createMainMenu };
+
+
+// Přidejte tuto funkci pro přepnutí režimu celé obrazovky
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch((e) => {
+      console.error(`Chyba při přepnutí do režimu celé obrazovky: ${e.message}`);
+    });
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+}
+
+// Přidáme posluchač události pro klávesu F11
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'F11') {
+    event.preventDefault(); // Zabráníme výchozímu chování prohlížeče
+    toggleFullscreen();
+  }
+});
+
+function confirmNewGame() {
+  if (localStorage.getItem('playerName') && checkVersion()) {
+    showConfirmModal(
+      getTranslation('confirmNewGame'),
+      getTranslation('confirmNewGameMessage'),
+      startNewGame,
+      () => {} // Prázdná funkce pro zavření modálního okna bez akce
+    );
+  } else {
+    startNewGame();
+  }
+}
+
+function showConfirmModal(title, message, onConfirm, onCancel) {
+  const modalOverlay = document.createElement('div');
+  modalOverlay.className = 'main-menu-modal-overlay';
+
+  const modalContent = document.createElement('div');
+  modalContent.className = 'main-menu-modal-content';
+
+  const modalTitle = document.createElement('h2');
+  modalTitle.className = 'main-menu-modal-title';
+  modalTitle.textContent = title;
+
+  const modalMessage = document.createElement('p');
+  modalMessage.className = 'main-menu-modal-message';
+  modalMessage.textContent = message;
+
+  const buttonContainer = document.createElement('div');
+  buttonContainer.className = 'main-menu-modal-button-container';
+
+  const confirmButton = document.createElement('button');
+  confirmButton.className = 'main-menu-modal-button main-menu-modal-confirm';
+  confirmButton.textContent = getTranslation('confirm');
+  confirmButton.addEventListener('click', () => {
+    onConfirm();
+    document.body.removeChild(modalOverlay);
+  });
+
+  const cancelButton = document.createElement('button');
+  cancelButton.className = 'main-menu-modal-button main-menu-modal-cancel';
+  cancelButton.textContent = getTranslation('cancel');
+  cancelButton.addEventListener('click', () => {
+    onCancel();
+    document.body.removeChild(modalOverlay);
+  });
+
+  buttonContainer.appendChild(cancelButton);
+  buttonContainer.appendChild(confirmButton);
+
+  modalContent.appendChild(modalTitle);
+  modalContent.appendChild(modalMessage);
+  modalContent.appendChild(buttonContainer);
+
+  modalOverlay.appendChild(modalContent);
+  document.body.appendChild(modalOverlay);
+}
+
+export { createMainMenu, showConfirmModal };
