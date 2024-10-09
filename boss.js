@@ -661,31 +661,31 @@ class Boss {
         if (currentTime - this.lastTeleportTime < this.teleportCooldown) {
             return;
         }
-
+    
         const teleportDistance = 5;
         let teleportDirection = new THREE.Vector3()
             .subVectors(player.position, this.position)
             .normalize()
             .multiplyScalar(teleportDistance);
         teleportDirection.y = 0;
-
+    
         this.createTeleportParticles(this.position);
-
+    
         const originalPosition = this.position.clone();
         let newPosition = this.position.clone().add(teleportDirection);
-
+    
         newPosition = this.findSafeTeleportPosition(newPosition, originalPosition);
-
+    
         if (newPosition) {
             playSound(teleportSoundBuffer);
-
+    
             this.position.copy(newPosition);
             this.model.position.copy(this.position);
-
+    
             const halfMazeSize = (MAZE_SIZE * CELL_SIZE) / 2;
             this.position.x = Math.max(Math.min(this.position.x, halfMazeSize), -halfMazeSize);
             this.position.z = Math.max(Math.min(this.position.z, halfMazeSize), -halfMazeSize);
-
+    
             this.createTeleportParticles(this.position);
             this.lastTeleportTime = currentTime;
             this.performStandardAttack();
@@ -693,29 +693,31 @@ class Boss {
             console.log("Boss nemohl najít bezpečnou pozici pro teleportaci");
         }
     }
-
+    
     findSafeTeleportPosition(targetPosition, originalPosition) {
         if (!this.checkCollisionOnMove(targetPosition)) {
             return targetPosition;
         }
-
-        const directions = [
-            new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(0, 0, -1),
-        ];
-
-        for (let i = 1; i <= 10; i++) {
+    
+        const directions = [];
+        const numDirections = 16;
+        for (let i = 0; i < numDirections; i++) {
+            const angle = (i / numDirections) * 2 * Math.PI;
+            directions.push(new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)));
+        }
+    
+        const maxRadius = 5;
+        const stepRadius = 0.5;
+        for (let radius = stepRadius; radius <= maxRadius; radius += stepRadius) {
             for (const direction of directions) {
-                const testPosition = targetPosition.clone().add(direction.clone().multiplyScalar(i * 0.5));
+                const testPosition = targetPosition.clone().add(direction.clone().multiplyScalar(radius));
                 if (!this.checkCollisionOnMove(testPosition)) {
                     return testPosition;
                 }
             }
         }
-
-        return originalPosition; // Vrátíme původní pozici, pokud nebyla nalezena žádná bezpečná pozice
+    
+        return null; // Nelze najít bezpečnou pozici
     }
 
     createDeathEffect(isMainBoss) {
