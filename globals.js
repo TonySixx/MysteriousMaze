@@ -112,7 +112,14 @@ export const floorMusic = {
   3: "music/msc_lost.mp3",
   4: "music/msc_magic_in_the_air.mp3",
   5: "music/msc_frozen_heart.mp3",
-  6: "music/msc_lost.mp3",
+  6: "music/msc_fire_heart.mp3",
+  7: "music/msc_frozen_heart.mp3",
+  8: "music/msc_runes.mp3",
+  9: "music/msc_magic_in_the_air.mp3",
+  10: "music/msc_lost.mp3",
+  11: "music/msc_fire_heart.mp3",
+  12: "music/msc_frozen_heart.mp3",
+  13: "music/msc_lost.mp3",
   999: "music/msc_camp.mp3",
   100: "music/msc_boss_fight.mp3",
   101: "music/msc_boss_fight2.mp3",
@@ -122,386 +129,391 @@ export const floorMusic = {
   105: "music/msc_devils_party.mp3",
   106: "music/msc_boss_fight2.mp3",
   107: "music/msc_the_hunt.mp3",
+  108: "music/msc_castle_in_the_sky.mp3",
+  109: "music/msc_boss_fight2.mp3",
+  110: "music/msc_boss_fight.mp3",
+  110: "music/msc_devils_party.mp3",
+
 };
 
 export const textureSets = [
-    {
-      wallTexture: "textures/wall.jpg",
-      ceilingTexture: "textures/wall.jpg",
-      floorTexture: "textures/floor.jpg",
-      specialTextures: [
-        "textures/wall.jpg",
-        "textures/wall.jpg",
-        "textures/wall.jpg",
-      ],
-      torchColor: { light: 0x00bfff, particles: 0x1e90ff }, // Magical blue
-    },
-    {
-      wallTexture: "textures/wall-egypt.jpg",
-      ceilingTexture: "textures/wall-egypt.jpg",
-      floorTexture: "textures/floor-egypt.jpg",
-      specialTextures: [
-        "textures/wall-egypt-sign-1.jpg",
-        "textures/wall-egypt-sign-2.jpg",
-        "textures/wall-egypt-sign-3.jpg",
-      ],
-      torchColor: { light: 0xffa500, particles: 0xff4500 }, // Original orange color
-    },
-    {
-      wallTexture: "textures/wall-jungle.jpg",
-      ceilingTexture: "textures/wall-jungle.jpg",
-      floorTexture: "textures/floor-jungle.jpg",
-      specialTextures: [
-        "textures/wall-jungle-sign-1.jpg",
-        "textures/wall-jungle-sign-2.jpg",
-        "textures/wall-jungle-sign-3.jpg",
-      ],
-      torchColor: { light: 0x00ff7f, particles: 0x2ecc71 }, // Emerald green
-    },
-    {
-      wallTexture: "textures/wall-mythical.jpg",
-      ceilingTexture: "textures/wall-mythical.jpg",
-      floorTexture: "textures/floor.jpg",
-      specialTextures: [
-        "textures/wall-mythical-sign-1.jpg",
-        "textures/wall-mythical-sign-2.jpg",
-        "textures/wall-mythical-sign-3.jpg",
-      ],
-      torchColor: { light: 0xa35ee8, particles: 0xa35ee8 }, // Amethyst purple
-    },
-    {
-      wallTexture: "textures/wall-obsidian.jpg",
-      floorTexture: "textures/floor.jpg",
-      ceilingTexture: "textures/wall-obsidian.jpg",
-      specialTextures: [
-        "textures/wall-obsidian-sign-1.jpg",
-        "textures/wall-obsidian-sign-2.jpg",
-        "textures/wall-obsidian-sign-3.jpg",
-      ],
-      torchColor: { light: 0x9896ff, particles: 0x9896ff },
-    },
-    {
-      wallTexture: "textures/wall-obsidian.jpg",
-      floorTexture: "textures/floor.jpg",
-      ceilingTexture: "textures/wall-obsidian.jpg",
-      specialTextures: [
-        "textures/wall-obsidian-sign-1.jpg",
-        "textures/wall-obsidian-sign-2.jpg",
-        "textures/wall-obsidian-sign-3.jpg",
-      ],
-      torchColor: { light: 0xfdff6b, particles: 0xfdff6b },
-    },
-    {
-      wallTexture: "textures/wall-abyss.jpg",
-      floorTexture: "textures/floor.jpg",
-      ceilingTexture: "textures/wall-abyss.jpg",
-      specialTextures: [
-        "textures/wall-abyss.jpg",
-        "textures/wall-abyss.jpg",
-        "textures/wall-abyss.jpg",
-      ],
-      torchColor: { light: 0x69ffb9, particles: 0x69ffb9 },
-    },
-    {
-      wallTexture: "textures/wall-abyss.jpg",
-      floorTexture: "textures/floor.jpg",
-      ceilingTexture: "textures/wall-abyss.jpg",
-      specialTextures: [
-        "textures/wall-abyss.jpg",
-        "textures/wall-abyss.jpg",
-        "textures/wall-abyss.jpg",
-      ],
-      torchColor: { light: 0xd6fffc, particles: 0xd6fffc },
-    },
-    {
-      wallTexture: "textures/wall-light.jpg",
-      floorTexture: "textures/floor-egypt.jpg",
-      ceilingTexture: "textures/wall-light.jpg",
-      specialTextures: [
-        "textures/wall-light.jpg",
-        "textures/wall-light.jpg",
-        "textures/wall-light.jpg",
-      ],
-      torchColor: { light: 0xffa500, particles: 0xff4500 }, // Original orange color
-    },
-    {
-      wallTexture: "textures/wall-light.jpg",
-      floorTexture: "textures/floor-egypt.jpg",
-      ceilingTexture: "textures/wall-light.jpg",
-      specialTextures: [
-        "textures/wall-light.jpg",
-        "textures/wall-light.jpg",
-        "textures/wall-light.jpg",
-      ],
-      torchColor: { light: 0xc5ff7a, particles: 0xc5ff7a },
-    },
-    {
-      wallTexture: "textures/wall-undead.jpg",
-      floorTexture: "textures/floor.jpg",
-      ceilingTexture: "textures/wall-undead.jpg",
-      specialTextures: [
-        "textures/wall-undead.jpg",
-        "textures/wall-undead.jpg",
-        "textures/wall-undead.jpg",
-      ],
-      torchColor: { light: 0x45ff93, particles: 0x45ff93 }, 
-    },
-    {
-      wallTexture: "textures/wall-undead.jpg",
-      floorTexture: "textures/floor.jpg",
-      ceilingTexture: "textures/wall-undead.jpg",
-      specialTextures: [
-        "textures/wall-undead.jpg",
-        "textures/wall-undead.jpg",
-        "textures/wall-undead.jpg",
-      ],
-      torchColor: { light: 0x57fa6b, particles: 0x57fa6b }, 
-    },
-    {
-      wallTexture: "textures/wall-ice.jpg",
-      floorTexture: "textures/floor-blue.jpg",
-      ceilingTexture: "textures/wall-ice.jpg",
-      specialTextures: [
-        "textures/wall-ice.jpg",
-        "textures/wall-ice.jpg",
-        "textures/wall-ice.jpg",
-      ],
-      torchColor: { light: 0x94e4ff, particles: 0x94e4ff },
-    },
-    {
-      wallTexture: "textures/wall-ice.jpg",
-      floorTexture: "textures/floor-blue.jpg",
-      ceilingTexture: "textures/wall-ice.jpg",
-      specialTextures: [
-        "textures/wall-ice.jpg",
-        "textures/wall-ice.jpg",
-        "textures/wall-ice.jpg",
-      ],
-      torchColor: { light: 0xe3ebff, particles: 0xe3ebff },
-    },
-    {
-      wallTexture: "textures/wall-hell.jpg",
-      floorTexture: "textures/floor.jpg",
-      ceilingTexture: "textures/wall-hell.jpg",
-      specialTextures: [
-        "textures/wall-hell.jpg",
-        "textures/wall-hell.jpg",
-        "textures/wall-hell.jpg",
-      ],
-      torchColor: { light: 0xff9e9e, particles: 0xff9e9e },
-    },
-    {
-      wallTexture: "textures/wall-hell.jpg",
-      floorTexture: "textures/floor.jpg",
-      ceilingTexture: "textures/wall-hell.jpg",
-      specialTextures: [
-        "textures/wall-hell.jpg",
-        "textures/wall-hell.jpg",
-        "textures/wall-hell.jpg",
-      ],
-      torchColor: { light: 0xffab87, particles: 0xffab87 },
-    },
-    {
-      wallTexture: "textures/wall-purple-stone.jpg",
-      floorTexture: "textures/floor-purple.jpg",
-      ceilingTexture: "textures/wall-purple-stone.jpg",
-      specialTextures: [
-        "textures/wall-purple-stone.jpg",
-        "textures/wall-purple-stone.jpg",
-        "textures/wall-purple-stone.jpg",
-      ],
-      torchColor: { light: 0xce8fff, particles: 0xce8fff },
-    },
-    {
-      wallTexture: "textures/wall-red.jpg",
-      floorTexture: "textures/floor-dark.jpg",
-      ceilingTexture: "textures/wall-red.jpg",
-      specialTextures: [
-        "textures/wall-red.jpg",
-        "textures/wall-red.jpg",
-        "textures/wall-red.jpg",
-      ],
-      torchColor: { light: 0xff3d3d, particles: 0xff3d3d },
-    },
-    {
-      wallTexture: "textures/wall-triangle.jpg",
-      floorTexture: "textures/floor-diamond.jpg",
-      ceilingTexture: "textures/wall-triangle.jpg",
-      specialTextures: [
-        "textures/wall-triangle.jpg",
-        "textures/wall-triangle.jpg",
-        "textures/wall-triangle.jpg",
-      ],
-      torchColor: { light: 0x708aff, particles: 0x708aff },
-    },
-    {
-      wallTexture: "textures/wall-dark.jpg",
-      floorTexture: "textures/floor-dark.jpg",
-      ceilingTexture: "textures/wall-dark.jpg",
-      specialTextures: [
-        "textures/wall-dark.jpg",
-        "textures/wall-dark.jpg",
-        "textures/wall-dark.jpg",
-      ],
-      torchColor: { light: 0xa496ff, particles: 0xa496ff },
-    },
-    {
-      wallTexture: "textures/wall-tur2.jpg",
-      floorTexture: "textures/floor-gray.jpg",
-      ceilingTexture: "textures/wall-tur2.jpg",
-      specialTextures: [
-        "textures/wall-tur2.jpg",
-        "textures/wall-tur2.jpg",
-        "textures/wall-tur2.jpg",
-      ],
-      torchColor: { light: 0x9cfff3, particles: 0x9cfff3 },
-    },
-  ];
+  {
+    wallTexture: "textures/wall.jpg",
+    ceilingTexture: "textures/wall.jpg",
+    floorTexture: "textures/floor.jpg",
+    specialTextures: [
+      "textures/wall.jpg",
+      "textures/wall.jpg",
+      "textures/wall.jpg",
+    ],
+    torchColor: { light: 0x00bfff, particles: 0x1e90ff }, // Magical blue
+  },
+  {
+    wallTexture: "textures/wall-egypt.jpg",
+    ceilingTexture: "textures/wall-egypt.jpg",
+    floorTexture: "textures/floor-egypt.jpg",
+    specialTextures: [
+      "textures/wall-egypt-sign-1.jpg",
+      "textures/wall-egypt-sign-2.jpg",
+      "textures/wall-egypt-sign-3.jpg",
+    ],
+    torchColor: { light: 0xffa500, particles: 0xff4500 }, // Original orange color
+  },
+  {
+    wallTexture: "textures/wall-jungle.jpg",
+    ceilingTexture: "textures/wall-jungle.jpg",
+    floorTexture: "textures/floor-jungle.jpg",
+    specialTextures: [
+      "textures/wall-jungle-sign-1.jpg",
+      "textures/wall-jungle-sign-2.jpg",
+      "textures/wall-jungle-sign-3.jpg",
+    ],
+    torchColor: { light: 0x00ff7f, particles: 0x2ecc71 }, // Emerald green
+  },
+  {
+    wallTexture: "textures/wall-mythical.jpg",
+    ceilingTexture: "textures/wall-mythical.jpg",
+    floorTexture: "textures/floor.jpg",
+    specialTextures: [
+      "textures/wall-mythical-sign-1.jpg",
+      "textures/wall-mythical-sign-2.jpg",
+      "textures/wall-mythical-sign-3.jpg",
+    ],
+    torchColor: { light: 0xa35ee8, particles: 0xa35ee8 }, // Amethyst purple
+  },
+  {
+    wallTexture: "textures/wall-obsidian.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-obsidian.jpg",
+    specialTextures: [
+      "textures/wall-obsidian-sign-1.jpg",
+      "textures/wall-obsidian-sign-2.jpg",
+      "textures/wall-obsidian-sign-3.jpg",
+    ],
+    torchColor: { light: 0x9896ff, particles: 0x9896ff },
+  },
+  {
+    wallTexture: "textures/wall-obsidian.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-obsidian.jpg",
+    specialTextures: [
+      "textures/wall-obsidian-sign-1.jpg",
+      "textures/wall-obsidian-sign-2.jpg",
+      "textures/wall-obsidian-sign-3.jpg",
+    ],
+    torchColor: { light: 0xfdff6b, particles: 0xfdff6b },
+  },
+  {
+    wallTexture: "textures/wall-abyss.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-abyss.jpg",
+    specialTextures: [
+      "textures/wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
+    ],
+    torchColor: { light: 0x69ffb9, particles: 0x69ffb9 },
+  },
+  {
+    wallTexture: "textures/wall-abyss.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-abyss.jpg",
+    specialTextures: [
+      "textures/wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
+      "textures/wall-abyss.jpg",
+    ],
+    torchColor: { light: 0xd6fffc, particles: 0xd6fffc },
+  },
+  {
+    wallTexture: "textures/wall-light.jpg",
+    floorTexture: "textures/floor-egypt.jpg",
+    ceilingTexture: "textures/wall-light.jpg",
+    specialTextures: [
+      "textures/wall-light.jpg",
+      "textures/wall-light.jpg",
+      "textures/wall-light.jpg",
+    ],
+    torchColor: { light: 0xffa500, particles: 0xff4500 }, // Original orange color
+  },
+  {
+    wallTexture: "textures/wall-light.jpg",
+    floorTexture: "textures/floor-egypt.jpg",
+    ceilingTexture: "textures/wall-light.jpg",
+    specialTextures: [
+      "textures/wall-light.jpg",
+      "textures/wall-light.jpg",
+      "textures/wall-light.jpg",
+    ],
+    torchColor: { light: 0xc5ff7a, particles: 0xc5ff7a },
+  },
+  {
+    wallTexture: "textures/wall-undead.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-undead.jpg",
+    specialTextures: [
+      "textures/wall-undead.jpg",
+      "textures/wall-undead.jpg",
+      "textures/wall-undead.jpg",
+    ],
+    torchColor: { light: 0x45ff93, particles: 0x45ff93 },
+  },
+  {
+    wallTexture: "textures/wall-undead.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-undead.jpg",
+    specialTextures: [
+      "textures/wall-undead.jpg",
+      "textures/wall-undead.jpg",
+      "textures/wall-undead.jpg",
+    ],
+    torchColor: { light: 0x57fa6b, particles: 0x57fa6b },
+  },
+  {
+    wallTexture: "textures/wall-ice.jpg",
+    floorTexture: "textures/floor-blue.jpg",
+    ceilingTexture: "textures/wall-ice.jpg",
+    specialTextures: [
+      "textures/wall-ice.jpg",
+      "textures/wall-ice.jpg",
+      "textures/wall-ice.jpg",
+    ],
+    torchColor: { light: 0x94e4ff, particles: 0x94e4ff },
+  },
+  {
+    wallTexture: "textures/wall-ice.jpg",
+    floorTexture: "textures/floor-blue.jpg",
+    ceilingTexture: "textures/wall-ice.jpg",
+    specialTextures: [
+      "textures/wall-ice.jpg",
+      "textures/wall-ice.jpg",
+      "textures/wall-ice.jpg",
+    ],
+    torchColor: { light: 0xe3ebff, particles: 0xe3ebff },
+  },
+  {
+    wallTexture: "textures/wall-hell.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-hell.jpg",
+    specialTextures: [
+      "textures/wall-hell.jpg",
+      "textures/wall-hell.jpg",
+      "textures/wall-hell.jpg",
+    ],
+    torchColor: { light: 0xff9e9e, particles: 0xff9e9e },
+  },
+  {
+    wallTexture: "textures/wall-hell.jpg",
+    floorTexture: "textures/floor.jpg",
+    ceilingTexture: "textures/wall-hell.jpg",
+    specialTextures: [
+      "textures/wall-hell.jpg",
+      "textures/wall-hell.jpg",
+      "textures/wall-hell.jpg",
+    ],
+    torchColor: { light: 0xffab87, particles: 0xffab87 },
+  },
+  {
+    wallTexture: "textures/wall-purple-stone.jpg",
+    floorTexture: "textures/floor-purple.jpg",
+    ceilingTexture: "textures/wall-purple-stone.jpg",
+    specialTextures: [
+      "textures/wall-purple-stone.jpg",
+      "textures/wall-purple-stone.jpg",
+      "textures/wall-purple-stone.jpg",
+    ],
+    torchColor: { light: 0xce8fff, particles: 0xce8fff },
+  },
+  {
+    wallTexture: "textures/wall-red.jpg",
+    floorTexture: "textures/floor-dark.jpg",
+    ceilingTexture: "textures/wall-red.jpg",
+    specialTextures: [
+      "textures/wall-red.jpg",
+      "textures/wall-red.jpg",
+      "textures/wall-red.jpg",
+    ],
+    torchColor: { light: 0xff3d3d, particles: 0xff3d3d },
+  },
+  {
+    wallTexture: "textures/wall-triangle.jpg",
+    floorTexture: "textures/floor-diamond.jpg",
+    ceilingTexture: "textures/wall-triangle.jpg",
+    specialTextures: [
+      "textures/wall-triangle.jpg",
+      "textures/wall-triangle.jpg",
+      "textures/wall-triangle.jpg",
+    ],
+    torchColor: { light: 0x708aff, particles: 0x708aff },
+  },
+  {
+    wallTexture: "textures/wall-dark.jpg",
+    floorTexture: "textures/floor-dark.jpg",
+    ceilingTexture: "textures/wall-dark.jpg",
+    specialTextures: [
+      "textures/wall-dark.jpg",
+      "textures/wall-dark.jpg",
+      "textures/wall-dark.jpg",
+    ],
+    torchColor: { light: 0xa496ff, particles: 0xa496ff },
+  },
+  {
+    wallTexture: "textures/wall-tur2.jpg",
+    floorTexture: "textures/floor-gray.jpg",
+    ceilingTexture: "textures/wall-tur2.jpg",
+    specialTextures: [
+      "textures/wall-tur2.jpg",
+      "textures/wall-tur2.jpg",
+      "textures/wall-tur2.jpg",
+    ],
+    torchColor: { light: 0x9cfff3, particles: 0x9cfff3 },
+  },
+];
 
-  export const floorsConfig = {
-    1: {
-      minSize: 20,
-      maxSize: 25,
-      textureSets: textureSets.slice(0, 2),
-      hallConfig: {
-        probability: 0.02,
-        minSize: 2,
-        maxSize: 3
-      },
-      bossProbability: 0.8
+export const floorsConfig = {
+  1: {
+    minSize: 20,
+    maxSize: 25,
+    textureSets: textureSets.slice(0, 2),
+    hallConfig: {
+      probability: 0.02,
+      minSize: 2,
+      maxSize: 3
     },
-    2: {
-      minSize: 25,
-      maxSize: 35,
-      textureSets: textureSets.slice(2, 4),
-      hallConfig: {
-        probability: 0.02,
-        minSize: 2,
-        maxSize: 4
-      },
-      bossProbability: 0.9
+    bossProbability: 0.8
+  },
+  2: {
+    minSize: 25,
+    maxSize: 35,
+    textureSets: textureSets.slice(2, 4),
+    hallConfig: {
+      probability: 0.02,
+      minSize: 2,
+      maxSize: 4
     },
-    3: {
-      minSize: 30,
-      maxSize: 40,
-      textureSets: textureSets.slice(4, 6),
-      hallConfig: {
-        probability: 0.04,
-        minSize: 2,
-        maxSize: 5
-      },
-      bossProbability: 0.9
+    bossProbability: 0.9
+  },
+  3: {
+    minSize: 30,
+    maxSize: 40,
+    textureSets: textureSets.slice(4, 6),
+    hallConfig: {
+      probability: 0.04,
+      minSize: 2,
+      maxSize: 5
     },
-    4: {
-      minSize: 20,
-      maxSize: 30,
-      textureSets: textureSets.slice(6, 8),
-      hallConfig: {
-        probability: 0.051, // 0.017 * 3
-        minSize: 2,
-        maxSize: 5
-      },
-      bossProbability: 1.0
+    bossProbability: 0.9
+  },
+  4: {
+    minSize: 20,
+    maxSize: 30,
+    textureSets: textureSets.slice(6, 8),
+    hallConfig: {
+      probability: 0.051, // 0.017 * 3
+      minSize: 2,
+      maxSize: 5
     },
-    5: {
-      minSize: 25,
-      maxSize: 30,
-      textureSets: textureSets.slice(8, 10),
-      hallConfig: {
-        probability: 0.08,
-        minSize: 5,
-        maxSize: 5
-      },
-      bossProbability: 1
+    bossProbability: 1.0
+  },
+  5: {
+    minSize: 25,
+    maxSize: 30,
+    textureSets: textureSets.slice(8, 10),
+    hallConfig: {
+      probability: 0.08,
+      minSize: 5,
+      maxSize: 5
     },
-    6: {
-      minSize: 20,
-      maxSize: 40,
-      textureSets: textureSets.slice(10, 12),
-      hallConfig: {
-        probability: 0.1,
-        minSize: 1,
-        maxSize: 2
-      },
-      bossProbability: 1
+    bossProbability: 1
+  },
+  6: {
+    minSize: 20,
+    maxSize: 40,
+    textureSets: textureSets.slice(10, 12),
+    hallConfig: {
+      probability: 0.1,
+      minSize: 1,
+      maxSize: 2
     },
-    7: {
-      minSize: 20,
-      maxSize: 25,
-      textureSets: textureSets.slice(12, 14),
-      hallConfig: {
-        probability: 0.05,
-        minSize: 2,
-        maxSize: 2
-      },
-      bossProbability: 1
+    bossProbability: 1
+  },
+  7: {
+    minSize: 20,
+    maxSize: 25,
+    textureSets: textureSets.slice(12, 14),
+    hallConfig: {
+      probability: 0.05,
+      minSize: 2,
+      maxSize: 2
     },
-    8: {
-      minSize: 40,
-      maxSize: 50,
-      textureSets: textureSets.slice(14, 16),
-      hallConfig: {
-        probability: 0.2,
-        minSize: 5,
-        maxSize: 5
-      },
-      bossProbability: 1
+    bossProbability: 1
+  },
+  8: {
+    minSize: 40,
+    maxSize: 50,
+    textureSets: textureSets.slice(14, 16),
+    hallConfig: {
+      probability: 0.2,
+      minSize: 5,
+      maxSize: 5
     },
-    9: {
-      minSize: 31,
-      maxSize: 41,
-      textureSets: textureSets.slice(16, 17),
-      hallConfig: {
-        probability: 0.1,
-        minSize: 2,
-        maxSize: 3
-      },
-      bossProbability: 1
+    bossProbability: 1
+  },
+  9: {
+    minSize: 31,
+    maxSize: 41,
+    textureSets: textureSets.slice(16, 17),
+    hallConfig: {
+      probability: 0.1,
+      minSize: 2,
+      maxSize: 3
     },
-    10: {
-      minSize: 21,
-      maxSize: 36,
-      textureSets: textureSets.slice(17, 18),
-      hallConfig: {
-        probability: 0.2,
-        minSize: 4,
-        maxSize: 5
-      },
-      bossProbability: 1
+    bossProbability: 1
+  },
+  10: {
+    minSize: 21,
+    maxSize: 36,
+    textureSets: textureSets.slice(17, 18),
+    hallConfig: {
+      probability: 0.2,
+      minSize: 4,
+      maxSize: 5
     },
-    11: {
-      minSize: 29,
-      maxSize: 39,
-      textureSets: textureSets.slice(18, 19),
-      hallConfig: {
-        probability: 0.3,
-        minSize: 1,
-        maxSize: 2
-      },
-      bossProbability: 1
+    bossProbability: 1
+  },
+  11: {
+    minSize: 29,
+    maxSize: 39,
+    textureSets: textureSets.slice(18, 19),
+    hallConfig: {
+      probability: 0.3,
+      minSize: 1,
+      maxSize: 2
     },
-    12: {
-      minSize: 22,
-      maxSize: 32,
-      textureSets: textureSets.slice(19, 20),
-      hallConfig: {
-        probability: 0.2,
-        minSize: 2,
-        maxSize: 2
-      },
-      bossProbability: 1
+    bossProbability: 1
+  },
+  12: {
+    minSize: 22,
+    maxSize: 32,
+    textureSets: textureSets.slice(19, 20),
+    hallConfig: {
+      probability: 0.2,
+      minSize: 2,
+      maxSize: 2
     },
-    13: {
-      minSize: 38,
-      maxSize: 42,
-      textureSets: textureSets.slice(20, 21),
-      hallConfig: {
-        probability: 0.15,
-        minSize: 1,
-        maxSize: 8
-      },
-      bossProbability: 1
+    bossProbability: 1
+  },
+  13: {
+    minSize: 38,
+    maxSize: 42,
+    textureSets: textureSets.slice(20, 21),
+    hallConfig: {
+      probability: 0.15,
+      minSize: 1,
+      maxSize: 8
     },
-  };
+    bossProbability: 1
+  },
+};
 
 
