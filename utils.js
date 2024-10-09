@@ -753,9 +753,13 @@ export function drawMinimap() {
 
 
 export function checkProjectileCollisionWithBosses(projectile, boss) {
+  if (!boss.model || !boss.model.position) {
+    return false; // Pokud boss nebo jeho model nemá pozici, nemůže dojít ke kolizi
+  }
+
   const horizontalDistance = Math.sqrt(
-    Math.pow(projectile.position.x - boss.model?.position.x, 2) +
-    Math.pow(projectile.position.z - boss.model?.position.z, 2)
+    Math.pow(projectile.position.x - boss.model.position.x, 2) +
+    Math.pow(projectile.position.z - boss.model.position.z, 2)
   );
   const verticalDistance = projectile.position.y - boss.model.position.y;
 
@@ -764,7 +768,6 @@ export function checkProjectileCollisionWithBosses(projectile, boss) {
   }
   return false;
 }
-
 export function createBossCastEffect(position, color = 0xff0000, options = {}) {
   const {
     particleCount = 100,
