@@ -94,6 +94,7 @@ export class LightningStrikeAbility extends Ability {
     }
 
     use(deltaTime) {
+        this.strikeCount = this.boss.health / this.boss.maxHealth <= 0.25 ? 15 : 10;
         const currentTime = Date.now();
         if (currentTime - this.lastStrikeTime >= this.strikeInterval) {
             this.prepareLightningStrike();

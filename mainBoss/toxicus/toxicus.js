@@ -196,6 +196,7 @@ export class AcidSprayAbility extends Ability {
     }
 
     use(deltaTime) {
+        this.sprayCount = this.boss.health / this.boss.maxHealth <= 0.25 ? 25 : 20;
         const currentTime = Date.now();
         if (currentTime - this.lastSprayTime >= this.sprayInterval) {
             this.prepareAcidSpray();

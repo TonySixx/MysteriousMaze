@@ -171,7 +171,7 @@ export class EntanglementBeamAbility extends Ability {
       transparent: true,
       opacity: 0.7,
       emissive: 0xb8f8ff,
-      emissiveIntensity: 3,
+      emissiveIntensity: 4,
     });
     const beam = new THREE.Mesh(beamGeometry, beamMaterial);
     beam.position.copy(this.boss.position);

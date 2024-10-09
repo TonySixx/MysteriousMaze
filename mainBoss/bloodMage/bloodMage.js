@@ -93,6 +93,7 @@ export class BloodVortexAbility extends Ability {
     }
 
     use() {
+        this.vortexCount = this.boss.health / this.boss.maxHealth <= 0.25 ? 4 : 3;
         playSound(spell1SoundBuffer);
         playAttackAnimation(this.boss);
         for (let i = 0; i < this.vortexCount; i++) {

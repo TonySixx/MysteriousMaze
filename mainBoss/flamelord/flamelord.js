@@ -97,6 +97,10 @@ export class MeteorStrikeAbility extends Ability {
     }
 
     use(deltaTime) {
+        // Aktualizujeme počet meteorů na základě zdraví bosse
+        this.meteorCount = this.boss.health / this.boss.maxHealth <= 0.25 ? 25 : 20;
+        this.meteorInterval = this.boss.health / this.boss.maxHealth <= 0.25 ? 350 : 400;
+
         const currentTime = Date.now();
         if (currentTime - this.lastMeteorTime >= this.meteorInterval) {
             this.prepareMeteorStrike();

@@ -117,6 +117,7 @@ export class TemporalEchoAbility extends Ability {
   }
 
   use() {
+    this.echoCount = this.boss.health / this.boss.maxHealth <= 0.25 ? 5 : 4;
     playSound(slowSoundBuffer);
     playAttackAnimation(this.boss);
     this.createTemporalEchoes();

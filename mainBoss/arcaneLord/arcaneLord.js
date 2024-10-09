@@ -178,7 +178,7 @@ export class DimensionalRiftAbility extends Ability {
         this.lastUseTime = 0;
         this.riftCount = 3;
         this.riftDuration = 8000;
-        this.damagePerSecond = 30;
+        this.damagePerSecond = 50;
     }
 
     canUse() {
@@ -186,6 +186,7 @@ export class DimensionalRiftAbility extends Ability {
     }
 
     use() {
+        this.riftCount = this.boss.health / this.boss.maxHealth <= 0.25 ? 4 : 3;
         playSound(spell2SoundBuffer);
         playAttackAnimation(this.boss);
         for (let i = 0; i < this.riftCount; i++) {
