@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { MainBoss } from "../baseBoss";
-import { playSound, CELL_SIZE, chainLightningSoundBuffer } from "../../main";
+import { playSound, CELL_SIZE, chainLightningSoundBuffer, voidRiftSoundBuffer, spell2SoundBuffer } from "../../main";
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { createExplosion, playerTakeDamage } from '../../utils';
 import { playAttackAnimation } from '../../boss';
@@ -226,7 +226,7 @@ export class BallLightningAbility extends Ability {
     }
 
     use() {
-        playSound(chainLightningSoundBuffer);
+        playSound(voidRiftSoundBuffer);
         playAttackAnimation(this.boss);
         for (let i = 0; i < this.ballCount; i++) {
             this.createBallLightning();
@@ -294,7 +294,7 @@ export class ElectromagneticPulseAbility extends Ability {
     }
 
     use() {
-        playSound(chainLightningSoundBuffer);
+        playSound(spell2SoundBuffer);
         playAttackAnimation(this.boss);
         this.boss.electromagneticPulseActive = true;
         this.boss.electromagneticPulseStartTime = Date.now();

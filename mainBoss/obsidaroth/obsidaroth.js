@@ -1,4 +1,4 @@
-import { CELL_SIZE, playSound, spell1SoundBuffer, voidRiftSoundBuffer } from "../../main";
+import { CELL_SIZE, playSound, spell1SoundBuffer, teleportSoundBuffer, voidRiftSoundBuffer } from "../../main";
 import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { player } from "../../player";
@@ -100,7 +100,7 @@ export class ShadowCloneAbility extends Ability {
   }
 
   use() {
-    playSound(spell1SoundBuffer);
+    playSound(teleportSoundBuffer);
     playAttackAnimation(this.boss);
     const clonePositions = [
       new THREE.Vector3(-3, 0.5, -3),

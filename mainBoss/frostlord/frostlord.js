@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { player } from "../../player";
 import { MainBoss } from "../baseBoss";
-import { CELL_SIZE, frostBoltHitSoundBuffer, frostBoltSoundBuffer, playSound } from "../../main";
+import { blowSoundBuffer, CELL_SIZE, frostBoltHitSoundBuffer, frostBoltSoundBuffer, playSound } from "../../main";
 import { playerTakeDamage } from "../../utils";
 import { canSeePlayer, playAttackAnimation } from '../../boss';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
@@ -91,7 +91,7 @@ export class GlacialNovaAbility extends Ability {
   }
 
   use() {
-    playSound(frostBoltSoundBuffer);
+    playSound(blowSoundBuffer);
     this.createGlacialNovaEffect();
     this.lastUseTime = Date.now();
     this.boss.isUsingAbility = false;

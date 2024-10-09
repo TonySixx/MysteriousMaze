@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Ability } from "../mainBossUtils";
 import { maxMana, player, playerMana, setPlayerMana } from "../../player";
 import { MainBoss } from "../baseBoss";
-import { playSound, CELL_SIZE, spell1SoundBuffer, spell2SoundBuffer, teleportSoundBuffer } from "../../main";
+import { playSound, CELL_SIZE, spell1SoundBuffer, spell2SoundBuffer, teleportSoundBuffer, slowSoundBuffer } from "../../main";
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { playerTakeDamage, showTimeDilationEffect } from "../../utils";
 import { playAttackAnimation } from '../../boss';
@@ -91,7 +91,7 @@ export class DarkMistAbility extends Ability {
     }
 
     use() {
-        playSound(spell1SoundBuffer);
+        playSound(slowSoundBuffer);
         playAttackAnimation(this.boss);
         this.boss.darkMistActive = true;
         this.boss.darkMistStartTime = Date.now();
