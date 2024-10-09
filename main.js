@@ -488,6 +488,13 @@ export async function init() {
       });
     });
 
+    document.addEventListener("visibilitychange", function() {
+      if (!document.hidden) {
+        // Stránka je znovu aktivní
+        location.reload();
+      }
+    });
+
     document
       .getElementById("mazeSearchInput")
       .addEventListener("input", filterScores);
