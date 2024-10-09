@@ -101,6 +101,9 @@ window.lightningStrikes = [];
 window.ballLightnings = [];
 window.electromagneticPulse = null;
 
+window.darkMistEffect = null;
+window.manaDrainEffect = null;
+
 export const playerDefaultSpeed = 6.5;
 
 export const floorMusic = {
@@ -500,3 +503,5 @@ export const textureSets = [
       bossProbability: 1
     },
   };
+
+

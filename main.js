@@ -756,7 +756,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
       spawnDelay: 6000,
       countdownDuration: 5,
       roomAmbientLightColor: new THREE.Color(bossType.ambientLightColor),
-      roomAmbientLightIntensity: 0.5,
+      roomAmbientLightIntensity: bossType.ambientLightIntensity || 0.5,
       nebulaColors: bossType.nebulaColors,
       fogDensity: 0.03,
       flyDuration: bossType.flyDuration || 3,
@@ -2214,6 +2214,7 @@ export function canSelectFloor(floor) {
   if (floor === 108) return playerLevel >= 46; // Boss podlaží pro Arcane Lorda
   if (floor === 109) return playerLevel >= 51; // Boss podlaží pro Blood Mage
   if (floor === 110) return playerLevel >= 56; // Boss podlaží pro Thunderlord
+  if (floor === 111) return playerLevel >= 60; // Boss podlaží pro Darklord
   return false;
 }
 

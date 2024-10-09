@@ -998,8 +998,8 @@ export function addItemsForTesting() {
   addItemToInventory(createItem(getItemName(itemDatabase.manaPotion)));
   addItemToInventory(createItem(getItemName(itemDatabase.greaterManaPotion)));
   addItemToInventory(createItem(getItemName(itemDatabase.greaterHealthPotion)));
-  addItemToInventory(createItem(getItemName(itemDatabase.ultimateHealthPotion)));
-  addItemToInventory(createItem(getItemName(itemDatabase.ultimateManaPotion)));
+  addItemToInventory(createItem(getItemName(itemDatabase.ultimateHealthPotion), 255));
+  addItemToInventory(createItem(getItemName(itemDatabase.ultimateManaPotion), 255));
 
   addItemToInventory(createItem(getItemName(itemDatabase.angelsGraceVestments)));
   addItemToInventory(createItem(getItemName(itemDatabase.angelsFeatherOfGrace)));

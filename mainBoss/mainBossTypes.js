@@ -11,6 +11,7 @@ import { FlamelordBoss, MeteorStrikeAbility, InfernoWaveAbility, PhoenixRebirthA
 import { ArcaneLordBoss, ArcaneBarrageAbility, DimensionalRiftAbility, ArcaneShieldAbility } from "./arcaneLord/arcaneLord";
 import { BloodMageBoss, BloodVortexAbility, BloodRitualAbility, BloodLanceAbility } from "./bloodMage/bloodMage";
 import { BallLightningAbility, ElectromagneticPulseAbility, LightningStrikeAbility, ThunderlordBoss } from "./thunderlord/thunderlord";
+import { DarklordBoss, DarkMistAbility, SummonDragonsAbility, ManaDrainAbility } from "./darklord/darklord";
 
 export const MAIN_BOSS_TYPES = [
   {
@@ -577,5 +578,65 @@ export const MAIN_BOSS_TYPES = [
     merlonHeight: 9,
     cornerWallHeight: 8,
     healthBarOffsetY: 1.2,
+  },
+  {
+    name: "Darklord, Vládce temnoty",
+    bossClass: DarklordBoss,
+    translationKey: "bossFloor12",
+    abilities: [DarkMistAbility, SummonDragonsAbility, ManaDrainAbility, ],
+    tribalMainMaterial: new THREE.MeshStandardMaterial({
+      color: 0x1a1a1a,
+      roughness: 0.5,
+      metalness: 0.8,
+    }),
+    secondaryMaterial: new THREE.MeshStandardMaterial({
+      color: 0x000000,
+      metalness: 0.9,
+      roughness: 0.2,
+    }),
+    tribalGoldMaterial: new THREE.MeshStandardMaterial({
+      color: 0x65d6ac,
+      emissive: 0x65d6ac,
+      metalness: 0.7,
+      roughness: 0.3,
+      emissiveIntensity: 5,
+    }),
+    eyeBlackMaterial: new THREE.MeshStandardMaterial({
+      color: 0x6b36ff,
+      emissive: 0x6b36ff,
+      emissiveIntensity: 5,
+    }),
+    eyeWhiteMaterial: new THREE.MeshStandardMaterial({
+      color: 0x000000,
+      emissive: 0x000000
+    }),
+    attackColor: new THREE.Color(0x76decb),
+    attackCooldown: 0.9,
+    emissiveIntensity: 5,
+    maxHealth: 750000,
+    bossHitBoxMarginY: 5.2,
+    bossHitBoxMarginXZ: 3.5,
+    attackSpeed: 1,
+    attackSize: 0.9,
+    specialAttackInterval: 8000,
+    dropItems: [
+      { item: itemDatabase.powerLapisia, chance: 1 },
+      { item: itemDatabase.protectorsLapisia, chance: 1 },
+      { item: itemDatabase.ultimateHealthPotion, chance: 1 },
+      { item: itemDatabase.ultimateManaPotion, chance: 1 },
+      { item: itemDatabase.infernalDragonflare, chance: 0.3 },
+    ],
+    ambientLightColor: 0x1a0a1e,
+    nebulaColors: ["#4a0e4e", "#1a0a1e"],
+    textureSetIndex: 19,
+    torchSetIndex: 19,
+    flyDuration: 1.5,
+    size: 2.5,
+    attackDamage: 70,
+    hasCustomModel: true,
+    merlonHeight: 10,
+    cornerWallHeight: 9,
+    healthBarOffsetY: 1.3,
+    ambientLightIntensity: 0.9,
   },
 ];

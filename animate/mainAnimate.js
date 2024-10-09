@@ -11,6 +11,7 @@ import { updateArcaneProjectiles, updateDimensionalRifts, updateArcaneShieldEffe
 import { updateProtectiveShield } from '../animate.js';
 import { updateBloodVortexes, updateBloodRitual, updateBloodLances } from "./bloodMageAnimate";
 import { updateLightningStrikes, updateBallLightnings, updateElectromagneticPulse } from "./thunderlordAnimate";
+import { updateDarkMistEffect, updateManaDrainEffect } from "./darklordAnimate";
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
@@ -91,6 +92,8 @@ export function animate() {
   updateLightningStrikes(deltaTime);
   updateBallLightnings(deltaTime);
   updateElectromagneticPulse(deltaTime);
+  updateDarkMistEffect(deltaTime);
+  updateManaDrainEffect(deltaTime);
 
   animateMerchants(deltaTime);
   updateQuestBoardInteraction(deltaTime);
@@ -143,7 +146,5 @@ export function animate() {
   }
 
   composer.render();
-
-
 
 }

@@ -981,6 +981,26 @@ const questDefinitions = [
             floor: 13,
             count: 1
         }
+    },
+    {
+        id: 'defeatDarkLord',
+        name: 'defeatDarkLordQuest',
+        description: 'defeatDarkLordQuestDescription',
+        level: 60,
+        rewards: {
+            exp: 0,
+            gold: 1000,
+            items: [
+                { item: 'powerLapisia', count: 20 },
+                { item: 'protectorsLapisia', count: 20 },
+                { item: 'voidwalkersShroud', count: 1 }
+            ]
+        },
+        objective: {
+            type: 'kill',
+            target: 'Dark Lord, Temný pán',
+            count: 1
+        }
     }
 ];
 
