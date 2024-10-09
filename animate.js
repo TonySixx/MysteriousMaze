@@ -108,16 +108,33 @@ export function updateFloatingTexts(textArray, currentTime) {
   textArray = textArray.filter((textItem) => {
     const elapsed = currentTime - textItem.startTime;
     if (elapsed < textItem.duration) {
-      const progress = elapsed / textItem.duration;
-      const bossScreenPosition = textItem.boss.getScreenPosition();
+      const bossPosition = textItem.boss.position.clone();
+      bossPosition.y += 2; // Přidáme offset, aby text byl nad bossem
 
-      // Použití individuálních posunů
-      const initialOffset = textItem.initialOffset || 0;
-      const movementDistance = textItem.movementDistance || 0;
+      // Projektujeme pozici bossu do prostoru kamery
+      const vector = bossPosition.project(camera);
 
-      textItem.element.style.left = `${bossScreenPosition.x}px`;
-      textItem.element.style.top = `${bossScreenPosition.y - initialOffset - progress * movementDistance}px`;
-      textItem.element.style.opacity = 1 - progress;
+      // Zkontrolujeme, zda je boss v záběru kamery
+      const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
+
+      if (isInView) {
+        const progress = elapsed / textItem.duration;
+        const bossScreenPosition = {
+          x: (vector.x * 0.5 + 0.5) * window.innerWidth,
+          y: (-vector.y * 0.5 + 0.5) * window.innerHeight
+        };
+
+        // Použití individuálních posunů
+        const initialOffset = textItem.initialOffset || 0;
+        const movementDistance = textItem.movementDistance || 0;
+
+        textItem.element.style.display = "block";
+        textItem.element.style.left = `${bossScreenPosition.x}px`;
+        textItem.element.style.top = `${bossScreenPosition.y - initialOffset - progress * movementDistance}px`;
+        textItem.element.style.opacity = 1 - progress;
+      } else {
+        textItem.element.style.display = "none";
+      }
       return true;
     } else {
       // Zkontrolujeme, zda má prvek rodiče
