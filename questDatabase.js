@@ -378,7 +378,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'completeMazeWithoutMinimap',
-            seed: 'Toxic',
+            target: 'Toxic',
             floor: 6,
             count: 1
         }
@@ -467,7 +467,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'completeMazeWithoutMinimap',
-            seed: 'Snow',
+            target: 'Snow',
             floor: 7,
             count: 1
         }
@@ -554,7 +554,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'completeMazeWithoutMinimap',
-            seed: 'Hell',
+            target: 'Hell',
             floor: 8,
             count: 1
         }
@@ -643,7 +643,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'completeMazeWithoutMinimap',
-            seed: 'Purple',
+            target: 'Purple',
             floor: 9,
             count: 1
         }
@@ -731,7 +731,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'completeMazeWithoutMinimap',
-            seed: 'Rune',
+            target: 'Rune',
             floor: 10,
             count: 1
         }
@@ -820,7 +820,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'completeMazeWithoutMinimap',
-            seed: 'Light',
+            target: 'Light',
             floor: 11,
             count: 1
         }
@@ -909,7 +909,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'completeMazeWithoutMinimap',
-            seed: 'Darkness',
+            target: 'Darkness',
             floor: 12,
             count: 1
         }
@@ -977,7 +977,7 @@ const questDefinitions = [
         },
         objective: {
             type: 'completeMazeWithoutMinimap',
-            seed: 'MysteriousMaze',
+            target: 'MysteriousMaze',
             floor: 13,
             count: 1
         }

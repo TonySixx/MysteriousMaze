@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/MysteriousMaze/', // Ujistěte se, že zde je správný název repozitáře
+  base: ''
+  //base: '/MysteriousMaze/',
   // další konfigurace
 })
