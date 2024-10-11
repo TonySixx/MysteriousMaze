@@ -258,7 +258,7 @@ export async function init() {
   manager = new THREE.LoadingManager();
 
   manager.onStart = function (url, itemsLoaded, itemsTotal) {
-    console.log(
+    console.debug(
       "Started loading file: " +
         url +
         ".\nLoaded " +
@@ -271,12 +271,12 @@ export async function init() {
   };
 
   manager.onLoad = function () {
-    console.log("Loading complete!");
+    console.debug("Loading complete!");
     hideLoadingScreen();
   };
 
   manager.onProgress = function (url, itemsLoaded, itemsTotal) {
-    console.log(
+    console.debug(
       "Loading file: " +
         url +
         ".\nLoaded " +
@@ -1366,7 +1366,7 @@ export function checkObjectInteractions() {
       const distance = player.position.distanceTo(child.position);
 
       if (child.userData.isKey && distance < 0.7) {
-        console.log("Sbírám klíč");
+        console.debug("Sbírám klíč");
         scene.remove(child);
         keyCount++;
         playSound(itemSoundBuffer);
@@ -1377,12 +1377,12 @@ export function checkObjectInteractions() {
         showTeleportPrompt();
       } else if (child.userData.isGoal && distance < 1.5 && !goalReached) {
         if (keyCount === totalKeys) {
-          console.log("Dosaženo cíle");
+          console.debug("Dosaženo cíle");
           showFinishMessage();
           stopTimer();
         } else {
           if (!keysAlertShown) {
-            console.log(
+            console.debug(
               "Musíte nasbírat všechny kouzelné klíče, než dosáhnete cíle!"
             );
             showGoalMessage(keyCount, totalKeys);
@@ -1509,7 +1509,7 @@ export async function startGame() {
   getBestTime(inputText, selectedFloor);
   removeFreezeEffect();
   createMaze(inputText, selectedFloor);
-  console.log("torches", torches.length);
+  console.debug("torches", torches.length);
   createPlayer();
   moveCount = 0;
   keyCount = 0;

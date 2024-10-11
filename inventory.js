@@ -60,8 +60,6 @@ export function initInventory() {
     //addItemsForTesting();
   }
 
-  console.log("Inventory initialized:", inventory);
-  console.log("Equipment initialized:", equipment);
 
   initPotionBar();
   renderPotionBar();
@@ -88,7 +86,6 @@ export function openInventory() {
   inventoryModal.style.display = 'block';
   renderInventory();
   updateGoldDisplay();
-  console.log("Inventory opened and rendered");
 }
 
 export function closeInventory() {
@@ -492,7 +489,6 @@ function sortInventory() {
 }
 
 function renderEquipment() {
-  console.log("Rendering equipment:", equipment);
   for (const [slot, item] of Object.entries(equipment)) {
     const equipmentSlot = document.getElementById(`${slot}Slot`);
     if (!equipmentSlot) {

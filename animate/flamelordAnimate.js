@@ -60,7 +60,6 @@ export function updateInfernoWaves(deltaTime) {
 
             // Přidána kontrola výšky hráče
             if (Math.abs(stripes) > (1.0 - stripeThreshold) && player.position.y <= heightThreshold) {
-                console.log("Zasažení hráče infernem!",player.position.y);
                 playerTakeDamage(wave.damagePerSecond * deltaTime);
             }
         } else {

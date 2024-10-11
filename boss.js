@@ -690,7 +690,7 @@ class Boss {
             this.lastTeleportTime = currentTime;
             this.performStandardAttack();
         } else {
-            console.log("Boss nemohl najít bezpečnou pozici pro teleportaci");
+            console.debug("Boss nemohl najít bezpečnou pozici pro teleportaci");
         }
     }
     
