@@ -1004,7 +1004,7 @@ function createQuestIndicator() {
     const textGeometry = new TextGeometry('!', {
       font: font,
       size: 0.5,
-      height: 0.1,
+      depth: 0.1,
       curveSegments: 12,
       bevelEnabled: false,
     });
@@ -1031,7 +1031,7 @@ function createQuestIndicator() {
     const textGeometry = new TextGeometry('?', {
       font: font,
       size: 0.5,
-      height: 0.1,
+      depth: 0.1,
       curveSegments: 12,
       bevelEnabled: false,
     });
