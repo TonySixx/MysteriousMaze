@@ -82,6 +82,7 @@ import {
   removeFreezeEffect,
   setUrlParameter,
   submitScore,
+  createSpikeTrap,
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
@@ -89,7 +90,7 @@ import { toggleQuestWindow } from "./quests.js";
 import { clearScene } from "./clearScene.js";
 import { animate } from "./animate/mainAnimate.js";
 
-export const version = "3.4.2";
+export const version = "3.4.3";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -953,6 +954,18 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
       scene.add(teleport2);
     }
 
+     // Přidání pastí
+     const floorConfig = floorsConfig[selectedFloor];
+     if (floorConfig.traps.enabled) {
+       const trapCount = Math.floor(MAZE_SIZE * MAZE_SIZE * floorConfig.traps.probability);
+       for (let i = 0; i < trapCount; i++) {
+         const trap = createSpikeTrap();
+         placeObjectInFreeCell(trap, rng);
+         scene.add(trap);
+       }
+     }
+   
+
     createKeys(rng);
     createTorches(
       walls,
@@ -967,6 +980,8 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     goal.userData.isGoal = true;
     placeObjectInFreeCell(goal, rng);
     scene.add(goal);
+
+    
 
     // Přidejte mlhovinu
     nebulaMaterial = addNebula();
@@ -1225,13 +1240,16 @@ function placeObjectInFreeCell(object, rng) {
       }
     }
   }
-  let height = 0.5;
-  if (object.userData.isTeleport) {
-    height = 1;
-  }
 
   if (freeCells.length > 0) {
     let cell = freeCells[Math.floor(rng() * freeCells.length)];
+    let height = 0.5;
+    if (object.userData.isTeleport) {
+      height = 1;
+    } else if (object.userData.isSpikeTrap) {
+      height = -0.32; // Začíná pod podlahou
+    }
+
     object.position.set(
       (cell.x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
       height,

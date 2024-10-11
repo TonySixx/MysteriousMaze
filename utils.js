@@ -1,12 +1,13 @@
 import { Vector3 } from "three";
 import { aoeBlastSoundBuffer, BLOCKING_WALL, CELL_SIZE, frostBoltHitSoundBuffer, hurtSoundBuffer, isMusicEnabled, MAZE_SIZE, playerDeath, playSound, selectedFloor, supabase } from "./main";
-import { addExperience, getPlayerLevel, player, playerHealth, setPlayerHealth, updatePlayerHealthBar } from "./player";
+import { addExperience, getPlayerLevel, getPlayerMaxHealth, player, playerHealth, setPlayerHealth, updatePlayerHealthBar } from "./player";
 import * as THREE from 'three';
 import { equipment } from "./inventory";
 import { bosses } from "./boss";
 import { floorMusic, floorsConfig } from "./globals";
 import { updateQuestsOnEvent } from "./quests";
 import { isProtectiveShieldActive } from './animate.js';
+import { SPIKE_TRAP_CYCLE, SPIKE_TRAP_UP_TIME } from './globals.js';
 
 export function destroyAllSideAnimations() {
   if (merchantAnimationId !== null) {
@@ -977,4 +978,115 @@ export function disposeMaterial(material) {
     }
   }
   material.dispose();
+}
+
+const baseGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 16);
+const baseMaterial = new THREE.MeshBasicMaterial({ color: 0x505050 });
+
+const spikeGeometry = new THREE.ConeGeometry(0.1, 0.5, 8);
+const spikeMaterial = new THREE.MeshStandardMaterial({ color: 0xc2c6cf, emissiveIntensity: 0.4, emissive: 0xc2c6cf });
+
+export function createSpikeTrap() {
+  const trapGroup = new THREE.Group();
+
+  // Base of the trap
+  const base = new THREE.Mesh(baseGeometry, baseMaterial);
+  base.position.y = -0.05;
+  base.visible = false; // Set to true if you want the base to be visible
+  trapGroup.add(base);
+
+  // Create InstancedMesh for spikes
+  const spikeCount = 10; // 9 outer spikes + 1 central spike
+  const spikesInstancedMesh = new THREE.InstancedMesh(spikeGeometry, spikeMaterial, spikeCount);
+  trapGroup.add(spikesInstancedMesh);
+
+  // Set up instance matrices for the spikes
+  const dummy = new THREE.Object3D();
+
+  // Outer spikes
+  for (let i = 0; i < 9; i++) {
+    const angle = (i / 9) * Math.PI * 2;
+
+    dummy.position.set(
+      Math.cos(angle) * 1,          // x position
+      0.15,                         // y position (half spike height)
+      Math.sin(angle) * 1           // z position
+    );
+
+    dummy.rotation.set(0, -Math.PI / 2, 0);
+    dummy.updateMatrix();
+    spikesInstancedMesh.setMatrixAt(i, dummy.matrix);
+  }
+
+  // Central spike
+  dummy.position.set(0, 0.2, 0);
+  dummy.rotation.set(0, -Math.PI / 2, 0);
+  dummy.updateMatrix();
+  spikesInstancedMesh.setMatrixAt(9, dummy.matrix);
+
+  spikesInstancedMesh.instanceMatrix.needsUpdate = true;
+
+  // User data for trap state
+  trapGroup.userData.isSpikeTrap = true;
+  trapGroup.userData.state = 'down';
+  trapGroup.userData.lastStateChange = Date.now();
+
+  // Initial position below the floor
+  trapGroup.position.y = -0.32;
+
+  scene.add(trapGroup);
+  return trapGroup;
+}
+
+export function updateSpikeTraps(deltaTime) {
+  const currentTime = Date.now();
+
+  scene.traverse((object) => {
+    if (object.userData.isSpikeTrap) {
+      const timeSinceLastChange = currentTime - object.userData.lastStateChange;
+
+      if (object.userData.state === 'down' && timeSinceLastChange >= SPIKE_TRAP_CYCLE - SPIKE_TRAP_UP_TIME) {
+        object.userData.state = 'up';
+        object.userData.lastStateChange = currentTime;
+        object.position.y = 0; // Raise the trap
+      } else if (object.userData.state === 'up' && timeSinceLastChange >= SPIKE_TRAP_UP_TIME) {
+        object.userData.state = 'down';
+        object.userData.lastStateChange = currentTime;
+        object.position.y = -0.32; // Lower the trap
+      }
+
+      // Collision detection
+      if (object.userData.state === 'up' && player.position.distanceTo(object.position) < 0.9) {
+        playerTakeDamage(getPlayerMaxHealth() * 0.5 * deltaTime);
+      }
+    }
+  });
+}
+
+export function clearSpikeTraps() {
+  // Remove traps from the scene
+  const trapsToRemove = [];
+  scene.traverse((object) => {
+    if (object.userData.isSpikeTrap) {
+      trapsToRemove.push(object);
+    }
+  });
+
+  trapsToRemove.forEach((trap) => {
+    // Dispose of the InstancedMesh
+    const spikesInstancedMesh = trap.children.find(child => child instanceof THREE.InstancedMesh);
+    if (spikesInstancedMesh) {
+      spikesInstancedMesh.geometry.dispose();
+      spikesInstancedMesh.material.dispose();
+    }
+
+    // Dispose of the base mesh
+    const baseMesh = trap.children.find(child => child instanceof THREE.Mesh);
+    if (baseMesh) {
+      baseMesh.geometry.dispose();
+      baseMesh.material.dispose();
+    }
+
+    scene.remove(trap);
+  });
 }

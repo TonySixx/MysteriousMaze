@@ -1,11 +1,12 @@
 import { bosses, setBossCounter, setBosses } from "./boss";
 import { playerDefaultSpeed } from "./globals";
 import { originalStaffRotation, resetSpells, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
-import { destroyAllSideAnimations, disposeObject } from "./utils";
+import { clearSpikeTraps, destroyAllSideAnimations, disposeObject } from "./utils";
 
 export function clearScene() {
     cleanupAudio();
-  
+    clearSpikeTraps()
+
     // Odstraníme a uvolníme všechny objekty ze scény
     while (scene.children.length > 0) {
       const child = scene.children[0];

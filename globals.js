@@ -380,7 +380,11 @@ export const floorsConfig = {
       minSize: 2,
       maxSize: 3
     },
-    bossProbability: 0.8
+    bossProbability: 0.8,
+    traps: {
+      enabled: false,
+      probability: 0
+    }
   },
   2: {
     minSize: 25,
@@ -391,7 +395,10 @@ export const floorsConfig = {
       minSize: 2,
       maxSize: 4
     },
-    bossProbability: 0.9
+    bossProbability: 0.9,
+    traps: {
+      enabled: false,
+    }
   },
   3: {
     minSize: 30,
@@ -402,7 +409,11 @@ export const floorsConfig = {
       minSize: 2,
       maxSize: 5
     },
-    bossProbability: 0.9
+    bossProbability: 0.9,
+    traps: {
+      enabled: true,
+      probability: 0.015
+    }
   },
   4: {
     minSize: 20,
@@ -424,7 +435,11 @@ export const floorsConfig = {
       minSize: 5,
       maxSize: 5
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: true,
+      probability: 0.02
+    }
   },
   6: {
     minSize: 20,
@@ -435,7 +450,11 @@ export const floorsConfig = {
       minSize: 1,
       maxSize: 2
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: true,
+      probability: 0.02
+    }
   },
   7: {
     minSize: 20,
@@ -446,7 +465,11 @@ export const floorsConfig = {
       minSize: 2,
       maxSize: 2
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: true,
+      probability: 0.02
+    }
   },
   8: {
     minSize: 40,
@@ -457,7 +480,11 @@ export const floorsConfig = {
       minSize: 5,
       maxSize: 5
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: true,
+      probability: 0.035
+    }
   },
   9: {
     minSize: 31,
@@ -468,7 +495,11 @@ export const floorsConfig = {
       minSize: 2,
       maxSize: 3
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: true,
+      probability: 0.03
+    }
   },
   10: {
     minSize: 21,
@@ -479,7 +510,11 @@ export const floorsConfig = {
       minSize: 4,
       maxSize: 5
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: true,
+      probability: 0.02
+    }
   },
   11: {
     minSize: 29,
@@ -490,7 +525,11 @@ export const floorsConfig = {
       minSize: 1,
       maxSize: 2
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: true,
+      probability: 0.03
+    }
   },
   12: {
     minSize: 22,
@@ -501,7 +540,10 @@ export const floorsConfig = {
       minSize: 2,
       maxSize: 2
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: false,
+    }
   },
   13: {
     minSize: 38,
@@ -512,8 +554,14 @@ export const floorsConfig = {
       minSize: 1,
       maxSize: 8
     },
-    bossProbability: 1
+    bossProbability: 1,
+    traps: {
+      enabled: true,
+      probability: 0.01
+    }
   },
 };
 
-
+// Přidejte toto na konec souboru
+export const SPIKE_TRAP_CYCLE = 4000; // 4 sekundy na celý cyklus
+export const SPIKE_TRAP_UP_TIME = 2000; // 2 sekundy nahoře
