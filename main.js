@@ -6,10 +6,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-import {
-  spawnBossInMaze,
-  bosses,
-} from "./boss.js";
+import { spawnBossInMaze, bosses } from "./boss.js";
 import {
   spells,
   lastSpellCastTime,
@@ -161,7 +158,6 @@ let minimapCooldownTimer = null;
 
 export let teleportPairsCount = 0;
 
-
 export var fireballSoundBuffer;
 export var frostBoltSoundBuffer;
 export var magicMissileSoundBuffer;
@@ -189,8 +185,6 @@ export var hurtSoundBuffer;
 export var voidRiftSoundBuffer;
 export var spell2SoundBuffer;
 export var explosionSoundBuffer;
-
-
 
 export var bossSoundBuffer;
 export var aoeBlastSoundBuffer;
@@ -229,6 +223,22 @@ function getSelectedFloorText() {
       return getTranslation("bossFloor3");
     case 103:
       return getTranslation("bossFloor4");
+    case 104:
+      return getTranslation("bossFloor5");
+    case 105:
+      return getTranslation("bossFloor6");
+    case 106:
+      return getTranslation("bossFloor7");
+    case 107:
+      return getTranslation("bossFloor8");
+    case 108:
+      return getTranslation("bossFloor9");
+    case 109:
+      return getTranslation("bossFloor10");
+    case 110:
+      return getTranslation("bossFloor11");
+    case 111:
+      return getTranslation("bossFloor12");
     default:
       return `${getTranslation("selectFloor")} ${selectedFloor}`;
   }
@@ -250,12 +260,12 @@ export async function init() {
   manager.onStart = function (url, itemsLoaded, itemsTotal) {
     console.log(
       "Started loading file: " +
-      url +
-      ".\nLoaded " +
-      itemsLoaded +
-      " of " +
-      itemsTotal +
-      " files."
+        url +
+        ".\nLoaded " +
+        itemsLoaded +
+        " of " +
+        itemsTotal +
+        " files."
     );
     showLoadingScreen();
   };
@@ -268,12 +278,12 @@ export async function init() {
   manager.onProgress = function (url, itemsLoaded, itemsTotal) {
     console.log(
       "Loading file: " +
-      url +
-      ".\nLoaded " +
-      itemsLoaded +
-      " of " +
-      itemsTotal +
-      " files."
+        url +
+        ".\nLoaded " +
+        itemsLoaded +
+        " of " +
+        itemsTotal +
+        " files."
     );
     updateLoadingProgress(itemsLoaded / itemsTotal);
   };
@@ -311,7 +321,6 @@ export async function init() {
     footstepsSound.setLoop(true);
     footstepsSound.setVolume(0.5); // Adjust volume as needed
   });
-
 
   audioLoader.load("snd_fireball.wav", function (buffer) {
     fireballSoundBuffer = buffer;
@@ -403,7 +412,7 @@ export async function init() {
 
   audioLoader.load("sounds/snd_hurt.mp3", function (buffer) {
     hurtSoundBuffer = buffer;
-  })
+  });
 
   audioLoader.load("sounds/snd_void_rift.wav", function (buffer) {
     voidRiftSoundBuffer = buffer;
@@ -469,7 +478,6 @@ export async function init() {
     playerName = localStorage.getItem("playerName");
     document.getElementById("playerName").textContent = playerName;
 
-
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     document.addEventListener("mousemove", onMouseMove, false);
@@ -480,15 +488,15 @@ export async function init() {
     const floorSelectModal = document.getElementById("floorSelectModal");
 
     // Přidáme event listener pro přepínání záložek
-    const tabButtons = floorSelectModal.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const tabName = button.getAttribute('data-tab');
+    const tabButtons = floorSelectModal.querySelectorAll(".tab-button");
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const tabName = button.getAttribute("data-tab");
         switchFloorTab(tabName);
       });
     });
 
-    document.addEventListener("visibilitychange", function() {
+    document.addEventListener("visibilitychange", function () {
       if (!document.hidden) {
         // Stránka je znovu aktivní
         location.reload();
@@ -553,20 +561,17 @@ export async function init() {
         if (!isInput) {
           toggleQuestWindow();
         }
-      }
-      else if (event.code === "Numpad1") {
+      } else if (event.code === "Numpad1") {
         if (!isInput) {
-          document.getElementById('mazeInput').focus();
+          document.getElementById("mazeInput").focus();
         }
-      }
-      else if (event.code === "Numpad2") {
+      } else if (event.code === "Numpad2") {
         if (!isInput) {
-          document.getElementById('showFloorSelect').click();
+          document.getElementById("showFloorSelect").click();
         }
-      }
-      else if (event.code === "Numpad3") {
+      } else if (event.code === "Numpad3") {
         if (!isInput) {
-          document.getElementById('generateMaze').click();
+          document.getElementById("generateMaze").click();
         }
       }
     });
@@ -598,6 +603,7 @@ export async function init() {
     //updateUITexts();
 
     animate();
+    updateUIForSelectedFloor();
   } catch (error) {
     console.error("Failed to load key model:", error);
   }
@@ -708,8 +714,6 @@ function toggleBackgroundMusic() {
   }
 }
 
-
-
 export function updateFootstepsSound() {
   if (moveForward || moveBackward || moveLeft || moveRight) {
     if (!footstepsSound.isPlaying) {
@@ -726,7 +730,6 @@ export function playerDeath() {
   // Restart hry
   startGame();
 }
-
 
 function createMaze(inputText = "", selectedFloor = 1, manager) {
   loadAndPlayMusic(selectedFloor, audioLoader);
@@ -752,7 +755,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
       roomSize: 10,
       textureSet: textureSets[bossType.textureSetIndex || bossIndex + 1],
       torchColor: textureSets[bossType.torchSetIndex || 1].torchColor.light,
-      bossType: bossType, 
+      bossType: bossType,
       spawnDelay: 6000,
       countdownDuration: 5,
       roomAmbientLightColor: new THREE.Color(bossType.ambientLightColor),
@@ -761,10 +764,13 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
       fogDensity: 0.03,
       flyDuration: bossType.flyDuration || 3,
       merlonHeight: bossType.merlonHeight,
-      cornerWallHeight: bossType.cornerWallHeight
+      cornerWallHeight: bossType.cornerWallHeight,
     };
 
-    const { room, spawnTimeout, countdownInterval } = createMainBossRoom(rng, bossRoomOptions);
+    const { room, spawnTimeout, countdownInterval } = createMainBossRoom(
+      rng,
+      bossRoomOptions
+    );
     scene.add(room);
     window.bossSpawnTimeout = spawnTimeout;
     window.bossCountdownInterval = countdownInterval;
@@ -974,8 +980,6 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
 
   addStarsToNebula();
 
-
-
   keyCount = 0;
   updateKeyCount();
 
@@ -988,7 +992,6 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
   setPlayerMana(getPlayerMaxMana());
   updatePlayerHealthBar();
   updatePlayerManaBar();
-
 }
 
 export function getHash(str) {
@@ -1149,7 +1152,8 @@ function generateMaze(width, height, seed, selectedFloor) {
   const hallProbability = floorConfig.hallConfig.probability;
   const minHallSize = floorConfig.hallConfig.minSize;
   const maxHallSize = floorConfig.hallConfig.maxSize;
-  const hallSize = minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
+  const hallSize =
+    minHallSize + Math.floor(rng() * (maxHallSize - minHallSize + 1));
   const bossProbability = floorConfig.bossProbability;
 
   for (let y = 1; y < MAZE_SIZE - hallSize; y += hallSize) {
@@ -1524,7 +1528,9 @@ export async function startGame() {
 
   isMinimapVisible = false;
   minimapTimeMultiplier = 1;
-  document.getElementById("timeCount")?.classList.toggle("minimap-open", isMinimapVisible);
+  document
+    .getElementById("timeCount")
+    ?.classList.toggle("minimap-open", isMinimapVisible);
   canOpenMinimap = true;
   if (minimapCooldownTimer) {
     clearTimeout(minimapCooldownTimer);
@@ -1534,6 +1540,29 @@ export async function startGame() {
   updatePlayerHealthBar();
 
   startTimer(); // Spuštění nového časovače
+
+  // Aktualizace UI podle vybraného podlaží
+  updateUIForSelectedFloor();
+}
+
+// Nová funkce pro aktualizaci UI podle vybraného podlaží
+function updateUIForSelectedFloor() {
+  const mazeInput = document.getElementById("mazeInput");
+  const generateMazeButton =
+    document.getElementById("generateMaze").parentElement;
+
+  if (selectedFloor === 999 || selectedFloor >= 100) {
+    // Camp nebo Boss room
+    mazeInput.value = "";
+    mazeInput.disabled = true;
+    mazeInput.placeholder = getTranslation("selectMazeFloorFirst");
+    generateMazeButton.style.display = "none";
+  } else {
+    // Běžné bludiště
+    mazeInput.disabled = false;
+    mazeInput.placeholder = getTranslation("mazeInputPlaceholder");
+    generateMazeButton.style.display = "inline-block";
+  }
 }
 
 function updateKeyCount() {
@@ -1550,7 +1579,9 @@ async function stopTimer() {
   clearInterval(timerInterval);
   const elapsedTime = Math.floor(cumulativeTime / 1000);
 
-  const goldGained = Math.round((selectedFloor * 2) + (totalBossesInMaze * selectedFloor));
+  const goldGained = Math.round(
+    selectedFloor * 2 + totalBossesInMaze * selectedFloor
+  );
   const expGained = addExperienceForCompletion(selectedFloor);
   addGold(goldGained);
 
@@ -1562,7 +1593,13 @@ async function stopTimer() {
   }
 
   exitPointerLock();
-  showCompletionModal(elapsedTime, goldGained, expGained, previousBestTime, newBestTime);
+  showCompletionModal(
+    elapsedTime,
+    goldGained,
+    expGained,
+    previousBestTime,
+    newBestTime
+  );
 }
 
 function updateTimer() {
@@ -1574,8 +1611,9 @@ function updateTimer() {
   const totalSeconds = Math.floor(cumulativeTime / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  document.getElementById("timeCount").textContent = `${minutes}:${seconds < 10 ? "0" : ""
-    }${seconds}`;
+  document.getElementById("timeCount").textContent = `${minutes}:${
+    seconds < 10 ? "0" : ""
+  }${seconds}`;
 }
 
 function hideTeleportPrompt() {
@@ -1587,7 +1625,10 @@ function hideTeleportPrompt() {
 
 // Přidejte novou funkci pro přepínání minimapy
 export function toggleMinimap() {
-  if (selectedFloor === 999 || selectedFloor >= 100) {playSound(errorSoundBuffer); return; } // Nelze použít minimapu v táboře nebo boss room
+  if (selectedFloor === 999 || selectedFloor >= 100) {
+    playSound(errorSoundBuffer);
+    return;
+  } // Nelze použít minimapu v táboře nebo boss room
   if (!canOpenMinimap && !isMinimapVisible) return;
 
   isMinimapVisible = !isMinimapVisible;
@@ -1809,7 +1850,7 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
 
               torch.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                dir.dx * CELL_SIZE * 0.5,
+                  dir.dx * CELL_SIZE * 0.5,
                 WALL_HEIGHT / 2 - 0.2,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE + dir.dz * CELL_SIZE * 0.5
               );
@@ -1832,10 +1873,10 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
               );
               light.position.set(
                 (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                dir.dx * CELL_SIZE * 0.18,
+                  dir.dx * CELL_SIZE * 0.18,
                 WALL_HEIGHT / 2 + 0.25,
                 (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE +
-                dir.dz * CELL_SIZE * 0.18
+                  dir.dz * CELL_SIZE * 0.18
               );
 
               lightManager.addLight(light);
@@ -1920,8 +1961,6 @@ export function animateFire(deltaTime) {
   });
 }
 
-
-
 function addStarsToNebula() {
   // Nejprve odstraníme staré objekty, pokud existují
   floatingObjects.forEach((obj) => scene.remove(obj));
@@ -1957,7 +1996,7 @@ function addStarsToNebula() {
   floatingObjects.push(stars);
 
   // Odstraníme animaci třpytu, protože hvězdy jsou nyní černé a nesvítí
-  stars.userData.animate = () => { };
+  stars.userData.animate = () => {};
 }
 
 export function addNebula(color1, color2) {
@@ -2032,7 +2071,6 @@ export function updateVisibleObjects() {
   // Aktualizace viditelnosti zdí
   walls.forEach((wall) => {
     const isVisible = frustum.intersectsObject(wall); //&& wall.position.distanceToSquared(player.position) < visibilityDistanceSquared;
-            
 
     if (wall.visible !== isVisible) {
       wall.visible = isVisible;
@@ -2044,9 +2082,7 @@ export function updateVisibleObjects() {
     const torch = torchData.torch;
     const fire = torchData.fire;
 
-    const isVisible =
-      frustum.intersectsObject(torch); //&& torch.position.distanceToSquared(player.position) < visibilityDistanceSquared;
-       
+    const isVisible = frustum.intersectsObject(torch); //&& torch.position.distanceToSquared(player.position) < visibilityDistanceSquared;
 
     if (torch.visible !== isVisible) {
       torch.visible = isVisible;
@@ -2109,8 +2145,8 @@ function toggleConsole() {
 
 export function generateSpecificMaze(seed, floor) {
   selectedFloor = floor;
-  document.getElementById('mazeInput').value = seed;
-  showFloorSelectBtn.textContent = `${getTranslation("floor")} ${selectedFloor}`;
+  document.getElementById("mazeInput").value = seed;
+  showFloorSelectBtn.textContent = getSelectedFloorText();
   generateNewMaze();
 }
 
@@ -2179,10 +2215,8 @@ floorOptions.forEach((option) => {
     if (canSelectFloor(floor)) {
       selectedFloor = floor;
       closeFloorSelectModal();
-      showFloorSelectBtn.textContent =
-        floor === 999
-          ? getTranslation("floorCamp")
-          : `${getTranslation("floor")} ${selectedFloor}`;
+      showFloorSelectBtn.textContent = getSelectedFloorText();
+      updateUIForSelectedFloor();
       generateNewMaze(); // Volání funkce pro generování nového bludiště nebo tábora
     }
   });
@@ -2196,8 +2230,8 @@ export function canSelectFloor(floor) {
   if (floor === 4) return playerLevel >= 16;
   if (floor === 5) return playerLevel >= 21;
   if (floor === 6) return playerLevel >= 26;
-  if (floor === 7) return playerLevel >= 31; 
-  if (floor === 8) return playerLevel >= 36; 
+  if (floor === 7) return playerLevel >= 31;
+  if (floor === 8) return playerLevel >= 36;
   if (floor === 9) return playerLevel >= 41;
   if (floor === 10) return playerLevel >= 46;
   if (floor === 11) return playerLevel >= 51;
@@ -2229,7 +2263,6 @@ export function updateFloorOptions() {
       option.classList.add("locked");
     }
   });
-
 }
 
 export function playSound(soundBuffer, volume = 1) {
