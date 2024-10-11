@@ -1073,6 +1073,9 @@ function addSpecialWalls(rng, specialTextures) {
   const specialWallCount = Math.min(5, Math.floor(rng() * 5) + 1); // Počet speciálních zdí
   const selectedTextures = [];
 
+  const boxGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+  const boxMaterial = new THREE.MeshStandardMaterial({ map: specialTextures[0] });
+
   for (let i = 0; i < specialWallCount; i++) {
     const textureIndex = Math.floor(rng() * specialTextures.length);
     const specialTexture = specialTextures[textureIndex];
@@ -1080,14 +1083,8 @@ function addSpecialWalls(rng, specialTextures) {
   }
 
   for (let i = 0; i < selectedTextures.length; i++) {
-    const specialWallGeometry = new THREE.BoxGeometry(
-      CELL_SIZE,
-      WALL_HEIGHT,
-      CELL_SIZE
-    );
-    const specialWallMaterial = new THREE.MeshStandardMaterial({
-      map: selectedTextures[i],
-    });
+    const specialWallGeometry = boxGeometry;
+    const specialWallMaterial = boxMaterial;
 
     let placed = false;
     while (!placed) {

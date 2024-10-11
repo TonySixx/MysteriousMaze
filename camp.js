@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import { BufferGeometryUtils } from "three/examples/jsm/Addons.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { getGold, addGold, player } from "./player.js";
 import { addItemToInventory, hideTooltip, inventory, INVENTORY_SIZE, showTooltip } from "./inventory.js";
@@ -22,8 +23,17 @@ import { ITEM_RARITIES, ITEM_TYPES, itemDatabase } from "./itemDatabase.js";
 import { textureSets } from "./globals.js";
 import { getAvailableQuests, getCompletedQuests } from "./quests.js";
 
+var torchGeometry, torchMaterial, wallGeometry, wallMaterial;
 export function createCamp() {
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
+  const loader = new THREE.TextureLoader(manager);
+  const wallTexture = loader.load(textureSets[0].wallTexture);
+  wallTexture.colorSpace = THREE.SRGBColorSpace;
+
+  wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+  wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
+  torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
+  torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
   createGround();
   createSky();
   addStars();
@@ -39,7 +49,7 @@ export function createCamp() {
 }
 
 function createGround() {
-  const loader = new THREE.TextureLoader();
+  const loader = new THREE.TextureLoader(manager);
   const floorTexture = loader.load(textureSets[2].floorTexture);
   floorTexture.colorSpace = THREE.SRGBColorSpace;
   floorTexture.wrapS = THREE.RepeatWrapping;
@@ -118,7 +128,7 @@ function addStars() {
 }
 
 function createTents() {
-  const loader = new THREE.TextureLoader();
+  const loader = new THREE.TextureLoader(manager);
   const tentTexture = loader.load("textures/tent.jpg");
   tentTexture.colorSpace = THREE.SRGBColorSpace;
   tentTexture.wrapS = THREE.RepeatWrapping;
@@ -319,7 +329,7 @@ function createArmorMerchant() {
 }
 
 function createWalls() {
-  const loader = new THREE.TextureLoader();
+  const loader = new THREE.TextureLoader(manager);
   const wallTexture = loader.load(textureSets[0].wallTexture);
   wallTexture.colorSpace = THREE.SRGBColorSpace;
 
@@ -350,6 +360,7 @@ function createWall(x, y, z, geometry, material) {
   walls.push(wall);
 }
 
+// Optimalizovaná funkce createTowers
 function createTowers() {
   const towerHeight = 4;
   const towerPositions = [
@@ -359,33 +370,31 @@ function createTowers() {
     { x: 15, z: 15 },
   ];
 
-  const loader = new THREE.TextureLoader();
-  const wallTexture = loader.load(textureSets[0].wallTexture);
-  wallTexture.colorSpace = THREE.SRGBColorSpace;
-
-  const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
-  const wallMaterial = new THREE.MeshStandardMaterial({
-    map: wallTexture,
-  });
+  const totalBlocks = towerHeight * towerPositions.length;
+  const instancedMesh = new THREE.InstancedMesh(wallGeometry, wallMaterial, totalBlocks);
+  const dummy = new THREE.Object3D();
+  let index = 0;
 
   towerPositions.forEach((pos) => {
-    createTower(pos.x, pos.z, towerHeight, wallGeometry, wallMaterial);
+    for (let i = 0; i < towerHeight; i++) {
+      dummy.position.set(pos.x, WALL_HEIGHT / 2 + i * WALL_HEIGHT, pos.z);
+      dummy.updateMatrix();
+      instancedMesh.setMatrixAt(index++, dummy.matrix);
+    }
+  });
+
+  scene.add(instancedMesh);
+  walls.push(instancedMesh);
+
+  // Vytvoříme pochodně na věžích
+  towerPositions.forEach((pos) => {
     createTorchOnTower(pos.x, pos.z, towerHeight);
   });
 }
 
-function createTower(x, z, height, geometry, material) {
-  for (let i = 0; i < height; i++) {
-    const towerBlock = new THREE.Mesh(geometry, material);
-    towerBlock.position.set(x, WALL_HEIGHT / 2 + i * WALL_HEIGHT, z);
-    scene.add(towerBlock);
-    walls.push(towerBlock);
-  }
-}
+
 
 function createTorchOnTower(x, z, towerHeight) {
-  const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
-  const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
   const torch = new THREE.Mesh(torchGeometry, torchMaterial);
   torch.position.set(x, WALL_HEIGHT * towerHeight + 0.5, z);
   scene.add(torch);
@@ -394,19 +403,10 @@ function createTorchOnTower(x, z, towerHeight) {
   fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
   scene.add(fire);
 
-  const light = new THREE.PointLight(
-    textureSets[1].torchColor.light,
-    1.5,
-    CELL_SIZE * 4
-  );
-  light.position.copy(torch.position);
-  lightManager.addLight(light);
-  torches.push({ torch, fire, light });
+  torches.push({ torch, fire });
 }
 
 export function createTorchOnWall(x, z, dir) {
-  const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
-  const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
   const torch = new THREE.Mesh(torchGeometry, torchMaterial);
 
   torch.position.set(
@@ -442,29 +442,27 @@ export function createTorchOnWall(x, z, dir) {
   torches.push({ torch, fire, light });
 }
 
+// Optimalizovaná funkce createCenterTower
 function createCenterTower() {
   const centerTowerHeight = 2;
   const centerTowerPosition = { x: 0, z: 0 };
 
-  const loader = new THREE.TextureLoader();
-  const wallTexture = loader.load(textureSets[0].wallTexture);
-  wallTexture.colorSpace = THREE.SRGBColorSpace;
-
-  const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
-  const wallMaterial = new THREE.MeshStandardMaterial({
-    map: wallTexture,
-  });
+  const totalBlocks = centerTowerHeight;
+  const instancedMesh = new THREE.InstancedMesh(wallGeometry, wallMaterial, totalBlocks);
+  const dummy = new THREE.Object3D();
 
   for (let i = 0; i < centerTowerHeight; i++) {
-    const towerBlock = new THREE.Mesh(wallGeometry, wallMaterial);
-    towerBlock.position.set(
+    dummy.position.set(
       centerTowerPosition.x,
       WALL_HEIGHT / 2 + i * WALL_HEIGHT,
       centerTowerPosition.z
     );
-    scene.add(towerBlock);
-    walls.push(towerBlock);
+    dummy.updateMatrix();
+    instancedMesh.setMatrixAt(i, dummy.matrix);
   }
+
+  scene.add(instancedMesh);
+  walls.push(instancedMesh);
 
   const centerTorchPositions = [
     { dx: 1, dz: 0 },
@@ -484,8 +482,6 @@ function createCenterTower() {
 }
 
 export function createTorchOnCenterTower(x, z, towerHeight, dir, torchColor) {
-  const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
-  const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
   const torch = new THREE.Mesh(torchGeometry, torchMaterial);
   torch.position.set(
     x + dir.dx * (CELL_SIZE / 2),
@@ -526,35 +522,54 @@ function createTrees() {
     const treeModel = gltf.scene;
     const treePositions = generateTreePositions();
 
-    const meshes = [];
+    const geometries = [];
+    const materials = [];
+    const materialMap = new Map();
 
-    // Shromáždění všech meshů z modelu stromu
+    // Collect all geometries and materials from the tree model
     treeModel.traverse((child) => {
       if (child.isMesh) {
-        meshes.push(child);
+        // Update the world matrix of the mesh
+        child.updateWorldMatrix(true, false);
+
+        // Clone the geometry and apply the mesh's world matrix
+        const geometry = child.geometry.clone();
+        geometry.applyMatrix4(child.matrixWorld);
+
+        // Handle multiple materials
+        let materialIndex;
+        const materialKey = child.material.uuid;
+
+        if (materialMap.has(materialKey)) {
+          materialIndex = materialMap.get(materialKey);
+        } else {
+          materials.push(child.material);
+          materialIndex = materials.length - 1;
+          materialMap.set(materialKey, materialIndex);
+        }
+
+        geometry.userData = { materialIndex };
+        geometries.push(geometry);
       }
     });
 
-    meshes.forEach((mesh) => {
-      // Klonování geometrie a aplikace původní transformace
-      const geometry = mesh.geometry.clone();
-      geometry.applyMatrix4(mesh.matrixWorld);
-      const material = mesh.material;
+    // Merge all geometries into one, preserving material groups
+    const mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries, true);
 
-      const instancedMesh = new THREE.InstancedMesh(geometry, material, treePositions.length);
+    // Create an InstancedMesh with the merged geometry and materials
+    const instancedMesh = new THREE.InstancedMesh(mergedGeometry, materials, treePositions.length);
 
-      const dummy = new THREE.Object3D();
-      treePositions.forEach((pos, i) => {
-        const randomHeight = 0.8 + Math.random() * 0.2;
-        dummy.position.set(pos.x, 0, pos.z);
-        dummy.scale.set(1, randomHeight, 1);
-        dummy.updateMatrix();
-        instancedMesh.setMatrixAt(i, dummy.matrix);
-      });
-
-      instancedMesh.instanceMatrix.needsUpdate = true;
-      scene.add(instancedMesh);
+    const dummy = new THREE.Object3D();
+    treePositions.forEach((pos, i) => {
+      const randomHeight = 0.8 + Math.random() * 0.2;
+      dummy.position.set(pos.x, 0, pos.z);
+      dummy.scale.set(1, randomHeight, 1);
+      dummy.updateMatrix();
+      instancedMesh.setMatrixAt(i, dummy.matrix);
     });
+
+    instancedMesh.instanceMatrix.needsUpdate = true;
+    scene.add(instancedMesh);
   });
 }
 
@@ -918,18 +933,18 @@ function createArmorIcon() {
 function createQuestBoard() {
   const gltfLoader = new GLTFLoader(manager);
   gltfLoader.load("models/QuestBoard.glb", (gltf) => {
-      const questBoard = gltf.scene;
-      questBoard.position.set(
-          -11,  // Upravte pozici podle potřeby
-          0,
-          2
-      );
-      questBoard.scale.set(2, 2, 2);  // Upravte měřítko podle potřeby
-      questBoard.rotation.y = Math.PI / 2; // Otočení nástěnky podle potřeby
-      questBoard.name = "questBoard";  // Důležité pro pozdější vyhledávání
-      scene.add(questBoard);
+    const questBoard = gltf.scene;
+    questBoard.position.set(
+      -11,  // Upravte pozici podle potřeby
+      0,
+      2
+    );
+    questBoard.scale.set(2, 2, 2);  // Upravte měřítko podle potřeby
+    questBoard.rotation.y = Math.PI / 2; // Otočení nástěnky podle potřeby
+    questBoard.name = "questBoard";  // Důležité pro pozdější vyhledávání
+    scene.add(questBoard);
 
-        // Přidání neviditelné zdi
+    // Přidání neviditelné zdi
     const wallWidth = 1; // Šířka zdi
     const wallHeight = 3; // Výška zdi
     const wallDepth = 0.1; // Hloubka zdi
@@ -949,31 +964,31 @@ function createQuestBoard() {
     scene.add(invisibleWall);
     walls.push(invisibleWall); // Přidání do pole zdí pro detekci kolizí
 
-      // Přidání interakční zóny
-      const interactionZone = new THREE.Mesh(
-          new THREE.CylinderGeometry(2, 2, 2, 32),
-          new THREE.MeshBasicMaterial({ visible: false })
-      );
-      interactionZone.position.copy(questBoard.position);
-      scene.add(interactionZone);
+    // Přidání interakční zóny
+    const interactionZone = new THREE.Mesh(
+      new THREE.CylinderGeometry(2, 2, 2, 32),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    interactionZone.position.copy(questBoard.position);
+    scene.add(interactionZone);
 
-      // Přidání textu pro interakci
-      const interactionText = document.createElement("div");
-      interactionText.className = "interaction-text";
-      interactionText.textContent = getTranslation("pressFToInteractWithQuestBoard");
-      interactionText.style.display = "none";
-      document.body.appendChild(interactionText);
+    // Přidání textu pro interakci
+    const interactionText = document.createElement("div");
+    interactionText.className = "interaction-text";
+    interactionText.textContent = getTranslation("pressFToInteractWithQuestBoard");
+    interactionText.style.display = "none";
+    document.body.appendChild(interactionText);
 
-      // Uložíme interakční text do userData
-      questBoard.userData.interactionText = interactionText;
+    // Uložíme interakční text do userData
+    questBoard.userData.interactionText = interactionText;
 
-      // Vytvoření a přidání otazníku/vykřičníku
-      const questIndicator = createQuestIndicator();
-      questIndicator.position.set(0, 2.5, 0); // Umístění nad nástěnkou
-      questBoard.add(questIndicator);
+    // Vytvoření a přidání otazníku/vykřičníku
+    const questIndicator = createQuestIndicator();
+    questIndicator.position.set(0, 2.5, 0); // Umístění nad nástěnkou
+    questBoard.add(questIndicator);
 
-      // Uložíme questIndicator pro pozdější aktualizaci
-      questBoard.userData.questIndicator = questIndicator;
+    // Uložíme questIndicator pro pozdější aktualizaci
+    questBoard.userData.questIndicator = questIndicator;
   });
 }
 
