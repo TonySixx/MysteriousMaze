@@ -78,23 +78,21 @@ export function updateSpellUpgrades(skillTree) {
       // Aktualizace dalších vlastností kouzla
       if (spellInfo.upgrades) {
         spellInfo.upgrades.forEach(upgrade => {
-          if (upgrade.unlocked) {
             if (upgrade.systemName === 'infernoTouch') {
-              spell.burningEffect = true;
+              spell.burningEffect = upgrade.unlocked;
             } else if (upgrade.systemName === 'iceExplosion') {
-              spell.iceExplosion = true;
+              spell.iceExplosion = upgrade.unlocked;
             } else if (upgrade.systemName === 'multiShot') {
-              spell.multiShot = true;
+              spell.multiShot = upgrade.unlocked;
             } else if (upgrade.systemName === 'chainExplosion') {
-              spell.chainExplosion = true;
+              spell.chainExplosion = upgrade.unlocked;
             } else if (upgrade.systemName === 'explosiveCore') {
-              spell.explosiveCore = true;
+              spell.explosiveCore = upgrade.unlocked;
             } else if (upgrade.systemName === 'frostAura') {
-              spell.frostAura = true;
+              spell.frostAura = upgrade.unlocked;
             } else if (upgrade.systemName === 'protectiveShield') {
-              spell.protectiveShield = true;
+              spell.protectiveShield = upgrade.unlocked;
             }
-          }
         });
       }
     }

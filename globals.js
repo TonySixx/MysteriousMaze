@@ -424,6 +424,9 @@ export const floorsConfig = {
       minSize: 2,
       maxSize: 5
     },
+    traps: {
+      enabled: false,
+    },
     bossProbability: 1.0
   },
   5: {
