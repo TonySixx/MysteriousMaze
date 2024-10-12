@@ -995,7 +995,7 @@ function createQuestBoard() {
 function createQuestIndicator() {
   const group = new THREE.Group();
 
-  const loader = new FontLoader();
+  const loader = new FontLoader(manager);
 
 
   const exclamationGeometry = new THREE.Group();

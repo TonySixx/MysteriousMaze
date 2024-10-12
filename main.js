@@ -1767,54 +1767,134 @@ export function updateBosses(deltaTime) {
 
 // Třída pro správu světel
 export class LightManager {
-  constructor(scene, maxVisibleLights, tolerance = 2) {
+  constructor(scene, maxVisibleLights, maxDistance = 50, clusterSize = 15, frustumOffset = 0.1) {
     this.scene = scene;
     this.maxVisibleLights = maxVisibleLights;
+    this.maxDistance = maxDistance;
+    this.clusterSize = clusterSize;
+    this.frustumOffset = frustumOffset; // Nový parametr pro offset frustumu
     this.lights = [];
-    this.tolerance = tolerance;
+    this.lightClusters = new Map();
   }
 
   addLight(light) {
     this.lights.push(light);
     this.scene.add(light);
-    light.visible = false; // Začněte se všemi světly vypnutými
+    light.visible = false;
+  }
+
+  assignLightsToClusters() {
+    this.lightClusters.clear();
+    for (let i = 0; i < this.lights.length; i++) {
+      const clusterKey = this.getClusterKey(this.lights[i].position);
+      if (!this.lightClusters.has(clusterKey)) {
+        this.lightClusters.set(clusterKey, []);
+      }
+      this.lightClusters.get(clusterKey).push(this.lights[i]);
+    }
+  }
+
+  getClusterKey(position) {
+    const x = Math.floor(position.x / this.clusterSize);
+    const y = Math.floor(position.y / this.clusterSize);
+    const z = Math.floor(position.z / this.clusterSize);
+    return `${x}_${y}_${z}`;
   }
 
   update(playerPosition, camera) {
-    // Vytvoříme frustum kamery s tolerancí
+    // Aktualizujeme clustery světel
+    this.assignLightsToClusters();
+
+    const playerCluster = this.getClusterKey(playerPosition);
+    const nearbyClusters = this.getNearbyClusters(playerCluster);
+
+    // Vypneme všechna světla
+    this.lights.forEach((light) => (light.visible = false));
+
+    // Připravíme frustum pro culling s offsetem
     const frustum = new THREE.Frustum();
     const cameraViewProjectionMatrix = new THREE.Matrix4();
-    camera.updateMatrixWorld(); // Zajistíme, že matice kamery je aktuální
+    camera.updateMatrixWorld(); // Ujistíme se, že matice kamery je aktuální
     cameraViewProjectionMatrix.multiplyMatrices(
       camera.projectionMatrix,
       camera.matrixWorldInverse
     );
+
+    // Upravená matice projekce pro zahrnutí offsetu
+    const offsetMatrix = new THREE.Matrix4();
+    offsetMatrix.makeScale(
+      1 + this.frustumOffset,
+      1 + this.frustumOffset,
+      1 + this.frustumOffset
+    );
+    cameraViewProjectionMatrix.multiply(offsetMatrix);
+
     frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
 
-    this.lights.forEach((light) => {
-      light.visible = false;
+    // Shromáždíme kandidátní světla z blízkých clusterů
+    let candidateLights = [];
+
+    for (const cluster of nearbyClusters) {
+      const lightsInCluster = this.lightClusters.get(cluster) || [];
+      candidateLights.push(...lightsInCluster);
+    }
+
+    // Rozdělíme světla na ta v (rozšířeném) frustumu a mimo něj
+    let lightsInFrustum = [];
+    let lightsOutOfFrustum = [];
+
+    candidateLights.forEach((light) => {
+      const distanceSquared = playerPosition.distanceToSquared(light.position);
+      if (distanceSquared < this.maxDistance * this.maxDistance) {
+        // Použijeme průnik sfér pro přesnější culling
+        const sphere = new THREE.Sphere(light.position, light.distance || 1);
+        if (frustum.intersectsSphere(sphere)) {
+          lightsInFrustum.push({ light, distanceSquared });
+        } else {
+          lightsOutOfFrustum.push({ light, distanceSquared });
+        }
+      }
     });
 
-    // Seřaďte světla podle vzdálenosti od hráče a zjistěte, zda jsou v záběru s tolerancí
-    const sortedLights = this.lights
-      .map((light) => ({
-        light,
-        distance: light.position.distanceTo(playerPosition),
-        inView: frustum.intersectsSphere(
-          new THREE.Sphere(light.position, this.tolerance)
-        ),
-      }))
-      .filter((lightInfo) => lightInfo.inView) // Filtrujte pouze světla, která jsou v záběru nebo blízko záběru
-      .sort((a, b) => a.distance - b.distance);
+    // Seřadíme světla v frustumu podle vzdálenosti
+    lightsInFrustum.sort((a, b) => a.distanceSquared - b.distanceSquared);
 
-    // Zapněte pouze nejbližší světla
+    // Zapneme světla v frustumu
+    let visibleLights = 0;
     for (
       let i = 0;
-      i < Math.min(this.maxVisibleLights, sortedLights.length);
+      i < lightsInFrustum.length && visibleLights < this.maxVisibleLights;
       i++
     ) {
-      sortedLights[i].light.visible = true;
+      lightsInFrustum[i].light.visible = true;
+      visibleLights++;
     }
+
+    // Pokud máme volnou kapacitu, zapneme i některá blízká světla mimo frustum
+    if (visibleLights < this.maxVisibleLights) {
+      lightsOutOfFrustum.sort((a, b) => a.distanceSquared - b.distanceSquared);
+      for (
+        let i = 0;
+        i < lightsOutOfFrustum.length && visibleLights < this.maxVisibleLights;
+        i++
+      ) {
+        lightsOutOfFrustum[i].light.visible = true;
+        visibleLights++;
+      }
+    }
+  }
+
+  getNearbyClusters(clusterKey) {
+    const [x, y, z] = clusterKey.split('_').map(Number);
+    const nearbyClusters = [];
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          nearbyClusters.push(`${x + dx}_${y + dy}_${z + dz}`);
+        }
+      }
+    }
+    return nearbyClusters;
   }
 }
 
