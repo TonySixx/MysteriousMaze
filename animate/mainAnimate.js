@@ -13,6 +13,7 @@ import { updateBloodVortexes, updateBloodRitual, updateBloodLances } from "./blo
 import { updateLightningStrikes, updateBallLightnings, updateElectromagneticPulse } from "./thunderlordAnimate";
 import { updateDarkMistEffect, updateManaDrainEffect } from "./darklordAnimate";
 import { updateSpikeTraps } from '../utils.js';
+import { animateCoast } from "../Coast.js";
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
@@ -101,6 +102,8 @@ export function animate() {
   animateQuestIndicator(deltaTime);
 
   updateSpikeTraps(deltaTime);
+
+  animateCoast(deltaTime);
 
 
   if (bossChestAndPortalData) {

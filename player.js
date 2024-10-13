@@ -359,12 +359,11 @@ function createPlayer() {
     player.add(camera);
     scene.add(player);
 
-    if (selectedFloor === 999) { //Tábor
+    if (selectedFloor === 999 || selectedFloor === 1000) { //Tábor nebo pobřeží
         player.position.set(0, 0, 15 - (CELL_SIZE / 2));
         return;
     }
-
-    if (selectedFloor >= 100 && selectedFloor <= 200) { //Boss floor
+    else if (selectedFloor >= 100 && selectedFloor <= 200) { //Boss floor
         player.position.set(0, 0, 10 - (CELL_SIZE / 2));
         return;
     }

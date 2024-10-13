@@ -6,7 +6,7 @@ import { getAllQuests, sortQuestsByLevel } from './questDatabase.js';
 import { showMessage } from './utils.js';
 import { activateSoundBuffer, exitPointerLock, generateSpecificMaze, itemSoundBuffer, playSound, requestPointerLock, successSoundBuffer } from './main.js';
 
-let quests = [];
+export let quests = [];
 let selectedQuest = null;
 let availableQuests = []; // Nové questy k vyzvednutí
 let completedQuestIds = []; // Již dokončené questy

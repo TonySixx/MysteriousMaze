@@ -1001,6 +1001,25 @@ const questDefinitions = [
             target: 'Dark Lord, Temný pán',
             count: 1
         }
+    },
+    {
+        id: 'mysteriousIsle',
+        name: 'mysteriousIsleQuest',
+        description: 'mysteriousIsleQuestDescription',
+        level: 60,
+        rewards: {
+            exp: 0,  // Žádná zkušenost, protože hráč je již na maximální úrovni
+            gold: 1000,
+            items: [
+                { item: 'powerLapisia', count: 15 },
+                { item: 'protectorsLapisia', count: 15 },
+                { item: 'mysteriousAmulet', count: 1 }  // Nový unikátní předmět
+            ]
+        },
+        objective: {
+            type: 'reachIsland',
+            count: 1
+        }
     }
 ];
 

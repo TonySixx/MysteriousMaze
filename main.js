@@ -86,9 +86,10 @@ import {
 } from "./utils.js";
 import { createMainBossRoom } from "./mainBoss/mainBoss.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
-import { toggleQuestWindow } from "./quests.js";
+import { quests, toggleQuestWindow } from "./quests.js";
 import { clearScene } from "./clearScene.js";
 import { animate } from "./animate/mainAnimate.js";
+import { createCoastScene } from "./Coast.js";
 
 export const version = "3.4.3";
 
@@ -240,6 +241,8 @@ function getSelectedFloorText() {
       return getTranslation("bossFloor11");
     case 111:
       return getTranslation("bossFloor12");
+    case 1000:
+      return getTranslation("coast");
     default:
       return `${getTranslation("selectFloor")} ${selectedFloor}`;
   }
@@ -741,6 +744,12 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     return;
   }
 
+  if (selectedFloor === 1000) {
+    clearScene();
+    createCoastScene();
+    return;
+  }
+
   clearScene();
 
   lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
@@ -966,6 +975,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
      }
    
 
+
     createKeys(rng);
     createTorches(
       walls,
@@ -1026,7 +1036,7 @@ function createKeys(rng) {
     return;
   }
 
-  // Spočítáme, kolik klíčů už je přiděleno bossům
+  // Spočítáme, kolik klíčů už je přiřazeno bossům
   const keysWithBosses = bosses.length;
 
   // Vypočítáme, kolik klíčů zbývá k rozmístění do bludiště
@@ -2344,6 +2354,7 @@ export function canSelectFloor(floor) {
   if (floor === 109) return playerLevel >= 51; // Boss podlaží pro Blood Mage
   if (floor === 110) return playerLevel >= 56; // Boss podlaží pro Thunderlord
   if (floor === 111) return playerLevel >= 60; // Boss podlaží pro Darklord
+  if (floor === 1000) return playerLevel >= 60 && quests.some(q => q.id === 'mysteriousIsle'); // Pobřeží
   return false;
 }
 
