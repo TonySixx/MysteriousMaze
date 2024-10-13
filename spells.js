@@ -531,6 +531,7 @@ function updateFireballs(deltaTime) {
     // Detekce kolize s zdmi
     for (let j = walls.length - 1; j >= 0; j--) {
       const wall = walls[j];
+      if (wall.userData.canShootThrough) continue;
       if (fireball.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
 
         // Vytvoření výbuchu při kolizi
@@ -591,6 +592,7 @@ function updateFrostbolts(deltaTime) {
 
     for (let j = walls.length - 1; j >= 0; j--) {
       const wall = walls[j];
+      if (wall.userData.canShootThrough) continue;
       if (frostbolt.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
         createExplosion(frostbolt.position, 0xa6d9ff);
         scene.remove(frostbolt);
@@ -633,6 +635,7 @@ function updateArcaneMissiles(deltaTime) {
 
     for (let j = walls.length - 1; j >= 0; j--) {
       const wall = walls[j];
+      if (wall.userData.canShootThrough) continue;
       if (arcaneMissile.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
         createExplosion(arcaneMissile.position, 0xf7c6bfa);
         scene.remove(arcaneMissile);
@@ -774,6 +777,7 @@ export function updateChainLightnings(deltaTime) {
     // Detekce kolize s zdmi
     for (let j = walls.length - 1; j >= 0; j--) {
       const wall = walls[j];
+      if (wall.userData.canShootThrough) continue;
       if (lightning.position.distanceTo(wall.position) < CELL_SIZE / 1.6) {
 
         // Vytvoření výbuchu při kolizi
@@ -1142,7 +1146,7 @@ export function setOriginalStaffRotation() {
 
 
 function getNoFloorCheck() {
-  return selectedFloor === 999 || (selectedFloor >= 100 && selectedFloor <= 200);
+  return selectedFloor === 999 || selectedFloor === 1000 || (selectedFloor >= 100 && selectedFloor <= 200);
 }
 
 export { spells, Spell, castFireball, castFrostbolt, castArcaneMissile, updateFireballs, updateFrostbolts, updateArcaneMissiles };

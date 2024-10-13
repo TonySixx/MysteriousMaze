@@ -1,19 +1,16 @@
 import * as THREE from "three";
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import { BufferGeometryUtils } from "three/examples/jsm/Addons.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { getGold, addGold, player } from "./player.js";
 import { addItemToInventory, hideTooltip, inventory, INVENTORY_SIZE, showTooltip } from "./inventory.js";
 import { getTranslation } from "./langUtils.js";
 import {
   CELL_SIZE,
-  createFireParticles,
   errorSoundBuffer,
   exitPointerLock,
   itemSoundBuffer,
   keys,
-  LightManager,
   manager,
   playSound,
   requestPointerLock,
@@ -22,6 +19,9 @@ import {
 import { ITEM_RARITIES, ITEM_TYPES, itemDatabase } from "./itemDatabase.js";
 import { textureSets } from "./globals.js";
 import { getAvailableQuests, getCompletedQuests } from "./quests.js";
+import { addStars, createSky, createTrees } from "./others/environemntUtils.js";
+import { createFireParticles } from "./others/effects.js";
+import { LightManager } from "./rendering/lightManager.js";
 
 var torchGeometry, torchMaterial, wallGeometry, wallMaterial;
 export function createCamp() {
@@ -43,7 +43,7 @@ export function createCamp() {
   createWalls();
   createTowers();
   createCenterTower();
-  createTrees();
+  createTrees(generateTreePositions);
   createQuestBoard();
   addLighting();
 }
@@ -61,70 +61,6 @@ function createGround() {
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
-}
-
-function createSky() {
-  const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
-  const skyMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      topColor: { value: new THREE.Color(0x151a5c) },
-      bottomColor: { value: new THREE.Color(0x000000) },
-      offset: { value: 20 },
-      exponent: { value: 0.6 },
-    },
-    vertexShader: `
-      varying vec3 vWorldPosition;
-      void main() {
-        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-        vWorldPosition = worldPosition.xyz;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 topColor;
-      uniform vec3 bottomColor;
-      uniform float offset;
-      uniform float exponent;
-      varying vec3 vWorldPosition;
-      void main() {
-        float h = normalize(vWorldPosition + offset).y;
-        gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
-      }
-    `,
-    side: THREE.BackSide,
-  });
-  const sky = new THREE.Mesh(skyGeometry, skyMaterial);
-  scene.add(sky);
-}
-
-function addStars() {
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 1000;
-  const positions = new Float32Array(starCount * 3);
-
-  for (let i = 0; i < starCount; i++) {
-    const theta = THREE.MathUtils.randFloatSpread(360);
-    const phi = THREE.MathUtils.randFloatSpread(360);
-    const distance = 400;
-
-    positions[i * 3] = distance * Math.sin(theta) * Math.cos(phi);
-    positions[i * 3 + 1] = distance * Math.sin(theta) * Math.sin(phi);
-    positions[i * 3 + 2] = distance * Math.cos(theta);
-  }
-
-  starGeometry.setAttribute(
-    "position",
-    new THREE.BufferAttribute(positions, 3)
-  );
-
-  const starMaterial = new THREE.PointsMaterial({
-    color: 0xffffff,
-    size: 1,
-    sizeAttenuation: true,
-  });
-
-  const stars = new THREE.Points(starGeometry, starMaterial);
-  scene.add(stars);
 }
 
 function createTents() {
@@ -514,63 +450,6 @@ export function createTorchOnCenterTower(x, z, towerHeight, dir, torchColor) {
 
   lightManager.addLight(light);
   torches.push({ torch, fire, light });
-}
-
-function createTrees() {
-  const gltfLoader = new GLTFLoader(manager);
-  gltfLoader.load("models/Tree.glb", (gltf) => {
-    const treeModel = gltf.scene;
-    const treePositions = generateTreePositions();
-
-    const geometries = [];
-    const materials = [];
-    const materialMap = new Map();
-
-    // Collect all geometries and materials from the tree model
-    treeModel.traverse((child) => {
-      if (child.isMesh) {
-        // Update the world matrix of the mesh
-        child.updateWorldMatrix(true, false);
-
-        // Clone the geometry and apply the mesh's world matrix
-        const geometry = child.geometry.clone();
-        geometry.applyMatrix4(child.matrixWorld);
-
-        // Handle multiple materials
-        let materialIndex;
-        const materialKey = child.material.uuid;
-
-        if (materialMap.has(materialKey)) {
-          materialIndex = materialMap.get(materialKey);
-        } else {
-          materials.push(child.material);
-          materialIndex = materials.length - 1;
-          materialMap.set(materialKey, materialIndex);
-        }
-
-        geometry.userData = { materialIndex };
-        geometries.push(geometry);
-      }
-    });
-
-    // Merge all geometries into one, preserving material groups
-    const mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries, true);
-
-    // Create an InstancedMesh with the merged geometry and materials
-    const instancedMesh = new THREE.InstancedMesh(mergedGeometry, materials, treePositions.length);
-
-    const dummy = new THREE.Object3D();
-    treePositions.forEach((pos, i) => {
-      const randomHeight = 0.8 + Math.random() * 0.2;
-      dummy.position.set(pos.x, 0, pos.z);
-      dummy.scale.set(1, randomHeight, 1);
-      dummy.updateMatrix();
-      instancedMesh.setMatrixAt(i, dummy.matrix);
-    });
-
-    instancedMesh.instanceMatrix.needsUpdate = true;
-    scene.add(instancedMesh);
-  });
 }
 
 function generateTreePositions() {

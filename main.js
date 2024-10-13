@@ -90,6 +90,8 @@ import { quests, toggleQuestWindow } from "./quests.js";
 import { clearScene } from "./clearScene.js";
 import { animate } from "./animate/mainAnimate.js";
 import { createCoastScene } from "./Coast.js";
+import { createFireParticles } from "./others/effects.js";
+import { LightManager } from "./rendering/lightManager.js";
 
 export const version = "3.4.3";
 
@@ -1775,138 +1777,6 @@ export function updateBosses(deltaTime) {
   bosses.forEach((boss) => boss.update(deltaTime));
 }
 
-// Třída pro správu světel
-export class LightManager {
-  constructor(scene, maxVisibleLights, maxDistance = 50, clusterSize = 15, frustumOffset = 0.1) {
-    this.scene = scene;
-    this.maxVisibleLights = maxVisibleLights;
-    this.maxDistance = maxDistance;
-    this.clusterSize = clusterSize;
-    this.frustumOffset = frustumOffset; // Nový parametr pro offset frustumu
-    this.lights = [];
-    this.lightClusters = new Map();
-  }
-
-  addLight(light) {
-    this.lights.push(light);
-    this.scene.add(light);
-    light.visible = false;
-  }
-
-  assignLightsToClusters() {
-    this.lightClusters.clear();
-    for (let i = 0; i < this.lights.length; i++) {
-      const clusterKey = this.getClusterKey(this.lights[i].position);
-      if (!this.lightClusters.has(clusterKey)) {
-        this.lightClusters.set(clusterKey, []);
-      }
-      this.lightClusters.get(clusterKey).push(this.lights[i]);
-    }
-  }
-
-  getClusterKey(position) {
-    const x = Math.floor(position.x / this.clusterSize);
-    const y = Math.floor(position.y / this.clusterSize);
-    const z = Math.floor(position.z / this.clusterSize);
-    return `${x}_${y}_${z}`;
-  }
-
-  update(playerPosition, camera) {
-    // Aktualizujeme clustery světel
-    this.assignLightsToClusters();
-
-    const playerCluster = this.getClusterKey(playerPosition);
-    const nearbyClusters = this.getNearbyClusters(playerCluster);
-
-    // Vypneme všechna světla
-    this.lights.forEach((light) => (light.visible = false));
-
-    // Připravíme frustum pro culling s offsetem
-    const frustum = new THREE.Frustum();
-    const cameraViewProjectionMatrix = new THREE.Matrix4();
-    camera.updateMatrixWorld(); // Ujistíme se, že matice kamery je aktuální
-    cameraViewProjectionMatrix.multiplyMatrices(
-      camera.projectionMatrix,
-      camera.matrixWorldInverse
-    );
-
-    // Upravená matice projekce pro zahrnutí offsetu
-    const offsetMatrix = new THREE.Matrix4();
-    offsetMatrix.makeScale(
-      1 + this.frustumOffset,
-      1 + this.frustumOffset,
-      1 + this.frustumOffset
-    );
-    cameraViewProjectionMatrix.multiply(offsetMatrix);
-
-    frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
-
-    // Shromáždíme kandidátní světla z blízkých clusterů
-    let candidateLights = [];
-
-    for (const cluster of nearbyClusters) {
-      const lightsInCluster = this.lightClusters.get(cluster) || [];
-      candidateLights.push(...lightsInCluster);
-    }
-
-    // Rozdělíme světla na ta v (rozšířeném) frustumu a mimo něj
-    let lightsInFrustum = [];
-    let lightsOutOfFrustum = [];
-
-    candidateLights.forEach((light) => {
-      const distanceSquared = playerPosition.distanceToSquared(light.position);
-      if (distanceSquared < this.maxDistance * this.maxDistance) {
-        // Použijeme průnik sfér pro přesnější culling
-        const sphere = new THREE.Sphere(light.position, light.distance || 1);
-        if (frustum.intersectsSphere(sphere)) {
-          lightsInFrustum.push({ light, distanceSquared });
-        } else {
-          lightsOutOfFrustum.push({ light, distanceSquared });
-        }
-      }
-    });
-
-    // Seřadíme světla v frustumu podle vzdálenosti
-    lightsInFrustum.sort((a, b) => a.distanceSquared - b.distanceSquared);
-
-    // Zapneme světla v frustumu
-    let visibleLights = 0;
-    for (
-      let i = 0;
-      i < lightsInFrustum.length && visibleLights < this.maxVisibleLights;
-      i++
-    ) {
-      lightsInFrustum[i].light.visible = true;
-      visibleLights++;
-    }
-
-    // Pokud máme volnou kapacitu, zapneme i některá blízká světla mimo frustum
-    if (visibleLights < this.maxVisibleLights) {
-      lightsOutOfFrustum.sort((a, b) => a.distanceSquared - b.distanceSquared);
-      for (
-        let i = 0;
-        i < lightsOutOfFrustum.length && visibleLights < this.maxVisibleLights;
-        i++
-      ) {
-        lightsOutOfFrustum[i].light.visible = true;
-        visibleLights++;
-      }
-    }
-  }
-
-  getNearbyClusters(clusterKey) {
-    const [x, y, z] = clusterKey.split('_').map(Number);
-    const nearbyClusters = [];
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dz = -1; dz <= 1; dz++) {
-          nearbyClusters.push(`${x + dx}_${y + dy}_${z + dz}`);
-        }
-      }
-    }
-    return nearbyClusters;
-  }
-}
 
 function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
   const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
@@ -1996,55 +1866,6 @@ function createTorches(walls, maze, CELL_SIZE, MAZE_SIZE, torchColor) {
   }
 }
 
-export function createFireParticles(color) {
-  const particleCount = 12;
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(particleCount * 3);
-  const colors = new Float32Array(particleCount * 3);
-  const sizes = new Float32Array(particleCount);
-
-  const isDefaultColor = color === 0xff4500;
-
-  for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 0.1;
-    positions[i * 3 + 1] = Math.random() * 0.3;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
-
-    if (isDefaultColor) {
-      colors[i * 3] = 1.5;
-      colors[i * 3 + 1] = 0.5 + Math.random() * 0.5;
-      colors[i * 3 + 2] = 0;
-    } else {
-      const particleColor = new THREE.Color(color);
-      colors[i * 3] = particleColor.r;
-      colors[i * 3 + 1] = particleColor.g;
-      colors[i * 3 + 2] = particleColor.b;
-    }
-
-    sizes[i] = 0.1 + Math.random() * 0.1;
-  }
-
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
-
-  const material = new THREE.PointsMaterial({
-    size: 0.1,
-    vertexColors: true,
-    blending: THREE.AdditiveBlending,
-    transparent: true,
-    depthWrite: false,
-  });
-
-  return new THREE.Points(geometry, material);
-}
-
-// Přidejte novou funkci pro animaci otáčení hůlky
-function animateStaffRotation(deltaTime) {
-  if (staffTopPart) {
-    staffTopPart.rotation.y += deltaTime * 1; // Upravte rychlost otáčení podle potřeby
-  }
-}
 
 // Přidejte tuto funkci pro animaci ohně
 export function animateFire(deltaTime) {
