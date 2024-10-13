@@ -228,6 +228,7 @@ function createWater() {
             waterColor: 0x02003b, // Změněno na tmavší odstín modré
             distortionScale: 2,
             fog: scene.fog !== undefined
+            
         }
     );
     water.rotation.x = -Math.PI / 2;
@@ -261,7 +262,7 @@ function createGround() {
     floorTexture.colorSpace = THREE.SRGBColorSpace;
     floorTexture.wrapS = THREE.RepeatWrapping;
     floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set(50, 50); // Increased repeat for larger ground area
+    floorTexture.repeat.set(80, 80); // Increased repeat for larger ground area
 
     const floorTextureBackFront = loader.load(textureSets[2].floorTexture);
     floorTextureBackFront.colorSpace = THREE.SRGBColorSpace;

@@ -460,7 +460,9 @@
     "campHintTitle": "Welcome to the Camp",
     "campHintDescription": "In the camp, you can buy items from the merchant, pick up new quests, and prepare for your next adventure.",
     "defeatDarkLordQuest": "Defeat the Dark Lord",
-    "defeatDarkLordQuestDescription": "Defeat the Dark Lord, the final boss of the game, on the twelfth floor and claim your ultimate reward."
+    "defeatDarkLordQuestDescription": "Defeat the Dark Lord, the final boss of the game, on the twelfth floor and claim your ultimate reward.",
+    "requiresLevel60AndQuest": "Requires level 60 and active quest",
+    "floorCoast": "Coast"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -922,6 +924,8 @@
     "campHintTitle": "Vítejte v táboře",
     "campHintDescription": "V táboře můžete nakupovat předměty od obchodníka, přijímat nové úkoly a připravovat se na další dobrodružství.",
     "defeatDarkLordQuest": "Poraž Temného pána",
-    "defeatDarkLordQuestDescription": "Poraž Temného pána, finálního bosse hry, na dvanáctém podlaží a získej svou ultimátní odměnu."
+    "defeatDarkLordQuestDescription": "Poraž Temného pána, finálního bosse hry, na dvanáctém podlaží a získej svou ultimátní odměnu.",
+    "requiresLevel60AndQuest": "Vyžaduje úroveň 60 a aktivní quest",
+    "floorCoast": "Pobřeží"
   }
 }

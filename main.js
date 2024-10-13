@@ -219,6 +219,8 @@ function getSelectedFloorText() {
   switch (selectedFloor) {
     case 999:
       return getTranslation("floorCamp");
+    case 1000:
+      return getTranslation("floorCoast");
     case 100:
       return getTranslation("bossFloor1");
     case 101:
