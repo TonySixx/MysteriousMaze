@@ -356,10 +356,10 @@ export function createHouse(createLight = true) {
 
 function createBoat() {
     const loader = new GLTFLoader(manager);
-    loader.load('models/Boat.glb', (gltf) => {
+    loader.load('models/lowpoly_stylized_boat.glb', (gltf) => {
         boat = gltf.scene;
-        boat.scale.set(4, 4, 4);
-        boat.rotation.y = Math.PI / 2;
+        boat.scale.set(10, 10, 10);
+        //boat.rotation.y = -Math.PI;
         boat.position.set(0, -1.1, -35);  // Posuneme loďku blíže k molu a vodě
         scene.add(boat);
 

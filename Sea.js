@@ -25,7 +25,7 @@ export function createSeaScene() {
     createCommonIslands();
     createCoast();
     createLighting();
-    setPlayerGroundLevel(1.5);
+    setPlayerGroundLevel(0.8);
 
     audioLoader.load("sounds/snd_sea.mp3", function (buffer) {
         seaSound = new THREE.Audio(new THREE.AudioListener());
@@ -58,13 +58,15 @@ function createWater() {
     water.position.y = 0;  // Umístíme vodu do výšky 0
     scene.add(water);
 }
-
+const boatLength = 10;
+const boatWidth = 4;
 function createBoat() {
     const loader = new GLTFLoader(manager);
-    loader.load('models/Boat.glb', (gltf) => {
+    loader.load('models/lowpoly_stylized_boat.glb', (gltf) => {
         boat = gltf.scene;
-        boat.scale.set(4, 4, 4);
-        boat.position.set(0, 1, 0);  // Zvýšili jsme pozici loďky
+        boat.scale.set(10, 10, 10);
+        boat.rotation.y = Math.PI / 2;
+        boat.position.set(0, 0, 0);  // Zvýšili jsme pozici loďky
         scene.add(boat);
     });
 }
@@ -99,8 +101,7 @@ function createCommonIslands() {
         });
     }
 }
-const boatLength = 12.5;
-const boatWidth = 5;
+
 
 
 async function createCoast() {
@@ -155,7 +156,7 @@ export function animateSea(deltaTime) {
 
     // Simulace pohybu lodi na vlnách
     if (boat) {
-        boat.position.y = 1.1 + Math.sin(Date.now() * 0.001) * 0.2;  // Upravili jsme základní výšku
+        boat.position.y = 0 + Math.sin(Date.now() * 0.001) * 0.2;  // Upravili jsme základní výšku
         boat.rotation.x = Math.sin(Date.now() * 0.001) * 0.02;
         boat.rotation.z = Math.sin(Date.now() * 0.002) * 0.02;
     }
