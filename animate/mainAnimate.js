@@ -14,6 +14,7 @@ import { updateLightningStrikes, updateBallLightnings, updateElectromagneticPuls
 import { updateDarkMistEffect, updateManaDrainEffect } from "./darklordAnimate";
 import { updateSpikeTraps } from '../utils.js';
 import { animateCoast } from "../Coast.js";
+import { animateSea } from "../Sea.js";
 
 let previousTime = performance.now(); // Definice a inicializace previousTime
 let frameCountForAnimation = 0;
@@ -104,6 +105,7 @@ export function animate() {
   updateSpikeTraps(deltaTime);
 
   animateCoast(deltaTime);
+  animateSea(deltaTime);
 
 
   if (bossChestAndPortalData) {

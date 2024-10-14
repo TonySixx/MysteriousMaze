@@ -1,87 +1,189 @@
 import * as THREE from "three";
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
-import { player, updatePlayerPosition } from "./player.js";
+import { player, setPlayerGroundLevel, updatePlayerPosition } from "./player.js";
+import { createSky, addStars } from "./others/environemntUtils.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { audioLoader, CELL_SIZE, manager } from "./main.js";
+import { LightManager } from "./rendering/lightManager.js";
+import { createDock, createHouse, createGround, createMountains } from "./Coast.js";
 
-let scene, camera, renderer, water, sky;
-let boat, island;
+let water;
+let boat, mysteriousIsland, coast;
+let commonIslands = [];
+const islandSpeed = 3;
+const coastSpeed = 3;
+var seaSound;
 
-export function loadSeaScene() {
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
+export function createSeaScene() {
+    lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
     createSky();
+    addStars();
     createWater();
     createBoat();
-    createIsland();
+    createMysteriousIsland();
+    createCommonIslands();
+    createCoast();
     createLighting();
+    setPlayerGroundLevel(1.5);
 
-    camera.position.set(0, 5, 10);
-    camera.lookAt(scene.position);
+    audioLoader.load("sounds/snd_sea.mp3", function (buffer) {
+        seaSound = new THREE.Audio(new THREE.AudioListener());
+        seaSound.setBuffer(buffer);
+        seaSound.setLoop(true);
+        seaSound.setVolume(1.0); // Adjust volume as needed
+        seaSound.play();
+    });
 
-    animate();
 }
 
-// Funkce createSky, createWater a createLighting jsou stejné jako v Coast.js
+function createWater() {
+    const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+    water = new Water(
+        waterGeometry,
+        {
+            textureWidth: 512,
+            textureHeight: 512,
+            waterNormals: new THREE.TextureLoader().load('textures/waternormals2.jpg', function (texture) {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            }),
+            sunDirection: new THREE.Vector3(),
+            sunColor: 0xffffff,
+            waterColor: 0x001e0f,
+            distortionScale: 3.7,
+            fog: scene.fog !== undefined
+        }
+    );
+    water.rotation.x = -Math.PI / 2;
+    water.position.y = 0;  // Umístíme vodu do výšky 0
+    scene.add(water);
+}
 
 function createBoat() {
-    const loader = new GLTFLoader();
-    loader.load('models/boat.glb', (gltf) => {
+    const loader = new GLTFLoader(manager);
+    loader.load('models/Boat.glb', (gltf) => {
         boat = gltf.scene;
-        boat.position.set(0, 0, 0);
+        boat.scale.set(4, 4, 4);
+        boat.position.set(0, 1, 0);  // Zvýšili jsme pozici loďky
         scene.add(boat);
-        
-        // Přidáme neviditelné bariéry kolem loďky
-        const barrierGeometry = new THREE.BoxGeometry(5, 2, 10);
-        const barrierMaterial = new THREE.MeshBasicMaterial({ visible: false });
-        const barrier = new THREE.Mesh(barrierGeometry, barrierMaterial);
-        boat.add(barrier);
     });
 }
 
-function createIsland() {
+function createMysteriousIsland() {
     const loader = new GLTFLoader();
-    loader.load('models/island.glb', (gltf) => {
-        island = gltf.scene;
-        island.position.set(0, 0, -1000);  // Umístíme ostrov daleko před loďku
-        scene.add(island);
+    loader.load('models/mountains.glb', (gltf) => {
+        mysteriousIsland = gltf.scene;
+        mysteriousIsland.position.set(0, 0, -1000);  // Umístíme ostrov daleko před loďku
+        scene.add(mysteriousIsland);
     });
 }
 
-function animate() {
-    requestAnimationFrame(animate);
+function createCommonIslands() {
+    const islandCount = 15;  // Počet běžných ostrovů
+    const loader = new GLTFLoader();
+    for (let i = 0; i < islandCount; i++) {
+        loader.load('models/island_1.glb', (gltf) => {
+            const island = gltf.scene;
+            island.position.set(
+                (Math.random() - 0.5) * 1000,  // Náhodná X pozice
+                -0.5,
+                -400 - Math.random() * 1000  // Náhodná Z pozice za mysterious island
+            );
+            island.scale.set(
+                8 + Math.random() * 5,  // Náhodná velikost
+                8 + Math.random() * 5,
+                8 + Math.random() * 5
+            );
+            scene.add(island);
+            commonIslands.push(island);
+        });
+    }
+}
+const boatLength = 12.5;
+const boatWidth = 5;
 
-    water.material.uniforms['time'].value += 1.0 / 60.0;
 
-    updatePlayerPosition();
-    moveBoatTowardsIsland();
+async function createCoast() {
+    coast = new THREE.Group();
 
-    renderer.render(scene, camera);
+    const [dock, houseGroup] = await Promise.all([createDock(), createHouse(false)]);
+    const ground = createGround();
+    const mountains = createMountains();
+
+    coast.add(dock, houseGroup, ground, mountains);
+    coast.position.set(0, 1.5, 40);  // Umístíme pobřeží za loď
+    scene.add(coast);
 }
 
-function moveBoatTowardsIsland() {
-    if (boat && island) {
-        const speed = 0.1;
-        boat.position.z -= speed;
-        camera.position.z -= speed;
-        
-        // Pokud je loďka blízko ostrova, dokončíme quest
-        if (boat.position.z <= -990) {
-            completeQuest();
+function createLighting() {
+
+
+    const ambientLight = new THREE.AmbientLight(0x443c57, 1);
+    scene.add(ambientLight);
+
+    const moonLight = new THREE.DirectionalLight(0xffffff, 0.2);
+    moonLight.position.set(0, 20, 0);
+    scene.add(moonLight);
+
+    scene.fog = new THREE.Fog(0xcce0ff, 500, 3000);
+
+}
+
+export function animateSea(deltaTime) {
+    if (water) {
+        water.material.uniforms['time'].value += 0.3 / 60.0;
+    }
+
+    // Pohyb mysterious island směrem k lodi
+    if (mysteriousIsland) {
+        mysteriousIsland.position.z += islandSpeed * deltaTime;
+    }
+
+    // Pohyb a recyklace běžných ostrovů
+    commonIslands.forEach(island => {
+        island.position.z += islandSpeed * deltaTime;
+        if (island.position.z > 1000) {  // Pokud ostrov zmizí za lodí
+            island.position.z = -5000 - Math.random() * 1000;  // Přesuneme ho zpět daleko před loď
+            island.position.x = (Math.random() - 0.5) * 2000;  // Nová náhodná X pozice
         }
+    });
+
+    // Pohyb pobřeží od hráče
+    if (coast) {
+        coast.position.z += coastSpeed * deltaTime;
+    }
+
+    // Simulace pohybu lodi na vlnách
+    if (boat) {
+        boat.position.y = 1.1 + Math.sin(Date.now() * 0.001) * 0.2;  // Upravili jsme základní výšku
+        boat.rotation.x = Math.sin(Date.now() * 0.001) * 0.02;
+        boat.rotation.z = Math.sin(Date.now() * 0.002) * 0.02;
+    }
+
+    // Aktualizace pozice hráče, aby zůstal na lodi
+    if (player && boat) {
+        player.position.x = Math.max(-boatWidth / 2 + 1, Math.min(boatWidth / 2 - 1, player.position.x));
+        player.position.z = Math.max(-boatLength / 2 + 1, Math.min(boatLength / 2 - 1, player.position.z));
     }
 }
 
-function completeQuest() {
-    // Tady přidáme logiku pro dokončení questu
-    // Například:
-    // updateQuestProgress('mysteriousIsle', (quest) => {
-    //     quest.progress = '1/1';
-    //     quest.isCompleted = true;
-    //     return quest;
-    // });
-    // showMessage(getTranslation('questCompleted', 'Mysterious Isle'));
+export function stopSeaSound() {
+    if (seaSound) {
+        seaSound.stop();
+    }
+}
+
+export function clearSeaScene() {
+    if (water) scene.remove(water);
+    if (boat) scene.remove(boat);
+    if (mysteriousIsland) scene.remove(mysteriousIsland);
+    if (coast) scene.remove(coast);
+    commonIslands.forEach(island => scene.remove(island));
+    commonIslands = [];
+    stopSeaSound();
+
+    water = null;
+    boat = null;
+    mysteriousIsland = null;
+    coast = null;
 }

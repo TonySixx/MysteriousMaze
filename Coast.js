@@ -4,31 +4,40 @@ import { Water } from 'three/examples/jsm/objects/Water.js';
 import { player } from "./player.js";
 import { showMessage } from "./utils.js";
 import { getTranslation } from "./langUtils.js";
-import { loadSeaScene } from "./Sea.js";
-import { CELL_SIZE, keys, manager, setMazeSize } from "./main.js";
+import { audioLoader, CELL_SIZE, keys, manager, setMazeSize, startGame } from "./main.js";
 import { textureSets } from "./globals.js";
 import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
 import { addStars, createSky, createTrees } from "./others/environemntUtils.js";
 import { createFireParticles } from "./others/effects.js";
 import { LightManager } from "./rendering/lightManager.js";
 
-let water, sky;
+let water
 let dock, boat, ground;
-let interactionMessage;
-
+var seaSound;
 export function createCoastScene() {
     lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
     createSky();
     addStars();
     createWater();
-    createGround();
     createTrees(generateTreePositions);
-    createDock();
-    createHouse();
+    createDock().then(dock => scene.add(dock));
+    createHouse().then(house => scene.add(house));
+    const ground = createGround();
+    scene.add(ground);
+    const mountains = createMountains();
+    scene.add(mountains);
     createBoat();
-    createMountains();
     createCoastWalls();
     createLighting();
+
+    audioLoader.load("sounds/snd_sea.mp3", function (buffer) {
+        seaSound = new THREE.Audio(new THREE.AudioListener());
+        seaSound.setBuffer(buffer);
+        seaSound.setLoop(true);
+        seaSound.setVolume(1.0); // Adjust volume as needed
+        seaSound.play();
+    });
+
 }
 
 
@@ -83,7 +92,7 @@ function deformMountainGeometry(geometry) {
 }
 
 
-function createMountains() {
+export function createMountains() {
     const mountainTextureLoader = new THREE.TextureLoader();
     const mountainTexture = mountainTextureLoader.load('textures/floor-egypt.jpg');
     mountainTexture.colorSpace = THREE.SRGBColorSpace;
@@ -111,8 +120,8 @@ function createMountains() {
 
     const mountains = new THREE.Mesh(mountainGeometry, mountainMaterial);
     mountains.rotation.x = -Math.PI / 2;
-    mountains.position.set(0, -0.5, 0); // Zarovnáme s úrovní země
-    scene.add(mountains);
+    mountains.position.set(0, -0.5, 0);
+    return mountains;
 }
 
 
@@ -121,7 +130,7 @@ function createCoastWalls() {
     const coastLength = 200; // Délka pobřeží
     const dockWidth = 10; // Šířka mola
 
-    const createWallSegment = (x, z, length, isVertical, thickness=0.2,canShootThrough=true) => {
+    const createWallSegment = (x, z, length, isVertical, thickness = 0.2, canShootThrough = true) => {
         const segmentGeometry = new THREE.BoxGeometry(
             isVertical ? thickness : CELL_SIZE,
             wallHeight,
@@ -152,7 +161,7 @@ function createCoastWalls() {
         createWallSegment(x, -11, CELL_SIZE, false);
     }
     // stěna pravé strany moře
-    for (let x = ((dockWidth / 2) + CELL_SIZE/2 ); x < 100; x += CELL_SIZE) {
+    for (let x = ((dockWidth / 2) + CELL_SIZE / 2); x < 100; x += CELL_SIZE) {
         createWallSegment(x, -11, CELL_SIZE, false);
     }
 
@@ -171,43 +180,51 @@ function createCoastWalls() {
 }
 
 
-function createTorchOnHouse(x, z, height, dir) {
+function createTorchOnHouse(x, z, height, dir,createLight = true) {
+    const torchGroup = new THREE.Group();
+
     const torchGeometry = new THREE.CylinderGeometry(0.04, 0.1, 0.65, 8);
     const torchMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
     const torch = new THREE.Mesh(torchGeometry, torchMaterial);
     torch.position.set(
-      x + dir.dx * (CELL_SIZE / 2),
-      height,
-      z + dir.dz * (CELL_SIZE / 2)
+        x + dir.dx * (CELL_SIZE / 2),
+        height,
+        z + dir.dz * (CELL_SIZE / 2)
     );
-  
+
     const angle = Math.atan2(dir.dz, dir.dx);
     torch.rotation.y = angle;
     torch.rotation.z = Math.PI;
-  
-    scene.add(torch);
-  
+
+    torchGroup.add(torch);
+
     const fire = createFireParticles(textureSets[1].torchColor.particles);
     fire.position.copy(torch.position).add(new THREE.Vector3(0, 0.25, 0));
-    scene.add(fire);
-  
-    const light = new THREE.PointLight(
-      textureSets[1].torchColor.light,
-      1.5,
-      CELL_SIZE * 4
+    torchGroup.add(fire);
+
+    var light;
+    if (createLight) {
+    light = new THREE.PointLight(
+        textureSets[1].torchColor.light,
+        1.5,
+        CELL_SIZE * 4
     );
     const lightOffsetFactor = 0.3;
-  
+
     light.position.set(
-      torch.position.x + dir.dx * lightOffsetFactor,
-      torch.position.y + 0.5,
-      torch.position.z + dir.dz * lightOffsetFactor
+        torch.position.x + dir.dx * lightOffsetFactor,
+        torch.position.y + 0.5,
+        torch.position.z + dir.dz * lightOffsetFactor
     );
-  
-    lightManager.addLight(light);
+
+    torchGroup.add(light);
+        lightManager.addLight(light);
+    }
     torches.push({ torch, fire, light });
-  }
-    
+
+    return torchGroup;
+}
+
 
 
 function createWater() {
@@ -228,7 +245,7 @@ function createWater() {
             waterColor: 0x02003b, // Změněno na tmavší odstín modré
             distortionScale: 2,
             fog: scene.fog !== undefined
-            
+
         }
     );
     water.rotation.x = -Math.PI / 2;
@@ -256,7 +273,7 @@ function generateTreePositions() {
 
 
 
-function createGround() {
+export function createGround() {
     const loader = new THREE.TextureLoader(manager);
     const floorTexture = loader.load(textureSets[2].floorTexture);
     floorTexture.colorSpace = THREE.SRGBColorSpace;
@@ -285,46 +302,57 @@ function createGround() {
         new THREE.MeshStandardMaterial({ map: floorTextureBackFront })  // Back
     ];
     const ground = new THREE.Mesh(groundGeometry, materials);
-    ground.position.set(0, -2.5, 90); // Positioned to account for thickness
-    scene.add(ground);
+    ground.position.set(0, -2.5, 90);
+    return ground;
 }
 
-function createDock() {
+export function createDock() {
     const loader = new GLTFLoader(manager);
-    loader.load('models/Dock.glb', (gltf) => {
-        dock = gltf.scene;
-        dock.scale.set(1, 0.8, 1);
-        dock.position.set(0, -2.8, -20);  // Posuneme molo blíže k vodě
-        scene.add(dock);
+    return new Promise((resolve) => {
+        loader.load('models/Dock.glb', (gltf) => {
+            const dock = gltf.scene;
+            dock.scale.set(1, 0.8, 1);
+            dock.position.set(0, -2.8, -20);
+            resolve(dock);
+        });
     });
 }
 
-function createHouse() {
+export function createHouse(createLight = true) {
     const loader = new GLTFLoader(manager);
-    loader.load('models/House.glb', (gltf) => {
-      const house = gltf.scene;
-      house.scale.set(4.5, 4.5, 4.5);
-      house.position.set(0, 0, 5);
-      scene.add(house);
-  
-      // Přidáme pochodně na přední a zadní stranu domu
-      const torchPositions = [
-        { dx: -2, dz:4.34 },  // Přední strana
-        { dx: 2, dz:4.34 },  // Přední strana
-        { dx: -2, dz: -4.3 },  // Zadní strana
-        { dx: 2, dz: -4.3 }  // Zadní strana
-      ];
-  
-      torchPositions.forEach(dir => {
-        createTorchOnHouse(
-          house.position.x,
-          house.position.z,
-          2.5,  // Výška pochodně (můžete upravit podle potřeby)
-          dir
-        );
-      });
+    return new Promise((resolve) => {
+        loader.load('models/House.glb', (gltf) => {
+            const house = gltf.scene;
+            house.scale.set(4.5, 4.5, 4.5);
+            house.position.set(0, 0, 5);
+
+            // Vytvoříme skupinu pro dům a pochodně
+            const houseGroup = new THREE.Group();
+            houseGroup.add(house);
+
+            // Přidáme pochodně na přední a zadní stranu domu
+            const torchPositions = [
+                { dx: -2, dz: 4.34 },  // Přední strana
+                { dx: 2, dz: 4.34 },  // Přední strana
+                { dx: -2, dz: -4.3 },  // Zadní strana
+                { dx: 2, dz: -4.3 }  // Zadní strana
+            ];
+
+            torchPositions.forEach(dir => {
+                const torch = createTorchOnHouse(
+                    house.position.x,
+                    house.position.z,
+                    2.5,  // Výška pochodně (můžete upravit podle potřeby)
+                    dir,
+                    createLight
+                );
+                houseGroup.add(torch);
+            });
+
+            resolve(houseGroup);
+        });
     });
-  }
+}
 
 function createBoat() {
     const loader = new GLTFLoader(manager);
@@ -334,6 +362,16 @@ function createBoat() {
         boat.rotation.y = Math.PI / 2;
         boat.position.set(0, -1.1, -35);  // Posuneme loďku blíže k molu a vodě
         scene.add(boat);
+
+        // Přidání interakčního textu
+        const interactionText = document.createElement("div");
+        interactionText.className = "interaction-text";
+        interactionText.textContent = getTranslation("enterBoat");
+        interactionText.style.display = "none";
+        document.body.appendChild(interactionText);
+
+        // Uložíme interakční text do userData
+        boat.userData.interactionText = interactionText;
     });
 }
 
@@ -356,35 +394,59 @@ export function animateCoast() {
         water.material.uniforms['time'].value += 0.3 / 60.0;
     }
     checkBoatInteraction();
+
 }
 
 function checkBoatInteraction() {
-    if (boat && player) {
-        const distance = player.position.distanceTo(boat.position);
-        if (distance < 2) {
-            if (!interactionMessage) {
-                interactionMessage = showMessage(getTranslation('enterBoat'), true);
-            }
+    if (!boat) return;
+
+    const distance = player.position.distanceTo(boat.position);
+    const interactionText = boat.userData.interactionText;
+
+    if (distance < 6.5) {
+        // Vytvoříme vektor pro pozici textu nad loďkou
+        const textPosition = boat.position.clone().add(new THREE.Vector3(0, 2, 0));
+
+        // Projektujeme pozici textu do prostoru kamery
+        const vector = textPosition.project(camera);
+
+        // Zkontrolujeme, zda je loďka v záběru kamery
+        const isInView = vector.x > -1 && vector.x < 1 && vector.z < 1;
+
+        if (isInView) {
+            interactionText.style.display = "block";
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+
+            interactionText.style.left = `${x}px`;
+            interactionText.style.top = `${y}px`;
+            interactionText.style.bottom = "unset";
+            interactionText.style.minWidth = "150px";
+
             if (keys.f) {
-                //hideMessage(interactionMessage);
-                loadSeaScene();
+                startGame(1001);
+                keys.f = false; // Resetujeme stav klávesy
             }
-        } else if (interactionMessage) {
-            //hideMessage(interactionMessage);
-            interactionMessage = null;
+        } else {
+            interactionText.style.display = "none";
         }
+    } else {
+        interactionText.style.display = "none";
     }
 }
 
 export function clearCoastScene() {
     if (water) scene.remove(water);
-    if (sky) scene.remove(sky);
     if (dock) scene.remove(dock);
-    if (boat) scene.remove(boat);
+    if (boat) {
+        scene.remove(boat);
+        if (boat.userData.interactionText) {
+            document.body.removeChild(boat.userData.interactionText);
+        }
+    }
     if (ground) scene.remove(ground);
-
+    if (seaSound) seaSound.stop();
     water = null;
-    sky = null;
     dock = null;
     boat = null;
     ground = null;

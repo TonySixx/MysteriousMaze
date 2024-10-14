@@ -92,6 +92,7 @@ import { animate } from "./animate/mainAnimate.js";
 import { createCoastScene } from "./Coast.js";
 import { createFireParticles } from "./others/effects.js";
 import { LightManager } from "./rendering/lightManager.js";
+import { createSeaScene } from "./Sea.js";
 
 export const version = "3.4.3";
 
@@ -196,12 +197,13 @@ export var aoeBlastSoundBuffer;
 let isMusicPlaying = true;
 let footstepsSound;
 
+
 export const showFloorSelectBtn = document.getElementById("showFloorSelect");
 const floorSelectModal = document.getElementById("floorSelectModal");
 const floorOptions = document.querySelectorAll(".floor-option");
 export let selectedFloor = 1;
 
-var audioLoader = undefined;
+export var audioLoader = undefined;
 
 export function setSelectedFloor(value) {
   selectedFloor = value;
@@ -751,6 +753,12 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
   if (selectedFloor === 1000) {
     clearScene();
     createCoastScene();
+    return;
+  }
+
+  if (selectedFloor === 1001) {
+    clearScene();
+    createSeaScene();
     return;
   }
 
@@ -1529,7 +1537,11 @@ function showTeleportPrompt() {
   promptElement.style.display = "block";
 }
 
-export async function startGame() {
+export async function startGame(floor) {
+if (floor) {
+  selectedFloor = floor;
+}
+
   const inputText = document.getElementById("mazeInput").value;
 
   // Kontrola, zda má hráč dostatečnou úroveň pro zvolené podlaží
@@ -2178,6 +2190,7 @@ export function canSelectFloor(floor) {
   if (floor === 110) return playerLevel >= 56; // Boss podlaží pro Thunderlord
   if (floor === 111) return playerLevel >= 60; // Boss podlaží pro Darklord
   if (floor === 1000) return playerLevel >= 60 && quests.some(q => q.id === 'mysteriousIsle'); // Pobřeží
+  if (floor === 1001) return playerLevel >= 60 && quests.some(q => q.id === 'mysteriousIsle'); // Moře
   return false;
 }
 

@@ -1146,7 +1146,7 @@ export function setOriginalStaffRotation() {
 
 
 function getNoFloorCheck() {
-  return selectedFloor === 999 || selectedFloor === 1000 || (selectedFloor >= 100 && selectedFloor <= 200);
+  return selectedFloor === 999 || selectedFloor === 1000 || selectedFloor === 1001 || (selectedFloor >= 100 && selectedFloor <= 200);
 }
 
 export { spells, Spell, castFireball, castFrostbolt, castArcaneMissile, updateFireballs, updateFrostbolts, updateArcaneMissiles };

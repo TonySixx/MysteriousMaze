@@ -360,15 +360,19 @@ function createPlayer() {
     scene.add(player);
 
     if (selectedFloor === 999) { //Tábor
-        player.position.set(0, 0, 15 - (CELL_SIZE / 2));
+        player.position.set(0, playerGroundLevel, 15 - (CELL_SIZE / 2));
         return;
     }
     else if (selectedFloor === 1000) { //Pobřeží
-        player.position.set(0, 0, -2 - (CELL_SIZE / 2));
+        player.position.set(0, playerGroundLevel, -2 - (CELL_SIZE / 2));
+        return;
+    }
+    else if (selectedFloor === 1001) { //Moře
+        player.position.set(0, playerGroundLevel, -2 - (CELL_SIZE / 2));
         return;
     }
     else if (selectedFloor >= 100 && selectedFloor <= 200) { //Boss floor
-        player.position.set(0, 0, 10 - (CELL_SIZE / 2));
+        player.position.set(0, playerGroundLevel, 10 - (CELL_SIZE / 2));
         return;
     }
 
@@ -455,6 +459,12 @@ export function checkCollisionZ(currentX, newZ) {
     return newZ;
 }
 
+var playerGroundLevel = 0;
+
+export function setPlayerGroundLevel(level) {
+    playerGroundLevel = level;
+}
+
 function updatePlayerPosition(deltaTime) {
     if (player.isFrozen) {
         // Pokud je hráč zmražený, neaktualizujeme jeho pozici
@@ -498,13 +508,13 @@ function updatePlayerPosition(deltaTime) {
         }
 
         // Vždy aplikujte gravitaci, i když hráč neskáče
-        if (!isJumping && player.position.y > 0) {
+        if (!isJumping && player.position.y > playerGroundLevel) {
             player.position.y += GRAVITY * FALL_MULTIPLIER * deltaTime * 60;
         }
 
         // Zajistěte, že hráč nespadne pod podlahu
-        if (player.position.y <= 0) {
-            player.position.y = 0;
+        if (player.position.y <= playerGroundLevel) {
+            player.position.y = playerGroundLevel;
             isJumping = false;
             jumpVelocity = 0;
             if (playSoundOnLand) {
@@ -557,7 +567,7 @@ function updatePlayerPosition(deltaTime) {
     );
 
     if (!isFlying) {
-        player.position.y = Math.max(0, player.position.y); // Neumožní pád pod podlahu
+        player.position.y = Math.max(playerGroundLevel, player.position.y); // Neumožní pád pod podlahu
     }
 
     checkObjectInteractions();
@@ -574,8 +584,8 @@ export function checkCeilingCollision() {
         }
     } else {
         // V normální oblasti
-        if (player.position.y >= MAX_JUMP_HEIGHT - ceilingBuffer) {
-            player.position.y = MAX_JUMP_HEIGHT - ceilingBuffer;
+        if (player.position.y >= (MAX_JUMP_HEIGHT + playerGroundLevel) - ceilingBuffer) {
+            player.position.y = (MAX_JUMP_HEIGHT + playerGroundLevel) - ceilingBuffer;
             return true;
         }
     }
