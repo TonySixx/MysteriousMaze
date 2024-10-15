@@ -14,16 +14,7 @@ let boat, mysteriousIsland, coast;
 let commonIslands = [];
 var seaSound;
 
-let islandSpeed = 0;
-let coastSpeed = 0;
 let isPaddling = false;
-const maxSpeed = 5;
-
-// Přidejte tyto proměnné na začátek souboru, kde jsou deklarovány ostatní proměnné
-let currentSpeed = 0;
-let currentWaveIntensity = 0.1;
-const accelerationRate = 2; // Rychlost zrychlení/zpomalení
-const waveIntensityChangeRate = 0.2; // Rychlost změny intenzity vln
 
 // Přidejte tuto konstantu na začátek souboru, kde jsou deklarovány ostatní konstanty
 const PADDLE_RETURN_SPEED = 5; // Rychlost návratu pádel do původní pozice
@@ -35,7 +26,7 @@ const IDLE_ROTATION_INTENSITY = 0.005; // Intenzita naklánění při stání
 
 // Přidejte tyto proměnné na začátek souboru
 let boatSpeed = 0;
-const MAX_BOAT_SPEED = 5;
+const MAX_BOAT_SPEED = 3.5;
 const BOAT_ACCELERATION = 2;
 const BOAT_DECELERATION = 1;
 
