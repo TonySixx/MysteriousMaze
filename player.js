@@ -465,9 +465,12 @@ export function setPlayerGroundLevel(level) {
     playerGroundLevel = level;
 }
 
+// Přidejte tuto proměnnou na začátek souboru
+let isOnBoat = false;
+
+// Upravte funkci updatePlayerPosition
 function updatePlayerPosition(deltaTime) {
     if (player.isFrozen) {
-        // Pokud je hráč zmražený, neaktualizujeme jeho pozici
         return;
     }
 
@@ -475,6 +478,37 @@ function updatePlayerPosition(deltaTime) {
 
     const speed = window.playerSpeed; // Základní rychlost hráče
     const flySpeed = 6.5; // Rychlost při letu
+
+    if (isOnBoat) {
+        // Pohyb na lodi
+        let moveVector = new THREE.Vector3(0, 0, 0);
+        if (moveForward) moveVector.z -= 1;
+        if (moveBackward) moveVector.z += 1;
+        if (moveLeft) moveVector.x -= 1;
+        if (moveRight) moveVector.x += 1;
+
+        if (moveVector.length() > 0) {
+            moveVector.normalize();
+            playerVelocity.x = moveVector.x * speed * deltaTime;
+            playerVelocity.z = moveVector.z * speed * deltaTime;
+        }      
+
+        // Aplikujeme rotaci hráče
+        playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
+
+        // Aktualizujeme pozici hráče relativně k lodi
+        const newRelativeX = (player.position.x - boat.position.x) + playerVelocity.x;
+        const newRelativeZ = (player.position.z - boat.position.z) + playerVelocity.z;
+
+        // Omezíme pohyb hráče na rozměry loďky
+        const clampedX = Math.max(-boatWidth / 2 + 1, Math.min(boatWidth / 2 - 1, newRelativeX));
+        const clampedZ = Math.max(-boatLength / 2 + 1, Math.min(boatLength / 2 - 1, newRelativeZ));
+
+        player.position.x = boat.position.x + clampedX;
+        player.position.z = boat.position.z + clampedZ;
+
+        return;
+    }
 
     if (isFlying) {
         // Při letu se pohybujeme ve směru kamery, pokud jsou stisknuty klávesy
@@ -715,6 +749,16 @@ export function onKeyDown(event) {
 
     }
 
+    if (isOnBoat) {
+        switch (event.code) {
+            case "KeyF":
+                isPaddling = true;
+                break;
+            // Další případy pro ovládání na lodi
+        }
+        return;
+    }
+
     // Přidáme kontrolu, zda je nějaký modál otevřený
     if (isAnyModalOpen()) return;
 
@@ -771,6 +815,16 @@ export function onKeyUp(event) {
             moveRight = false;
             break;
     }
+
+    if (isOnBoat) {
+        switch (event.code) {
+            case "KeyF":
+                isPaddling = false;
+                break;
+            // Další případy pro ovládání na lodi
+        }
+        return;
+    }
 }
 
 // Přidáme novou funkci pro kontrolu otevřených modálů
@@ -786,6 +840,11 @@ export function isAnyModalOpen() {
         document.getElementById("nameModal")?.style.display === "block" ||
         (document.getElementById("questBoardWindow") && document.getElementById("questBoardWindow")?.style.display !== "none") ||
         document.getElementsByClassName("shop-modal")?.length > 0;
+}
+
+// Přidejte tuto funkci pro nastavení stavu hráče na lodi
+export function setPlayerOnBoat(onBoat) {
+    isOnBoat = onBoat;
 }
 
 export {

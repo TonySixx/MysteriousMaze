@@ -4,7 +4,7 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { player, setPlayerGroundLevel, updatePlayerPosition } from "./player.js";
 import { createSky, addStars } from "./others/environemntUtils.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { audioLoader, CELL_SIZE, keys, manager, selectedFloor } from "./main.js";
+import { audioLoader, CELL_SIZE, keys, manager, selectedFloor, setMazeSize } from "./main.js";
 import { LightManager } from "./rendering/lightManager.js";
 import { createDock, createHouse, createGround, createMountains } from "./Coast.js";
 import { getTranslation } from "./langUtils.js";
@@ -33,6 +33,12 @@ const MIN_WAVE_INTENSITY = 0.05; // Minimální intenzita vln při stání
 const MAX_WAVE_INTENSITY = 0.2; // Maximální intenzita vln při pádlování
 const IDLE_ROTATION_INTENSITY = 0.005; // Intenzita naklánění při stání
 
+// Přidejte tyto proměnné na začátek souboru
+let boatSpeed = 0;
+const MAX_BOAT_SPEED = 5;
+const BOAT_ACCELERATION = 2;
+const BOAT_DECELERATION = 1;
+
 export function createSeaScene() {
     lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
     createSky();
@@ -44,6 +50,7 @@ export function createSeaScene() {
     createCoast();
     createLighting();
     setPlayerGroundLevel(1.4);
+ 
 
     audioLoader.load("sounds/snd_sea.mp3", function (buffer) {
         seaSound = new THREE.Audio(new THREE.AudioListener());
@@ -151,6 +158,7 @@ async function createCoast() {
 
     const [dock, houseGroup] = await Promise.all([createDock(), createHouse(false)]);
     const ground = createGround();
+    setMazeSize(100000);
     const mountains = createMountains();
 
     coast.add(dock, houseGroup, ground, mountains);
@@ -204,43 +212,23 @@ export function animateSea(deltaTime) {
 
     checkPaddling();
 
-    // Plynulá změna rychlosti
+    // Plynulá změna rychlosti loďky
     if (isPaddling) {
-        currentSpeed = Math.min(currentSpeed + accelerationRate * deltaTime, maxSpeed);
-        currentWaveIntensity = Math.min(currentWaveIntensity + waveIntensityChangeRate * deltaTime, MAX_WAVE_INTENSITY);
+        boatSpeed = Math.min(boatSpeed + BOAT_ACCELERATION * deltaTime, MAX_BOAT_SPEED);
     } else {
-        currentSpeed = Math.max(currentSpeed - accelerationRate * deltaTime, 0);
-        currentWaveIntensity = Math.max(currentWaveIntensity - waveIntensityChangeRate * deltaTime, MIN_WAVE_INTENSITY);
+        boatSpeed = Math.max(boatSpeed - BOAT_DECELERATION * deltaTime, 0);
     }
 
-    // Pohyb mysterious island směrem k lodi
-    if (mysteriousIsland) {
-        mysteriousIsland.position.z += currentSpeed * deltaTime;
-    }
-
-    // Pohyb a recyklace běžných ostrovů
-    commonIslands.forEach(island => {
-        island.position.z += currentSpeed * deltaTime;
-        if (island.position.z > 1000) {
-            island.position.z = -5000 - Math.random() * 1000;
-            island.position.x = (Math.random() - 0.5) * 2000;
-        }
-    });
-
-    // Pohyb pobřeží od hráče
-    if (coast) {
-        coast.position.z += currentSpeed * deltaTime;
-    }
-
-    // Simulace pohybu lodi na vlnách a synchronizace s pádlováním
+    // Pohyb loďky
     if (boat) {
-        const paddleSpeed = 1; // Rychlost pádlování
-        const time = Date.now() * 0.005 * paddleSpeed;
+        const oldBoatPosition = boat.position.clone();
+        boat.position.z -= boatSpeed * deltaTime;
 
-        // Plynulý přechod mezi pádlováním a stáním
-        const paddlingIntensity = currentSpeed / maxSpeed;
+        // Simulace pohybu lodi na vlnách a synchronizace s pádlováním
+        const paddleSpeed = 1;
+        const time = Date.now() * 0.005 * paddleSpeed;
+        const paddlingIntensity = boatSpeed / MAX_BOAT_SPEED;
         
-        // Upravené houpání lodi
         if (isPaddling) {
             boat.rotation.z = Math.sin(time) * 0.03 * paddlingIntensity;
             boat.rotation.x = Math.cos(time * 0.5) * 0.02 * paddlingIntensity;
@@ -270,12 +258,44 @@ export function animateSea(deltaTime) {
                 }
             });
         }
+
+        // Vypočítáme posun loďky
+        const boatMovement = boat.position.clone().sub(oldBoatPosition);
+
+        // Aktualizace pozice hráče, aby zůstal na své relativní pozici na lodi
+        if (player) {
+            // Posuneme hráče o stejnou vzdálenost jako loďku
+            player.position.add(boatMovement);
+
+            // Získáme relativní pozici hráče vzhledem k lodi
+            const relativeX = player.position.x - boat.position.x;
+            const relativeZ = player.position.z - boat.position.z;
+
+            // Omezíme pohyb hráče na rozměry loďky
+            const clampedX = Math.max(-boatWidth / 2 + 1, Math.min(boatWidth / 2 - 1, relativeX));
+            const clampedZ = Math.max(-boatLength / 2 + 1, Math.min(boatLength / 2 - 1, relativeZ));
+
+            // Aktualizujeme pozici hráče
+            player.position.x = boat.position.x + clampedX;
+            player.position.y = boat.position.y + 1.4; // Výška hráče nad loďkou
+            player.position.z = boat.position.z + clampedZ;
+        }
     }
 
-    // Aktualizace pozice hráče, aby zůstal na lodi
+    // Aktualizace pozice hráče, aby zůstal na lodi, ale mohl se po ní pohybovat
     if (player && boat) {
-        player.position.x = Math.max(-boatWidth / 2 + 1, Math.min(boatWidth / 2 - 1, player.position.x));
-        player.position.z = Math.max(-boatLength / 2 + 1, Math.min(boatLength / 2 - 1, player.position.z));
+        // Získáme relativní pozici hráče vzhledem k lodi
+        const relativeX = player.position.x - boat.position.x;
+        const relativeZ = player.position.z - boat.position.z;
+
+        // Omezíme pohyb hráče na rozměry loďky
+        const clampedX = Math.max(-boatWidth / 2 + 1, Math.min(boatWidth / 2 - 1, relativeX));
+        const clampedZ = Math.max(-boatLength / 2 + 1, Math.min(boatLength / 2 - 1, relativeZ));
+
+        // Aktualizujeme pozici hráče
+        player.position.x = boat.position.x + clampedX;
+        player.position.y = boat.position.y + 1.4; // Výška hráče nad loďkou
+        player.position.z = boat.position.z + clampedZ;
     }
 }
 
