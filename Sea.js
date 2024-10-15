@@ -4,16 +4,21 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { player, setPlayerGroundLevel, updatePlayerPosition } from "./player.js";
 import { createSky, addStars } from "./others/environemntUtils.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { audioLoader, CELL_SIZE, manager } from "./main.js";
+import { audioLoader, CELL_SIZE, keys, manager, selectedFloor } from "./main.js";
 import { LightManager } from "./rendering/lightManager.js";
 import { createDock, createHouse, createGround, createMountains } from "./Coast.js";
+import { getTranslation } from "./langUtils.js";
 
 let water;
 let boat, mysteriousIsland, coast;
 let commonIslands = [];
-const islandSpeed = 3;
-const coastSpeed = 3;
 var seaSound;
+
+let islandSpeed = 0;
+let coastSpeed = 0;
+let isPaddling = false;
+const maxSpeed = 5;
+
 
 export function createSeaScene() {
     lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
@@ -60,17 +65,41 @@ function createWater() {
 }
 const boatLength = 10;
 const boatWidth = 4;
+var paddles = null;
 function createBoat() {
     const loader = new GLTFLoader(manager);
-    loader.load('models/lowpoly_stylized_boat.glb', (gltf) => {
+    loader.load('models/lowpoly_stylized_boat2.glb', (gltf) => {
         boat = gltf.scene;
         boat.scale.set(10, 10, 10);
         boat.rotation.y = Math.PI / 2;
-        boat.position.set(0, 0, 0);  // Zvýšili jsme pozici loďky
+        boat.position.set(0, 0, 0);
+
+        // Získání obou pádel
+        const paddle0 = boat.getObjectByName("Cube140_Paddle_0");
+        const paddle1 = boat.getObjectByName("Cube140_Paddle_1");
+        
+        paddles = [paddle0, paddle1];
+
+        paddles.forEach((paddle) => {
+            if (paddle) {
+                // Uložení počáteční rotace pro každé pádlo
+                paddle.userData.initialRotation = paddle.rotation.clone();
+            }
+        });
+
         scene.add(boat);
+
+        // Přidání interakčního textu pro pádlování
+        const paddleText = document.createElement("div");
+        paddleText.className = "interaction-text";
+        paddleText.textContent = getTranslation("holdToPaddle");
+        paddleText.style.display = "none";
+        document.body.appendChild(paddleText);
+
+        // Uložení interakčního textu do userData
+        boat.userData.paddleText = paddleText;
     });
 }
-
 function createMysteriousIsland() {
     const loader = new GLTFLoader();
     loader.load('models/mountains.glb', (gltf) => {
@@ -130,10 +159,45 @@ function createLighting() {
 
 }
 
+function checkPaddling() {
+    if (!boat) return;
+
+    const paddleText = boat.userData.paddleText;
+    paddleText.style.display = "block";
+
+    // Projektujeme pozici textu do prostoru kamery
+    const textPosition = boat.position.clone().add(new THREE.Vector3(0, 2, 0));
+    const vector = textPosition.project(camera);
+
+    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+
+    paddleText.style.left = `${x}px`;
+    paddleText.style.top = `${y}px`;
+    paddleText.style.bottom = "unset";
+    paddleText.style.minWidth = "150px";
+
+    isPaddling = keys.f;
+
+    if (isPaddling) {
+        islandSpeed = maxSpeed;
+        coastSpeed = maxSpeed;
+    } else {
+        islandSpeed = 0;
+        coastSpeed = 0;
+    }
+}
+
+const MAX_PADDLE_ROTATION_X = Math.PI / 8; // Nastavte dle potřeby
+const MAX_PADDLE_ROTATION_Z = Math.PI / 6; // 30 stupňů
+
 export function animateSea(deltaTime) {
+    if (selectedFloor !== 1001) return;
     if (water) {
         water.material.uniforms['time'].value += 0.3 / 60.0;
     }
+
+    checkPaddling();
 
     // Pohyb mysterious island směrem k lodi
     if (mysteriousIsland) {
@@ -143,9 +207,9 @@ export function animateSea(deltaTime) {
     // Pohyb a recyklace běžných ostrovů
     commonIslands.forEach(island => {
         island.position.z += islandSpeed * deltaTime;
-        if (island.position.z > 1000) {  // Pokud ostrov zmizí za lodí
-            island.position.z = -5000 - Math.random() * 1000;  // Přesuneme ho zpět daleko před loď
-            island.position.x = (Math.random() - 0.5) * 2000;  // Nová náhodná X pozice
+        if (island.position.z > 1000) {
+            island.position.z = -5000 - Math.random() * 1000;
+            island.position.x = (Math.random() - 0.5) * 2000;
         }
     });
 
@@ -154,11 +218,44 @@ export function animateSea(deltaTime) {
         coast.position.z += coastSpeed * deltaTime;
     }
 
-    // Simulace pohybu lodi na vlnách
+    // Simulace pohybu lodi na vlnách a synchronizace s pádlováním
     if (boat) {
-        boat.position.y = 0 + Math.sin(Date.now() * 0.001) * 0.2;  // Upravili jsme základní výšku
-        boat.rotation.x = Math.sin(Date.now() * 0.001) * 0.02;
-        boat.rotation.z = Math.sin(Date.now() * 0.002) * 0.02;
+        const paddleSpeed = 1; // Rychlost pádlování
+        const time = Date.now() * 0.005 * paddleSpeed;
+
+        if (isPaddling) {
+            // Synchronizace naklánění lodi s pádlováním
+            boat.rotation.z = Math.sin(time) * 0.03; // Naklánění doleva a doprava
+            boat.rotation.x = Math.cos(time * 0.5) * 0.02; // Naklánění dopředu a dozadu
+
+            // Vertikální pohyb lodi při pádlování
+            boat.position.y = Math.sin(time * 0.8) * 0.2;
+        } else {
+            // Jemné pohupování lodi na vlnách
+            const waveIntensity = 0.1;
+            boat.position.y = Math.sin(Date.now() * 0.001) * waveIntensity;
+            boat.rotation.x = Math.sin(Date.now() * 0.001) * 0.01;
+            boat.rotation.z = Math.sin(Date.now() * 0.002) * 0.01;
+        }
+
+        // Animace pádel
+        if (paddles && paddles.length === 2) {
+            paddles.forEach((paddle, index) => {
+                if (paddle) {
+                    if (isPaddling) {
+                        // Střídavé pádlování pro každé pádlo
+                        const offsetTime = time + index * Math.PI; // Posun času pro střídavý pohyb
+                        paddle.rotation.x = Math.sin(offsetTime) * MAX_PADDLE_ROTATION_X + paddle.userData.initialRotation.x;
+                        paddle.rotation.z = Math.cos(offsetTime) * MAX_PADDLE_ROTATION_Z + paddle.userData.initialRotation.z;
+                    } else {
+                        // Návrat pádel do výchozí pozice
+                        paddle.rotation.x = THREE.MathUtils.lerp(paddle.rotation.x, paddle.userData.initialRotation.x, 0.1);
+                        paddle.rotation.y = THREE.MathUtils.lerp(paddle.rotation.y, paddle.userData.initialRotation.y, 0.1);
+                        paddle.rotation.z = THREE.MathUtils.lerp(paddle.rotation.z, paddle.userData.initialRotation.z, 0.1);
+                    }
+                }
+            });
+        }
     }
 
     // Aktualizace pozice hráče, aby zůstal na lodi
@@ -183,8 +280,13 @@ export function clearSeaScene() {
     commonIslands = [];
     stopSeaSound();
 
+    if (boat && boat.userData.paddleText) {
+        document.body.removeChild(boat.userData.paddleText);
+    }
+
     water = null;
     boat = null;
     mysteriousIsland = null;
     coast = null;
+    setPlayerGroundLevel(0);
 }

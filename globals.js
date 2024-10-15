@@ -121,6 +121,8 @@ export const floorMusic = {
   12: "music/msc_frozen_heart.mp3",
   13: "music/msc_lost.mp3",
   999: "music/msc_camp.mp3",
+  1000: "music/msc_coast.mp3",
+  1001: "music/msc_sea.mp3",
   100: "music/msc_boss_fight.mp3",
   101: "music/msc_boss_fight2.mp3",
   102: "music/msc_devils_party.mp3",

@@ -462,7 +462,10 @@
     "defeatDarkLordQuest": "Defeat the Dark Lord",
     "defeatDarkLordQuestDescription": "Defeat the Dark Lord, the final boss of the game, on the twelfth floor and claim your ultimate reward.",
     "requiresLevel60AndQuest": "Requires level 60 and active quest",
-    "floorCoast": "Coast"
+    "floorCoast": "Coast",
+    "holdToPaddle":"Hold F to paddle",
+    "enterBoat":"Press F to enter the boat"
+
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -926,6 +929,8 @@
     "defeatDarkLordQuest": "Poraž Temného pána",
     "defeatDarkLordQuestDescription": "Poraž Temného pána, finálního bosse hry, na dvanáctém podlaží a získej svou ultimátní odměnu.",
     "requiresLevel60AndQuest": "Vyžaduje úroveň 60 a aktivní quest",
-    "floorCoast": "Pobřeží"
+    "floorCoast": "Pobřeží",
+    "holdToPaddle": "Držte F pro pádlování",
+    "enterBoat": "Zmáčkněte F pro vstup na loď"
   }
 }

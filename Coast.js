@@ -4,7 +4,7 @@ import { Water } from 'three/examples/jsm/objects/Water.js';
 import { player } from "./player.js";
 import { showMessage } from "./utils.js";
 import { getTranslation } from "./langUtils.js";
-import { audioLoader, CELL_SIZE, keys, manager, setMazeSize, startGame } from "./main.js";
+import { audioLoader, CELL_SIZE, keys, manager, selectedFloor, setMazeSize, startGame } from "./main.js";
 import { textureSets } from "./globals.js";
 import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
 import { addStars, createSky, createTrees } from "./others/environemntUtils.js";
@@ -356,11 +356,11 @@ export function createHouse(createLight = true) {
 
 function createBoat() {
     const loader = new GLTFLoader(manager);
-    loader.load('models/lowpoly_stylized_boat.glb', (gltf) => {
+    loader.load('models/lowpoly_stylized_boat2.glb', (gltf) => {
         boat = gltf.scene;
         boat.scale.set(10, 10, 10);
         //boat.rotation.y = -Math.PI;
-        boat.position.set(0, -1.1, -35);  // Posuneme loďku blíže k molu a vodě
+        boat.position.set(0, -1.1, -34);  // Posuneme loďku blíže k molu a vodě
         scene.add(boat);
 
         // Přidání interakčního textu
@@ -390,9 +390,18 @@ function createLighting() {
 }
 
 export function animateCoast() {
+    if (selectedFloor !== 1000) return;
     if (water) {
         water.material.uniforms['time'].value += 0.3 / 60.0;
     }
+
+        // Simulace pohybu lodi na vlnách
+        if (boat) {
+            boat.position.y = -1.3 + Math.sin(Date.now() * 0.001) * 0.1;  // Upravili jsme základní výšku
+            boat.rotation.x = Math.sin(Date.now() * 0.001) * 0.01;
+            boat.rotation.z = Math.sin(Date.now() * 0.002) * 0.01;
+        }
+
     checkBoatInteraction();
 
 }
