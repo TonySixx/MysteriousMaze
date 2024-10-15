@@ -19,6 +19,19 @@ let coastSpeed = 0;
 let isPaddling = false;
 const maxSpeed = 5;
 
+// Přidejte tyto proměnné na začátek souboru, kde jsou deklarovány ostatní proměnné
+let currentSpeed = 0;
+let currentWaveIntensity = 0.1;
+const accelerationRate = 2; // Rychlost zrychlení/zpomalení
+const waveIntensityChangeRate = 0.2; // Rychlost změny intenzity vln
+
+// Přidejte tuto konstantu na začátek souboru, kde jsou deklarovány ostatní konstanty
+const PADDLE_RETURN_SPEED = 5; // Rychlost návratu pádel do původní pozice
+
+// Přidejte tyto konstanty na začátek souboru, kde jsou deklarovány ostatní konstanty
+const MIN_WAVE_INTENSITY = 0.05; // Minimální intenzita vln při stání
+const MAX_WAVE_INTENSITY = 0.2; // Maximální intenzita vln při pádlování
+const IDLE_ROTATION_INTENSITY = 0.005; // Intenzita naklánění při stání
 
 export function createSeaScene() {
     lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
@@ -30,7 +43,7 @@ export function createSeaScene() {
     createCommonIslands();
     createCoast();
     createLighting();
-    setPlayerGroundLevel(0.8);
+    setPlayerGroundLevel(1.4);
 
     audioLoader.load("sounds/snd_sea.mp3", function (buffer) {
         seaSound = new THREE.Audio(new THREE.AudioListener());
@@ -178,14 +191,6 @@ function checkPaddling() {
     paddleText.style.minWidth = "150px";
 
     isPaddling = keys.f;
-
-    if (isPaddling) {
-        islandSpeed = maxSpeed;
-        coastSpeed = maxSpeed;
-    } else {
-        islandSpeed = 0;
-        coastSpeed = 0;
-    }
 }
 
 const MAX_PADDLE_ROTATION_X = Math.PI / 8; // Nastavte dle potřeby
@@ -199,14 +204,23 @@ export function animateSea(deltaTime) {
 
     checkPaddling();
 
+    // Plynulá změna rychlosti
+    if (isPaddling) {
+        currentSpeed = Math.min(currentSpeed + accelerationRate * deltaTime, maxSpeed);
+        currentWaveIntensity = Math.min(currentWaveIntensity + waveIntensityChangeRate * deltaTime, MAX_WAVE_INTENSITY);
+    } else {
+        currentSpeed = Math.max(currentSpeed - accelerationRate * deltaTime, 0);
+        currentWaveIntensity = Math.max(currentWaveIntensity - waveIntensityChangeRate * deltaTime, MIN_WAVE_INTENSITY);
+    }
+
     // Pohyb mysterious island směrem k lodi
     if (mysteriousIsland) {
-        mysteriousIsland.position.z += islandSpeed * deltaTime;
+        mysteriousIsland.position.z += currentSpeed * deltaTime;
     }
 
     // Pohyb a recyklace běžných ostrovů
     commonIslands.forEach(island => {
-        island.position.z += islandSpeed * deltaTime;
+        island.position.z += currentSpeed * deltaTime;
         if (island.position.z > 1000) {
             island.position.z = -5000 - Math.random() * 1000;
             island.position.x = (Math.random() - 0.5) * 2000;
@@ -215,7 +229,7 @@ export function animateSea(deltaTime) {
 
     // Pohyb pobřeží od hráče
     if (coast) {
-        coast.position.z += coastSpeed * deltaTime;
+        coast.position.z += currentSpeed * deltaTime;
     }
 
     // Simulace pohybu lodi na vlnách a synchronizace s pádlováním
@@ -223,35 +237,35 @@ export function animateSea(deltaTime) {
         const paddleSpeed = 1; // Rychlost pádlování
         const time = Date.now() * 0.005 * paddleSpeed;
 
+        // Plynulý přechod mezi pádlováním a stáním
+        const paddlingIntensity = currentSpeed / maxSpeed;
+        
+        // Upravené houpání lodi
         if (isPaddling) {
-            // Synchronizace naklánění lodi s pádlováním
-            boat.rotation.z = Math.sin(time) * 0.03; // Naklánění doleva a doprava
-            boat.rotation.x = Math.cos(time * 0.5) * 0.02; // Naklánění dopředu a dozadu
-
-            // Vertikální pohyb lodi při pádlování
-            boat.position.y = Math.sin(time * 0.8) * 0.2;
+            boat.rotation.z = Math.sin(time) * 0.03 * paddlingIntensity;
+            boat.rotation.x = Math.cos(time * 0.5) * 0.02 * paddlingIntensity;
         } else {
-            // Jemné pohupování lodi na vlnách
-            const waveIntensity = 0.1;
-            boat.position.y = Math.sin(Date.now() * 0.001) * waveIntensity;
-            boat.rotation.x = Math.sin(Date.now() * 0.001) * 0.01;
-            boat.rotation.z = Math.sin(Date.now() * 0.002) * 0.01;
+            boat.rotation.z = Math.sin(time * 0.5) * IDLE_ROTATION_INTENSITY;
+            boat.rotation.x = Math.cos(time * 0.3) * IDLE_ROTATION_INTENSITY;
         }
+
+        // Vertikální pohyb lodi
+        const waveIntensity = THREE.MathUtils.lerp(MIN_WAVE_INTENSITY, MAX_WAVE_INTENSITY, paddlingIntensity);
+        boat.position.y = Math.sin(time * 0.8) * waveIntensity;
 
         // Animace pádel
         if (paddles && paddles.length === 2) {
             paddles.forEach((paddle, index) => {
                 if (paddle) {
                     if (isPaddling) {
-                        // Střídavé pádlování pro každé pádlo
-                        const offsetTime = time + index * Math.PI; // Posun času pro střídavý pohyb
-                        paddle.rotation.x = Math.sin(offsetTime) * MAX_PADDLE_ROTATION_X + paddle.userData.initialRotation.x;
-                        paddle.rotation.z = Math.cos(offsetTime) * MAX_PADDLE_ROTATION_Z + paddle.userData.initialRotation.z;
+                        const offsetTime = time + index * Math.PI;
+                        paddle.rotation.x = Math.sin(offsetTime) * MAX_PADDLE_ROTATION_X * paddlingIntensity + paddle.userData.initialRotation.x;
+                        paddle.rotation.z = Math.cos(offsetTime) * MAX_PADDLE_ROTATION_Z * paddlingIntensity + paddle.userData.initialRotation.z;
                     } else {
-                        // Návrat pádel do výchozí pozice
-                        paddle.rotation.x = THREE.MathUtils.lerp(paddle.rotation.x, paddle.userData.initialRotation.x, 0.1);
-                        paddle.rotation.y = THREE.MathUtils.lerp(paddle.rotation.y, paddle.userData.initialRotation.y, 0.1);
-                        paddle.rotation.z = THREE.MathUtils.lerp(paddle.rotation.z, paddle.userData.initialRotation.z, 0.1);
+                        // Plynulý návrat pádel do původní pozice
+                        paddle.rotation.x = THREE.MathUtils.lerp(paddle.rotation.x, paddle.userData.initialRotation.x, PADDLE_RETURN_SPEED * deltaTime);
+                        paddle.rotation.y = THREE.MathUtils.lerp(paddle.rotation.y, paddle.userData.initialRotation.y, PADDLE_RETURN_SPEED * deltaTime);
+                        paddle.rotation.z = THREE.MathUtils.lerp(paddle.rotation.z, paddle.userData.initialRotation.z, PADDLE_RETURN_SPEED * deltaTime);
                     }
                 }
             });
