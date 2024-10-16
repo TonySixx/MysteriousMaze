@@ -1,11 +1,15 @@
 import { bosses, setBossCounter, setBosses } from "./boss";
+import { clearCoastScene } from "./Coast";
 import { playerDefaultSpeed } from "./globals";
+import { clearSeaScene } from "./Sea";
 import { originalStaffRotation, resetSpells, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
 import { clearSpikeTraps, destroyAllSideAnimations, disposeObject } from "./utils";
 
 export function clearScene() {
     cleanupAudio();
-    clearSpikeTraps()
+    clearSpikeTraps();
+    clearCoastScene();
+    clearSeaScene();
 
     // Odstraníme a uvolníme všechny objekty ze scény
     while (scene.children.length > 0) {
