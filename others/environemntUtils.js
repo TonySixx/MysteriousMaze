@@ -128,20 +128,33 @@ export function createTrees(generateTreePositionsFunc) {
   export function createCommonIslands(islandArray, yPosition=-0.5) {
     const islandCount = 15;  // Počet běžných ostrovů
     const loader = new GLTFLoader(manager);
+    var seed = 12345;  // Pevný seed pro generování náhodných čísel
+    
+    function seededRandom() {
+        const x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+    }
     
     for (let i = 0; i < islandCount; i++) {
         loader.load('models/island_1.glb', (gltf) => {
             const island = gltf.scene;
+            
+            // Generování X pozice, která nikdy nebude mezi -10 a 10
+            let xPosition;
+            do {
+                xPosition = (seededRandom() - 0.5) * 1000;
+            } while (Math.abs(xPosition) < 10);
+            
             island.position.set(
-                (Math.random() - 0.5) * 1000,  // Náhodná X pozice
+                xPosition,
                 yPosition,
-                -400 - Math.random() * 1000  // Náhodná Z pozice za mysterious island
+                -400 - seededRandom() * 1000  // Náhodná Z pozice za mysterious island
             );
-            island.rotation.y = Math.random() * Math.PI * 2;
+            island.rotation.y = seededRandom() * Math.PI * 2;
             island.scale.set(
-                8 + Math.random() * 5,  // Náhodná velikost
-                8 + Math.random() * 5,
-                8 + Math.random() * 5
+                8 + seededRandom() * 5,  // Náhodná velikost
+                8 + seededRandom() * 5,
+                8 + seededRandom() * 5
             );
             scene.add(island);
             islandArray.push(island);
