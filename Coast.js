@@ -7,17 +7,19 @@ import { getTranslation } from "./langUtils.js";
 import { audioLoader, CELL_SIZE, keys, manager, selectedFloor, setMazeSize, startGame } from "./main.js";
 import { textureSets } from "./globals.js";
 import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
-import { addStars, createSky, createTrees } from "./others/environemntUtils.js";
+import { createCommonIslands, createTrees } from "./others/environemntUtils.js";
 import { createFireParticles } from "./others/effects.js";
 import { LightManager } from "./rendering/lightManager.js";
+import { SkyBox } from "./SkyBox.js";
 
 let water
 let dock, boat, ground;
 var seaSound;
+let commonIslands = [];
+let skybox;
 export function createCoastScene() {
     lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
-    createSky();
-    addStars();
+    skybox = new SkyBox(scene, camera);
     createWater();
     createTrees(generateTreePositions);
     createDock().then(dock => scene.add(dock));
@@ -27,6 +29,7 @@ export function createCoastScene() {
     const mountains = createMountains();
     scene.add(mountains);
     createBoat();
+    createCommonIslands(commonIslands, -1);
     createCoastWalls();
     createLighting();
 
@@ -385,7 +388,7 @@ function createLighting() {
     moonLight.position.set(0, 20, 0);
     scene.add(moonLight);
 
-    scene.fog = new THREE.Fog(0xcce0ff, 500, 3000);
+    scene.fog = new THREE.Fog(0x3b4047, 100, 5000);
 
 }
 
@@ -401,7 +404,7 @@ export function animateCoast() {
             boat.rotation.x = Math.sin(Date.now() * 0.001) * 0.01;
             boat.rotation.z = Math.sin(Date.now() * 0.002) * 0.01;
         }
-
+    skybox.update(camera.position);
     checkBoatInteraction();
 
 }

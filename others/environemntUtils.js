@@ -124,3 +124,27 @@ export function createTrees(generateTreePositionsFunc) {
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
   }
+
+  export function createCommonIslands(islandArray, yPosition=-0.5) {
+    const islandCount = 15;  // Počet běžných ostrovů
+    const loader = new GLTFLoader(manager);
+    
+    for (let i = 0; i < islandCount; i++) {
+        loader.load('models/island_1.glb', (gltf) => {
+            const island = gltf.scene;
+            island.position.set(
+                (Math.random() - 0.5) * 1000,  // Náhodná X pozice
+                yPosition,
+                -400 - Math.random() * 1000  // Náhodná Z pozice za mysterious island
+            );
+            island.rotation.y = Math.random() * Math.PI * 2;
+            island.scale.set(
+                8 + Math.random() * 5,  // Náhodná velikost
+                8 + Math.random() * 5,
+                8 + Math.random() * 5
+            );
+            scene.add(island);
+            islandArray.push(island);
+        });
+    }
+}

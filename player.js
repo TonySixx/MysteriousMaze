@@ -368,7 +368,7 @@ function createPlayer() {
         return;
     }
     else if (selectedFloor === 1001) { //Moře
-        player.position.set(0, playerGroundLevel, -2 - (CELL_SIZE / 2));
+        player.position.set(0, playerGroundLevel, 3);
         return;
     }
     else if (selectedFloor >= 100 && selectedFloor <= 200) { //Boss floor

@@ -307,7 +307,7 @@ export async function init() {
     75,
     window.innerWidth / window.innerHeight,
     0.1,
-    1600
+    6000
   );
   renderer = new THREE.WebGLRenderer({ alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);

@@ -2,12 +2,13 @@ import * as THREE from "three";
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { player, setPlayerGroundLevel, updatePlayerPosition } from "./player.js";
-import { createSky, addStars } from "./others/environemntUtils.js";
+import { createSky, addStars, createCommonIslands } from "./others/environemntUtils.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { audioLoader, CELL_SIZE, keys, manager, selectedFloor, setMazeSize } from "./main.js";
 import { LightManager } from "./rendering/lightManager.js";
 import { createDock, createHouse, createGround, createMountains } from "./Coast.js";
 import { getTranslation } from "./langUtils.js";
+import { SkyBox } from './SkyBox.js';
 
 let water;
 let boat, mysteriousIsland, coast;
@@ -30,14 +31,18 @@ const MAX_BOAT_SPEED = 3.5;
 const BOAT_ACCELERATION = 2;
 const BOAT_DECELERATION = 1;
 
+// Přidejte tuto proměnnou na začátek souboru
+let skybox;
+
 export function createSeaScene() {
     lightManager = new LightManager(scene, MAX_VISIBLE_LIGHTS);
-    createSky();
-    addStars();
+    // createSky();
+    // addStars();
+    skybox = new SkyBox(scene, camera);
     createWater();
     createBoat();
     createMysteriousIsland();
-    createCommonIslands();
+    createCommonIslands(commonIslands);
     createCoast();
     createLighting();
     setPlayerGroundLevel(1.4);
@@ -120,27 +125,7 @@ function createMysteriousIsland() {
     });
 }
 
-function createCommonIslands() {
-    const islandCount = 15;  // Počet běžných ostrovů
-    const loader = new GLTFLoader();
-    for (let i = 0; i < islandCount; i++) {
-        loader.load('models/island_1.glb', (gltf) => {
-            const island = gltf.scene;
-            island.position.set(
-                (Math.random() - 0.5) * 1000,  // Náhodná X pozice
-                -0.5,
-                -400 - Math.random() * 1000  // Náhodná Z pozice za mysterious island
-            );
-            island.scale.set(
-                8 + Math.random() * 5,  // Náhodná velikost
-                8 + Math.random() * 5,
-                8 + Math.random() * 5
-            );
-            scene.add(island);
-            commonIslands.push(island);
-        });
-    }
-}
+
 
 
 
@@ -167,7 +152,7 @@ function createLighting() {
     moonLight.position.set(0, 20, 0);
     scene.add(moonLight);
 
-    scene.fog = new THREE.Fog(0xcce0ff, 500, 3000);
+    scene.fog = new THREE.Fog(0x3b4047, 100, 5000);
 
 }
 
@@ -200,6 +185,8 @@ export function animateSea(deltaTime) {
     if (water) {
         water.material.uniforms['time'].value += 0.3 / 60.0;
     }
+
+    skybox.update(camera.position);
 
     checkPaddling();
 
@@ -293,6 +280,11 @@ export function clearSeaScene() {
 
     if (boat && boat.userData.paddleText) {
         document.body.removeChild(boat.userData.paddleText);
+    }
+
+    if (skybox) {
+        skybox.dispose();
+        skybox = null;
     }
 
     water = null;
