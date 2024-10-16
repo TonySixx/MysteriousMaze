@@ -268,26 +268,12 @@ export function animateSea(deltaTime) {
 
             // Aktualizujeme pozici hráče
             player.position.x = boat.position.x + clampedX;
-            player.position.y = boat.position.y + 1.4; // Výška hráče nad loďkou
+            //player.position.y = boat.position.y + 1.4; // Výška hráče nad loďkou
             player.position.z = boat.position.z + clampedZ;
         }
     }
 
-    // Aktualizace pozice hráče, aby zůstal na lodi, ale mohl se po ní pohybovat
-    if (player && boat) {
-        // Získáme relativní pozici hráče vzhledem k lodi
-        const relativeX = player.position.x - boat.position.x;
-        const relativeZ = player.position.z - boat.position.z;
 
-        // Omezíme pohyb hráče na rozměry loďky
-        const clampedX = Math.max(-boatWidth / 2 + 1, Math.min(boatWidth / 2 - 1, relativeX));
-        const clampedZ = Math.max(-boatLength / 2 + 1, Math.min(boatLength / 2 - 1, relativeZ));
-
-        // Aktualizujeme pozici hráče
-        player.position.x = boat.position.x + clampedX;
-        player.position.y = boat.position.y + 1.4; // Výška hráče nad loďkou
-        player.position.z = boat.position.z + clampedZ;
-    }
 }
 
 export function stopSeaSound() {

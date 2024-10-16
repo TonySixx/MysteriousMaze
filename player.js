@@ -465,6 +465,38 @@ export function setPlayerGroundLevel(level) {
     playerGroundLevel = level;
 }
 
+function gravityAndJump(deltaTime) {
+      // Aplikujte gravitaci a skok
+      if (isJumping) {
+        jumpVelocity += GRAVITY * deltaTime * 60;
+        const newY = player.position.y + jumpVelocity * deltaTime * 60;
+
+        // Kontrola kolize se stropem před aplikací nové pozice
+        if (checkCeilingCollision()) {
+            isJumping = false;
+            jumpVelocity = GRAVITY * FALL_MULTIPLIER; // Okamžitě začneme padat rychleji
+        } else {
+            player.position.y = newY;
+        }
+    }
+
+    // Vždy aplikujte gravitaci, i když hráč neskáče
+    if (!isJumping && player.position.y > playerGroundLevel) {
+        player.position.y += GRAVITY * FALL_MULTIPLIER * deltaTime * 60;
+    }
+
+    // Zajistěte, že hráč nespadne pod podlahu
+    if (player.position.y <= playerGroundLevel) {
+        player.position.y = playerGroundLevel;
+        isJumping = false;
+        jumpVelocity = 0;
+        if (playSoundOnLand) {
+            playSoundOnLand = false;
+            playSound(landSoundBuffer, 0.35);
+        }
+    }
+}
+
 // Přidejte tuto proměnnou na začátek souboru
 let isOnBoat = false;
 
@@ -480,6 +512,8 @@ function updatePlayerPosition(deltaTime) {
     const flySpeed = 6.5; // Rychlost při letu
 
     if (isOnBoat) {
+
+        gravityAndJump();
         // Pohyb na lodi
         let moveVector = new THREE.Vector3(0, 0, 0);
         if (moveForward) moveVector.z -= 1;
@@ -527,35 +561,7 @@ function updatePlayerPosition(deltaTime) {
         }
     } else {
 
-        // Aplikujte gravitaci a skok
-        if (isJumping) {
-            jumpVelocity += GRAVITY * deltaTime * 60;
-            const newY = player.position.y + jumpVelocity * deltaTime * 60;
-
-            // Kontrola kolize se stropem před aplikací nové pozice
-            if (checkCeilingCollision()) {
-                isJumping = false;
-                jumpVelocity = GRAVITY * FALL_MULTIPLIER; // Okamžitě začneme padat rychleji
-            } else {
-                player.position.y = newY;
-            }
-        }
-
-        // Vždy aplikujte gravitaci, i když hráč neskáče
-        if (!isJumping && player.position.y > playerGroundLevel) {
-            player.position.y += GRAVITY * FALL_MULTIPLIER * deltaTime * 60;
-        }
-
-        // Zajistěte, že hráč nespadne pod podlahu
-        if (player.position.y <= playerGroundLevel) {
-            player.position.y = playerGroundLevel;
-            isJumping = false;
-            jumpVelocity = 0;
-            if (playSoundOnLand) {
-                playSoundOnLand = false;
-                playSound(landSoundBuffer, 0.35);
-            }
-        }
+       gravityAndJump(deltaTime);
 
         // Upravená část pro normalizaci pohybu
         let moveVector = new THREE.Vector3(0, 0, 0);
