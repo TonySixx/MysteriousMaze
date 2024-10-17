@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mysterious Maze: 3D Webová Hra</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
+        @keyframes backgroundAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        @keyframes vignette {
+            0%, 100% { box-shadow: inset 0 0 150px rgba(0,0,0,0.8); }
+            50% { box-shadow: inset 0 0 200px rgba(0,0,0,0.9); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            color: #c8a97e;
+            perspective: 1000px;
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('../public/mainMenu.webp');
+            background-size: 120% 120%;
+            background-position: center;
+            animation: backgroundAnimation 60s ease-in-out infinite, vignette 5s ease-in-out infinite;
+            z-index: -1;
+        }
+        .slide {
+            height: 100vh;
+            width: 100vw;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0;
+            box-sizing: border-box;
+            position: relative;
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            transform: translateZ(-100px) rotateX(10deg);
+            opacity: 0;
+        }
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+        }
+        .slide-content {
+            position: relative;
+            z-index: 1;
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #c8a97e;
+            max-width: 80%;
+            box-shadow: 0 0 20px rgba(200, 169, 126, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+        .slide.active {
+            display: flex;
+            transform: translateZ(0) rotateX(0deg);
+            opacity: 1;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #d4af37;
+            text-shadow: 
+                0 1px 0 #333,
+                0 2px 0 #303030,
+                0 3px 0 #222,
+                0 4px 0 #202020,
+                0 5px 0 #111,
+                0 6px 1px rgba(0,0,0,.1),
+                0 0 5px rgba(0,0,0,.1),
+                0 1px 3px rgba(0,0,0,.3),
+                0 3px 5px rgba(0,0,0,.2),
+                0 5px 10px rgba(0,0,0,.25),
+                0 10px 10px rgba(0,0,0,.2),
+                0 20px 20px rgba(0,0,0,.15);
+        }
+        h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+            color: #e9b266;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        ul {
+            text-align: left;
+            font-size: 1.2em;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 20px;
+        }
+        li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #d4af37;
+        }
+        pre {
+            background-color: rgba(30, 30, 30, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 90%;
+            text-align: left;
+            color: #f0e6d2;
+            border: 1px solid #c8a97e;
+            box-shadow: 0 0 10px rgba(200, 169, 126, 0.2);
+        }
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 2;
+        }
+        button {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.2em;
+            margin: 0 10px;
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #2a2a2a, #1a1a1a);
+            color: #d4af37;
+            border: 2px solid #b8860b;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(184, 134, 11, 0.3);
+        }
+        button:hover {
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+            color: #ffd700;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(184, 134, 11, 0.5);
+        }
+        .slide-image {
+            max-width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(200, 169, 126, 0.3);
+        }
+        .slide-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        iframe {
+            width: 100%;
+            height: 315px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(200, 169, 126, 0.3);
+        }
+        .slide-content iframe {
+            width:700px;
+            height: 500px;
+            margin-bottom: 20px;
+            border: 2px solid #c8a97e;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(200, 169, 126, 0.3);
+        }
+        .prompt-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background-color: #d4af37;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.8em;
+            color: #000;
+        }
+
+        .prompt-icon:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: rgba(0, 0, 0, 1);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 1.5em;
+            border: 2px solid #c8a97e;
+            white-space: pre-wrap;
+            min-width: 500px;
+            max-width: 500px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+
+    <div class="slide active">
+        <div class="slide-content">
+            <h1>Mysterious Maze: 3D Webová Hra</h1>
+            <h2>Využití webových technologií a AI pro vývoj komplexní aplikace</h2>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Přehled Technologií</h2>
+            <ul>
+                <li>HTML5, CSS3, JavaScript</li>
+                <li>Three.js pro 3D grafiku</li>
+                <li>AI asistence při vývoji</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <img src="../presentation/welcomeImage.png" alt="Ukázka hry" class="slide-image">
+            <h2>Ukázka Hry</h2>
+            <p>Pohled na 3D prostředí hry Mysterious Maze</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Lokalizace hry</h2>
+            <ul>
+                <li>Hra je dostupná v češtině a angličtině</li>
+                <li>Lokalizace implementována s pomocí AI</li>
+                <li>Automatické přidávání nových textací do obou jazyků</li>
+                <li>Využití souboru translations.json pro správu překladů</li>
+            </ul>
+            <div class="prompt-icon" data-tooltip="@Codebase Přidej do hry druhý jazyk - angličtinu, která bude defaultní. Hráč si bude moct vybrat jazyk na začátku jak se zadává jméno. Veškeré texty budou ve zvláštním json souboru. Vyextrahuj texty ze hry do tohoto souboru a dle vybraného jazyka použij správný překlad.">
+                <span>AI</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Ukázka translations.json</h2>
+            <pre>
+{
+  "en": {
+    "enterName": "Enter your name",
+    "confirm": "Confirm",
+    // ...
+  },
+  "cs": {
+    "enterName": "Zadejte své jméno",
+    "confirm": "Potvrdit",
+    // ...
+  }
+}
+            </pre>
+            <p>AI asistuje při generování překladů pro nové textace</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Inventář jako Webová Komponenta</h2>
+            <img src="../presentation/inv.png" alt="Inventář" class="slide-image">
+            <ul>
+                <li>Dynamické načítání položek</li>
+                <li>Drag-and-drop</li>
+                <li>Interaktivní tooltipy</li>
+                <li>Správa stavu (equip/unequip)</li>
+            </ul>
+            <div class="prompt-icon" data-tooltip="@camp.js @Codebase @player.js@index.html   Nyní do hry přidej inventář o velikosti 8x6. Inventář se bude zobrazovat v modální okně stejně jako strom schopností @skillTree.js. Styly pro inventář vytvoř do nového soubor invertory.css. V inventáři budou v jednotlivých polích hráčovi předměty, které hráč bude moci v inventáři přetahovat pomocí drag&drop na jiné pozice, ale také do určené výbavy hráče, kterí bude na inventářem (inspirace z World of Warcraft). Hráčovou výbavou mám na mysli pozice pro kouzelnou hůlku, pozice pro HP potiony, pozice pro MP potiony a pozice pro brnění. Hráč na začátku hry bude mít prázdný inventář a bude vybaven kouzelnou hůlkou 'Mage's Staff'. Předmět inventáře bude mít několik vlastností podle, kterých se budou určovat jeho možné akce. Jedná se o tyto vlastnosti: Typ (zbraň, brnění, hp potion, mp potion) - podle toho se určí do jaké pozice ve výbavě je možné předmět přiřadit. Vzácnost (obyčejné, neobyčejné, vzácné, legendární). Požadovaný level (number). Prodejné (boolean).  Prodejní cena (number). Akce pro prodej se bude nabízer v context menu při pravém kliknutí na předmět. Funkčnost ohledně invertáře vytvoř do nového souboru invertory.js. Posílej mi vždy kompletní funkce">
+                <span>AI</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Objektově Orientovaná Architektura Bossů</h2>
+            <ul>
+                <li>Boss (základní třída)</li>
+                <li>MainBoss (rozšiřuje Boss)</li>
+                <li>SpecificBoss (např. QuantumGuardianBoss, rozšiřuje MainBoss)</li>
+                <li>Pomocné třídy: Ability, StateMachine</li>
+                <li>Navržení architektury pomocí chatGPT <a style="color: #d4af37;" target="_blank" href="https://chatgpt.com/share/670f78c8-df20-8006-b479-3ef025aec869">Rozšíření bossů</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Ukázka Boje s Bossem</h2>
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/Y7vDV3SXGMg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <p>Demonstrace boje s bossem v Mysterious Maze</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Kód Základní Třídy Boss</h2>
+            <pre>
+class Boss {
+    constructor(position, id, rng, floor, isMainBoss = false, type = null, dontDropKey = false) {
+        this.isMainBoss = isMainBoss;
+        this.id = id;
+        this.floor = floor;
+        this.position = position;
+        this.rng = rng;
+        // ... další inicializace
+    }
+
+    attack() {
+        // Implementace útoku
+    }
+
+    takeDamage(damage) {
+        // Zpracování poškození
+    }
+
+    // ... další metody
+}
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Kód Třídy MainBoss</h2>
+            <pre>
+export class MainBoss extends Boss {
+    constructor(position, id, rng, floor, type) {
+        super(position, id, rng, floor, true, type);
+        this.abilities = type.abilities.map((AbilityClass) => new AbilityClass(this, type));
+        this.stateMachine = new StateMachine(this);
+    }
+
+    update(deltaTime) {
+        this.stateMachine.update(deltaTime);
+        // ... další logika aktualizace
+    }
+
+    // ... další metody
+}
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Pomocné Třídy</h2>
+            <pre>
+export class Ability {
+  constructor(boss) {
+    this.boss = boss;
+  }
+
+  use(target) {
+    // Abstraktní metoda pro použití schopnosti
+  }
+}
+
+export class StateMachine {
+  constructor(boss) {
+    this.boss = boss;
+    this.currentState = new IdleState(this.boss);
+  }
+
+  update(deltaTime) {
+    this.currentState.update(deltaTime);
+  }
+
+  changeState(NewStateClass) {
+    // ... logika změny stavu
+  }
+}
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Questy - Seznam a Detail</h2>
+            <img src="../presentation/quest.png" alt="" class="slide-image">
+            <ul>
+                <li>Analytický návrh v chatGPT <a style="color: #d4af37;" target="_blank" href="https://chatgpt.com/share/67114e62-2698-8006-bdda-50e5dc306b33">Quest Manager</a></li>
+                <li>Seznam-detail vzor</li>
+                <li>Dynamické načítání dat</li>
+                <li>Interaktivní UI</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Modální Okna</h2>
+            <img src="../presentation/controls.png" alt="" class="slide-image">
+            <ul>
+                <li>Překrytí hlavního obsahu</li>
+                <li>Fokus na konkrétní akci/informaci</li>
+                <li>Snadné zavření a návrat</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <img src="../presentation/skillTree.png" alt="Strom schopností" class="slide-image">
+            <h2>Strom Schopností</h2>
+            <ul>
+                <li>Hierarchická struktura dat ~ Organizační struktura firmy</li>
+                <li>Vizualizace závislostí ~ Diagram procesů nebo workflow</li>
+                <li>Interaktivní UI pro odemykání schopností ~ Správa uživatelských oprávnění</li>
+                <li>Persistentní stav uživatele ~ Ukládání preferencí nebo nastavení</li>
+                <li>Dynamické aktualizace UI ~ Real-time aktualizace dashboardu</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Využití AI při Vývoji</h2>
+            <ul>
+                <li>Generování kódu</li>
+                <li>Vytvoření a návrh CSS stylů</li>
+                <li>Návrh architektury (např. systém bossů)</li>
+                <li>Optimalizace <a style="color: #d4af37;" target="_blank" href="https://chatgpt.com/share/670cdaae-4f2c-8006-9f1a-556a59826409">Optimalizace světel</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Srovnání s Webovými Aplikacemi</h2>
+            <ul>
+                <li>Inventář ~ Správce obsahu / Dashboard</li>
+                <li>Bosses ~ Hierarchie uživatelských rolí nebo produktových kategorií</li>
+                <li>Questy ~ Ticketovací systém nebo správa úkolů</li>
+                <li>Modální okna ~ Detailní pohledy nebo formuláře</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="slide-content">
+            <h2>Gameplay Video</h2>
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/uXWdOnHE43A" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <p>Ukázka gameplay z Mysterious Maze</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevSlide()">Předchozí</button>
+        <button onclick="nextSlide()">Další</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+</html>
