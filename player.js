@@ -459,7 +459,7 @@ export function checkCollisionZ(currentX, newZ) {
     return newZ;
 }
 
-var playerGroundLevel = 0;
+export var playerGroundLevel = 0;
 
 export function setPlayerGroundLevel(level) {
     playerGroundLevel = level;

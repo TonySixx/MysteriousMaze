@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { aoeBlastSoundBuffer, BLOCKING_WALL, CELL_SIZE, frostBoltHitSoundBuffer, hurtSoundBuffer, isMusicEnabled, MAZE_SIZE, playerDeath, playSound, selectedFloor, supabase } from "./main";
-import { addExperience, getPlayerLevel, getPlayerMaxHealth, player, playerHealth, setPlayerHealth, updatePlayerHealthBar } from "./player";
+import { addExperience, getPlayerLevel, getPlayerMaxHealth, player, playerGroundLevel, playerHealth, setPlayerHealth, updatePlayerHealthBar } from "./player";
 import * as THREE from 'three';
 import { equipment } from "./inventory";
 import { bosses } from "./boss";
@@ -525,7 +525,7 @@ export function updateMagicBalls(deltaTime) {
 
     // Vytvoříme kouli reprezentující hráče
     const playerSphere = new THREE.Sphere(player.position.clone(), 0.5);
-    playerSphere.center.y = 1; // Nastavíme Y pozici na 1, aby odpovídala výšce hráče
+    playerSphere.center.y = player.position.y + 1; // Nastavíme Y pozici na 1, aby odpovídala výšce hráče
 
     // Kontrola kolize pomocí průniku koulí
     if (playerSphere.intersectsSphere(new THREE.Sphere(magicBall.position, magicBallRadius))) {

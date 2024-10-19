@@ -67,7 +67,6 @@ export function clearScene() {
     lightManager = null;
   
     // Resetujeme bossy a jejich efekty
-    // Resetujeme bossy a jejich efekty
     bosses.forEach(boss => {
       if (boss.abilities) {
         boss.abilities.forEach(ability => {

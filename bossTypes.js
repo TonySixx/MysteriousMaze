@@ -569,5 +569,53 @@ export const BOSS_TYPES = [
         attackEmmisiveIntensity: 5,
         minHealth: 80000,
         maxHealth: 85000
+    },      // Třinácté podlaží (upravené parametry)
+    {
+        name: "Drak noční oblohy",
+        translationKey: "nightSkyDragon",
+        specialAttacks: ['multiShot','teleport', 'frostbolt', 'magicArrow'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x191970, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.8 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xFFFF00, emissive: 0xFFFF00, emissiveIntensity: 3 }),
+        attackColor: new THREE.Color(0x4169E1),
+        attackCooldown: 0.8,
+        attackSpeed: 0.5,
+        attackSize: 0.2,
+        attackDamage: 60,
+        attackEmmisiveIntensity: 5,
+        minHealth: 30000,
+        maxHealth: 30000
+    },
+    {
+        name: "Drak hlubinného ledu",
+        translationKey: "abyssalIceDragon",
+        specialAttacks: ['multiShot', 'teleport', 'frostbolt', 'magicArrow'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x4682B4, roughness: 0.2, metalness: 0.8, transparent: true, opacity: 0.85 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0xE0FFFF, emissive: 0xE0FFFF, emissiveIntensity: 3 }),
+        attackColor: new THREE.Color(0xAFEEEE),
+        attackCooldown: 1,
+        attackSpeed: 0.7,
+        attackSize: 0.2,
+        attackDamage: 60,
+        attackEmmisiveIntensity: 4,
+        minHealth: 30000,
+        maxHealth: 30000
+    },
+    {
+        name: "Drak oceánské magie",
+        translationKey: "oceanicMagicDragon",
+        specialAttacks: ['multiShot', 'teleport', 'frostbolt', 'magicArrow'],
+        dragonMainMaterial: new THREE.MeshStandardMaterial({ color: 0x000080, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.8 }),
+        eyeBlackMaterial: new THREE.MeshStandardMaterial({ color: 0x000000 }),
+        eyeWhiteMaterial: new THREE.MeshStandardMaterial({ color: 0x7B68EE, emissive: 0x7B68EE, emissiveIntensity: 3 }),
+        attackColor: new THREE.Color(0x1E90FF),
+        attackCooldown: 0.8,
+        attackSpeed: 0.6,
+        attackSize: 0.2,
+        attackDamage: 60,
+        attackEmmisiveIntensity: 5,
+        minHealth: 30000,
+        maxHealth: 30000
     }
 ];

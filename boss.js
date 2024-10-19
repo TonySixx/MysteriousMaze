@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold, getPlayerLevel, calculatePlayerDamage } from "./player.js"
+import { player, setPlayerHealth, playerHealth, updatePlayerHealthBar, addExperience, addGold, getPlayerLevel, calculatePlayerDamage, playerGroundLevel } from "./player.js"
 import { CELL_SIZE, MAZE_SIZE, WALL_HEIGHT, setTotalKeys, totalKeys, bossSoundBuffer, keyModel, playerDeath, frostBoltHitSoundBuffer, teleportSoundBuffer, killConfirmationSoundBuffer, frostBoltSoundBuffer, magicArrowSoundBuffer, playSound, aoeBlastSoundBuffer, manager } from './main.js';
 import { getTranslation } from "./langUtils.js";
 import { BOSS_TYPES } from "./bossTypes.js";
@@ -21,7 +21,7 @@ export function setBossCounter(value) {
 
 
 class Boss {
-    constructor(position, id, rng, floor, isMainBoss = false, type = null, dontDropKey = false) {
+    constructor(position, id, rng, floor, isMainBoss = false, type = null, dontDropKey = false, followPlayer = false) {
         this.isMainBoss = isMainBoss;
         this.id = id;
         this.floor = floor;
@@ -54,6 +54,7 @@ class Boss {
         this.bossHitBoxMarginXZ = this.type.bossHitBoxMarginXZ || 1.4;
         this.bossHitBoxMarginY = this.type.bossHitBoxMarginY || 1.4;
         this.dontDropKey = dontDropKey;
+        this.followPlayer = followPlayer;
 
 
         if (!this.isMainBoss) {
@@ -849,15 +850,23 @@ class Boss {
             emissiveIntensity: this.type.emissiveIntensity || 2
         });
         const magicBall = new THREE.Mesh(geometry, material);
-        magicBall.position.copy(startPosition);
-        magicBall.position.y += 1;
-
-        const direction = new THREE.Vector3().subVectors(targetPosition, startPosition).normalize();
-
-        // Nastavení rychlosti na základě rng, v rozmezí 0.2 - 0.3
+    
+        // Upravit počáteční pozici
+        const adjustedStartPosition = startPosition.clone();
+        adjustedStartPosition.y += 1;
+        magicBall.position.copy(adjustedStartPosition);
+    
+        // Upravit cílovou pozici konzistentně
+        const adjustedTargetPosition = targetPosition.clone();
+        adjustedTargetPosition.y += 1;
+    
+        // Vypočítat směr letu
+        const direction = new THREE.Vector3().subVectors(adjustedTargetPosition, adjustedStartPosition).normalize();
+    
+        // Nastavení rychlosti
         const speed = magicBallSpeed ? magicBallSpeed : 0.2 + this.rng() * 0.1;
         magicBall.velocity = direction.multiplyScalar(speed);
-
+    
         magicBall.attackDamage = this.attackDamage;
         return magicBall;
     }
@@ -872,12 +881,21 @@ class Boss {
             return;
         }
 
-        if (this.moveDirection.length() === 0) {
-            this.changeDirection();
+        let moveDirection;
+        if (this.followPlayer) {
+            // Pokud má boss sledovat hráče, vypočítáme směr k hráči
+            moveDirection = new THREE.Vector3().subVectors(player.position, this.position).normalize();
+            moveDirection.y = 0; // Zachováme Y výšku bosse
+        } else {
+            // Pokud nemá sledovat hráče, použijeme původní logiku
+            if (this.moveDirection.length() === 0) {
+                this.changeDirection();
+            }
+            moveDirection = this.moveDirection;
         }
 
         const speed = 5.0 * this.slowEffect; // Aplikujeme efekt zpomalení na rychlost pohybu
-        const moveStep = this.moveDirection.clone().multiplyScalar(speed * deltaTime);
+        const moveStep = moveDirection.clone().multiplyScalar(speed * deltaTime);
         const nextPosition = this.position.clone().add(moveStep);
 
         const halfMazeSize = (MAZE_SIZE * CELL_SIZE) / 2;
@@ -885,12 +903,19 @@ class Boss {
             nextPosition.x < -halfMazeSize || nextPosition.x > halfMazeSize ||
             nextPosition.z < -halfMazeSize || nextPosition.z > halfMazeSize
         ) {
-            this.changeDirection(); // Pokud by boss opustil hranice bludiště, změní směr
+            if (!this.followPlayer) {
+                this.changeDirection(); // Pokud by boss opustil hranice bludiště a nesleduje hráče, změní směr
+            }
         } else if (!this.checkCollisionOnMove(nextPosition, collisionOffset)) {
             this.position.add(moveStep);
             this.model.position.copy(this.position);
-        } else {
+        } else if (!this.followPlayer) {
             this.changeDirection();
+        }
+
+        // Pokud boss sleduje hráče, vždy se otočí směrem k němu
+        if (this.followPlayer) {
+            this.model.lookAt(player.position.x, this.model.position.y, player.position.z);
         }
     }
 
@@ -937,6 +962,9 @@ class Boss {
 
         if (canSeePlayer(this.position, player.position)) {
             this.attack();
+            if (this.followPlayer) {
+                this.circleAroundPlayer(deltaTime);
+            }
         } else {
             this.move(deltaTime, collisionOffset);
         }
@@ -1037,6 +1065,65 @@ class Boss {
         }
     }
 
+    circleAroundPlayer(deltaTime) {
+        const idealDistance = 10; // Ideální vzdálenost od hráče
+        const circlingSpeed = 3.5; // Rychlost kroužení
+        const approachSpeed = 4; // Rychlost přibližování k ideální vzdálenosti
+    
+        // Inicializace směru kroužení, pokud není nastaven
+        if (typeof this.circlingDirection === 'undefined') {
+            this.circlingDirection = Math.random() < 0.5 ? 1 : -1;
+        }
+    
+        // Inicializace základní výšky, pokud není nastavena
+        if (typeof this.baseHeight === 'undefined') {
+            this.baseHeight = this.position.y;
+        }
+    
+        // Aktualizace času kroužení
+        this.circlingTime = (this.circlingTime || 0) + deltaTime;
+    
+        // Vektor od hráče k drakovi
+        const directionFromPlayer = new THREE.Vector3().subVectors(this.position, player.position).normalize();
+    
+        // Cílová pozice na kružnici kolem hráče
+        const targetPosition = new THREE.Vector3()
+            .addVectors(
+                player.position,
+                directionFromPlayer.clone().multiplyScalar(idealDistance)
+            );
+    
+        // Tangentní vektor pro pohyb po kružnici
+        const tangent = new THREE.Vector3(-directionFromPlayer.z, 0, directionFromPlayer.x).normalize();
+    
+        // Přidání tangentního vektoru s ohledem na směr kroužení
+        targetPosition.add(tangent.multiplyScalar(circlingSpeed * deltaTime * this.circlingDirection));
+    
+        // Vektor pohybu směrem k cílové pozici
+        const movement = new THREE.Vector3().subVectors(targetPosition, this.position);
+    
+        // Omezení rychlosti přibližování
+        const distanceToMove = approachSpeed * deltaTime;
+        if (movement.length() > distanceToMove) {
+            movement.normalize().multiplyScalar(distanceToMove);
+        }
+    
+        // Aktualizace pozice draka
+        this.position.add(movement);
+    
+        // Měnění výšky pomocí sinusové funkce
+        const heightAmplitude = 2; // Maximální změna výšky
+        const heightFrequency = 0.1; // Frekvence změny výšky (počet oscilací za sekundu)
+        const heightOffset = Math.sin(this.circlingTime * heightFrequency * Math.PI * 2) * heightAmplitude;
+    
+        // Aktualizace výšky draka
+        this.position.y = this.baseHeight + heightOffset;
+    
+        // Aktualizace pozice modelu
+        if (this.model) {
+            this.model.position.copy(this.position);
+        }
+    }
 
 }
 
