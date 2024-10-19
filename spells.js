@@ -554,7 +554,7 @@ function updateFireballs(deltaTime) {
     }
 
     // Odstraňte ohnivou kouli, pokud je příliš daleko
-    if (fireball.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
+    if (fireball.position.distanceTo(player.position) > 200) {
       scene.remove(fireball);
       fireBalls.splice(i, 1);
     }
@@ -601,7 +601,7 @@ function updateFrostbolts(deltaTime) {
       }
     }
 
-    if (frostbolt.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
+    if (frostbolt.position.distanceTo(player.position) > 200) {
       scene.remove(frostbolt);
       frostBalls.splice(i, 1);
     }
@@ -644,7 +644,7 @@ function updateArcaneMissiles(deltaTime) {
       }
     }
 
-    if (arcaneMissile.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
+    if (arcaneMissile.position.distanceTo(player.position) > 200) {
       scene.remove(arcaneMissile);
       arcaneMissiles.splice(i, 1);
     }
@@ -800,7 +800,7 @@ export function updateChainLightnings(deltaTime) {
     }
 
     // Odstraňte blesk, pokud je příliš daleko
-    if (lightning.position.distanceTo(player.position) > MAZE_SIZE * CELL_SIZE) {
+    if (lightning.position.distanceTo(player.position) > 200) {
       scene.remove(lightning);
       chainLightnings.splice(i, 1);
     }

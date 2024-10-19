@@ -258,7 +258,7 @@ export function addExperienceForCompletion(floor) {
   }
 
   //Bonus za počet bossů v bludišti
-  const bossBonus = (totalBossesInMaze * 200) * (floor) ;
+  const bossBonus = (totalBossesInMaze * 200) * (floor);
 
   // Celkové zkušenosti
   const totalExperience = Math.round((baseExperience + bossBonus) * levelModifier);
@@ -456,7 +456,7 @@ const damageEffectCooldown = 500; // 500 ms cooldown
 
 export function playerTakeDamage(damage) {
   if (isProtectiveShieldActive()) {
-    const currentTime = Date.now(); 
+    const currentTime = Date.now();
     if (currentTime - lastDamageEffectTime >= damageEffectCooldown) {
       playSound(aoeBlastSoundBuffer, 0.7);
       playSound(hurtSoundBuffer, 0.7);
@@ -931,7 +931,7 @@ export function loadAndPlayMusic(floor, audioLoader) {
     currentBackgroundMusic.setBuffer(buffer);
     currentBackgroundMusic.setLoop(true);
     currentBackgroundMusic.setVolume(0.35);
-    
+
     // Přehrajeme hudbu pouze pokud je povolena
     if (isMusicEnabled) {
       currentBackgroundMusic.play();

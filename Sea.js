@@ -4,7 +4,7 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { player, setPlayerGroundLevel, updatePlayerPosition } from "./player.js";
 import { createSky, addStars, createCommonIslands } from "./others/environemntUtils.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { audioLoader, CELL_SIZE, keys, manager, selectedFloor, setMazeSize } from "./main.js";
+import { audioLoader, CELL_SIZE, keys, manager, playSound, selectedFloor, setMazeSize, teleportSoundBuffer } from "./main.js";
 import { LightManager } from "./rendering/lightManager.js";
 import { createDock, createHouse, createGround, createMountains } from "./Coast.js";
 import { getTranslation } from "./langUtils.js";
@@ -38,7 +38,7 @@ let skybox;
 
 
 
-let dragonSpawnDistance = 20; // Vzdálenost, po které se objeví draci
+let dragonSpawnDistance = 80; // Vzdálenost, po které se objeví draci
 let lastDragonSpawnPosition = new THREE.Vector3();
 let seaDragons = [];
 
@@ -56,7 +56,7 @@ export function createSeaScene() {
     createCoast();
     createLighting();
     setPlayerGroundLevel(1.4);
- 
+
 
     audioLoader.load("sounds/snd_sea.mp3", function (buffer) {
         seaSound = new THREE.Audio(new THREE.AudioListener());
@@ -71,17 +71,17 @@ export function createSeaScene() {
 // Přidejte tuto funkci na začátek souboru nebo do samostatného modulu
 function createPaths() {
     const pathsGroup = new THREE.Group();
-    
+
     // Vytvoření několika cest
     for (let i = 0; i < 5; i++) {
         const pathGeometry = new THREE.PlaneGeometry(5, 50 + Math.random() * 100);
-        const pathMaterial = new THREE.MeshStandardMaterial({ 
+        const pathMaterial = new THREE.MeshStandardMaterial({
             color: 0x8B4513,
             roughness: 0.8,
             metalness: 0.2
         });
         const path = new THREE.Mesh(pathGeometry, pathMaterial);
-        
+
         // Náhodné umístění a rotace cesty
         path.position.set(
             (Math.random() - 0.5) * 200,
@@ -90,10 +90,10 @@ function createPaths() {
         );
         path.rotation.y = Math.random() * Math.PI * 2;
         path.rotation.x = -Math.PI / 2; // Položíme cestu na zem
-        
+
         pathsGroup.add(path);
     }
-    
+
     return pathsGroup;
 }
 
@@ -132,7 +132,7 @@ function createBoat() {
         // Získání obou pádel
         const paddle0 = boat.getObjectByName("Cube140_Paddle_0");
         const paddle1 = boat.getObjectByName("Cube140_Paddle_1");
-        
+
         paddles = [paddle0, paddle1];
 
         paddles.forEach((paddle) => {
@@ -163,7 +163,7 @@ async function createMysteriousIsland() {
 
     // Vytvoření základního terénu
     const groundGeometry = new THREE.CircleGeometry(500, 64);
-    const groundMaterial = new THREE.MeshStandardMaterial({ 
+    const groundMaterial = new THREE.MeshStandardMaterial({
         color: 0x3a5a40,
         roughness: 0.8,
         metalness: 0.2,
@@ -297,7 +297,7 @@ export function animateSea(deltaTime) {
         const paddleSpeed = 1;
         const time = Date.now() * 0.005 * paddleSpeed;
         const paddlingIntensity = boatSpeed / MAX_BOAT_SPEED;
-        
+
         if (isPaddling) {
             boat.rotation.z = Math.sin(time) * 0.03 * paddlingIntensity;
             boat.rotation.x = Math.cos(time * 0.5) * 0.02 * paddlingIntensity;
@@ -357,20 +357,24 @@ export function animateSea(deltaTime) {
         lastDragonSpawnPosition.copy(boat.position);
     }
 
- 
+
 
 }
 
+let dragonSpawnCount = 0;
 function spawnSeaDragons() {
     const dragonTypes = BOSS_TYPES.slice(-3); // Poslední 3 typy draků (13. podlaží)
-    const dragonCount = 1; // Počet draků, které se objeví
+    // Zvýšíme počet spawnů a omezíme na maximum 4
+    dragonSpawnCount = Math.min(dragonSpawnCount + 1, 4);
+    const dragonCount = dragonSpawnCount; // Počet draků, které se objeví
+    playSound(teleportSoundBuffer,0.4);
 
     for (let i = 0; i < dragonCount; i++) {
         const randomType = dragonTypes[Math.floor(Math.random() * dragonTypes.length)];
 
         // Funkce pro generování náhodné vzdálenosti mezi 30 a 50 s náhodným znaménkem
         function getRandomDistance() {
-            const distance = 30 + Math.random() * 20; // Generuje hodnotu mezi 30 a 50
+            const distance = 30 + Math.random() * 10; // Generuje hodnotu mezi 30 a 40
             return Math.random() < 0.5 ? -distance : distance; // Náhodně zvolí kladné nebo záporné znaménko
         }
 
@@ -421,6 +425,7 @@ export function clearSeaScene() {
     boat = null;
     mysteriousIsland = null;
     coast = null;
+    dragonSpawnCount = 0;
     setPlayerGroundLevel(0);
 
     seaDragons.forEach(dragon => {
