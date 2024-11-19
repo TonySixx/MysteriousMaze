@@ -90,7 +90,7 @@ import { toggleQuestWindow } from "./quests.js";
 import { clearScene } from "./clearScene.js";
 import { animate } from "./animate/mainAnimate.js";
 
-export const version = "3.4.3";
+export const version = "3.4.4";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -997,6 +997,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
 
   keyCount = 0;
   updateKeyCount();
+  window.discoveredCells = [];
 
   if (isMinimapVisible) {
     toggleMinimap();

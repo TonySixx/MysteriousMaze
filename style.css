@@ -191,6 +191,8 @@ canvas {
 
 #minimap {
   border: 4px solid rgb(0, 0, 0);
+  background-color: #1a1a1a; /* Tmavé pozadí pro neobjevené oblasti */
+  image-rendering: pixelated; /* Pro ostřejší vykreslení pixelů */
 }
 
 #timeCount.minimap-open {
