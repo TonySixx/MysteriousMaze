@@ -376,11 +376,11 @@ export const floorsConfig = {
     maxSize: 25,
     textureSets: textureSets.slice(0, 2),
     hallConfig: {
-      probability: 0.02,
+      probability: 0.03,
       minSize: 2,
       maxSize: 3
     },
-    bossProbability: 0.8,
+    bossProbability: 0.99,
     traps: {
       enabled: false,
       probability: 0

@@ -460,7 +460,13 @@
     "campHintTitle": "Welcome to the Camp",
     "campHintDescription": "In the camp, you can buy items from the merchant, pick up new quests, and prepare for your next adventure.",
     "defeatDarkLordQuest": "Defeat the Dark Lord",
-    "defeatDarkLordQuestDescription": "Defeat the Dark Lord, the final boss of the game, on the twelfth floor and claim your ultimate reward."
+    "defeatDarkLordQuestDescription": "Defeat the Dark Lord, the final boss of the game, on the twelfth floor and claim your ultimate reward.",
+    "mazeProgression": "Maze Progression",
+    "mazeProgressionContent1": "Each floor contains unique mazes with different challenges and enemies.",
+    "mazeProgressionContent2": "Seeds are special codes that generate specific maze layouts. Enter different seeds to discover new adventures!",
+    "mazeProgressionContent3": "Use the minimap (V key) to reveal the maze gradually. Be careful though - time runs 3x faster with minimap active!",
+    "mazeProgressionContent4": "Your completion times are saved online - compete with other players for the best times in each maze!",
+    "mazeProgressionContent5": "Higher floors unlock as you level up, offering tougher challenges and better rewards."
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -620,8 +626,8 @@
     "infernoTouchDescription": "Zasažený nepřítel hoří 2 sekundy, každých 0.5s ztrácí 20 životů + 10% z poškození hráče",
     "explosiveCore": "Explozivní jádro",
     "explosiveCoreDescription": "Při zásahu cíle Ohnivá koule exploduje a způsobí 50% svého poškození všem nepřátelům v okruhu 3 metrů",
-    "iceExplosion": "Ledová exploze",
-    "iceExplosionDescription": "Při zásahu cíle ledová střela exploduje a vytvoří ledovou vlnu, která zmrazí všechny nepřátele v okruhu 3 metrů na 1 sekundu a způsobí jim (100 + 50% z bonusového poškození hráče) poškození",
+    "iceExplosion": "Ledov�� exploze",
+    "iceExplosionDescription": "Při zásahu cíle ledová st��ela exploduje a vytvoří ledovou vlnu, která zmrazí všechny nepřátele v okruhu 3 metrů na 1 sekundu a způsobí jim (100 + 50% z bonusového poškození hráče) poškození",
     "frostAura": "Mrazivá aura",
     "frostAuraDescription": "Vytvoří kolem hráče mrazivou auru o poloměru 5 metrů, která zpomaluje všechny nepřátele uvnitř o 30% po dobu 5 sekund",
     "multiShotDescription": "Při seslání kouzla se vytvoří 3 magické střely místo jedné. Každá střela má 70% síly původního kouzla a může zasáhnout různé cíle",
@@ -922,6 +928,12 @@
     "campHintTitle": "Vítejte v táboře",
     "campHintDescription": "V táboře můžete nakupovat předměty od obchodníka, přijímat nové úkoly a připravovat se na další dobrodružství.",
     "defeatDarkLordQuest": "Poraž Temného pána",
-    "defeatDarkLordQuestDescription": "Poraž Temného pána, finálního bosse hry, na dvanáctém podlaží a získej svou ultimátní odměnu."
+    "defeatDarkLordQuestDescription": "Poraž Temného pána, finálního bosse hry, na dvanáctém podlaží a získej svou ultimátní odměnu.",
+    "mazeProgression": "Postup v bludištích",
+    "mazeProgressionContent1": "Každé podlaží obsahuje unikátní bludiště s různými výzvami a nepřáteli.",
+    "mazeProgressionContent2": "Seedy jsou speciální kódy, které generují konkrétní rozložení bludiště. Zadávejte různé seedy pro objevování nových dobrodružství!",
+    "mazeProgressionContent3": "Používejte minimapu (klávesa V) pro postupné odhalování bludiště. Pozor však - čas běží 3x rychleji při aktivní minimapě!",
+    "mazeProgressionContent4": "Vaše časy dokončení se ukládají online - soutěžte s ostatními hráči o nejlepší časy v každém bludišti!",
+    "mazeProgressionContent5": "Vyšší podlaží se odemykají s rostoucí úrovní postavy a nabízí těžší výzvy a lepší odměny."
   }
 }

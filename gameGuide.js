@@ -24,6 +24,11 @@ const guideSteps = [
         icon: '🎒'
     },
     {
+        title: 'mazeProgression',
+        content: 'mazeProgressionContent',
+        icon: '🗺️'
+    },
+    {
         title: 'quests',
         content: 'questsContent',
         icon: '📜'
@@ -51,15 +56,43 @@ export function showGameGuide() {
     document.getElementById('prevButton').addEventListener('click', prevStep);
     document.getElementById('nextButton').addEventListener('click', nextStep);
 
+    document.addEventListener('keydown', handleKeyNavigation);
+
     updateGuideContent();
+}
+
+function handleKeyNavigation(event) {
+    const guideOverlay = document.getElementById('guideOverlay');
+    if (!guideOverlay) return;
+
+    switch (event.key) {
+        case 'ArrowLeft':
+            prevStep();
+            break;
+        case 'ArrowRight':
+            nextStep();
+            break;
+    }
 }
 
 function updateGuideContent() {
     const step = guideSteps[currentStep];
     document.getElementById('guideTitle').textContent = getTranslation(step.title);
-    document.getElementById('guideText').textContent = getTranslation(step.content);
+    
+    if (step.title === 'mazeProgression') {
+        const contentDiv = document.getElementById('guideText');
+        contentDiv.innerHTML = '';
+        
+        for (let i = 1; i <= 5; i++) {
+            const paragraph = document.createElement('p');
+            paragraph.textContent = getTranslation(`mazeProgressionContent${i}`);
+            contentDiv.appendChild(paragraph);
+        }
+    } else {
+        document.getElementById('guideText').textContent = getTranslation(step.content);
+    }
+    
     document.getElementById('guideIcon').textContent = step.icon;
-
     document.getElementById('prevButton').style.display = currentStep > 0 ? 'inline-block' : 'none';
     document.getElementById('nextButton').textContent = currentStep < guideSteps.length - 1 ? getTranslation('next') : getTranslation('finish');
 }
@@ -77,13 +110,14 @@ function nextStep() {
         updateGuideContent();
     } else {
         closeGuide();
-        showNameModal(); // Zobrazíme name modal po dokončení průvodce
+        showNameModal();
     }
 }
 
 function closeGuide() {
     const guideOverlay = document.getElementById('guideOverlay');
     if (guideOverlay) {
+        document.removeEventListener('keydown', handleKeyNavigation);
         guideOverlay.remove();
     }
     currentStep = 0;
