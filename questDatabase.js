@@ -762,6 +762,28 @@ const questDefinitions = [
         }
     },
     {
+        id: 'completeMazeBloodWithoutMinimap',
+        name: 'completeMazeBloodWithoutMinimapQuest',
+        description: 'completeMazeBloodWithoutMinimapQuestDescription',
+        level: 49,
+        rewards: {
+            exp: 5000000,
+            gold: 500,
+            items: [
+                { item: 'powerLapisia', count: 8 },
+                { item: 'protectorsLapisia', count: 8 },
+                { item: 'ultimateHealthPotion', count: 6 },
+                { item: 'ultimateManaPotion', count: 6 }
+            ]
+        },
+        objective: {
+            type: 'completeMazeWithoutMinimap',
+            target: 'Blood',
+            floor: 10,
+            count: 1
+        }
+    },
+    {
         id: 'defeatBloodMage',
         name: 'defeatBloodMageQuest',
         description: 'defeatBloodMageQuestDescription',
@@ -821,6 +843,28 @@ const questDefinitions = [
         objective: {
             type: 'completeMazeWithoutMinimap',
             target: 'Light',
+            floor: 11,
+            count: 1
+        }
+    },
+    {
+        id: 'completeMazeTornadoWithoutMinimap',
+        name: 'completeMazeTornadoWithoutMinimapQuest',
+        description: 'completeMazeTornadoWithoutMinimapQuestDescription',
+        level: 53,
+        rewards: {
+            exp: 8000000,
+            gold: 500,
+            items: [
+                { item: 'powerLapisia', count: 10 },
+                { item: 'protectorsLapisia', count: 10 },
+                { item: 'ultimateHealthPotion', count: 5 },
+                { item: 'ultimateManaPotion', count: 5 }
+            ]
+        },
+        objective: {
+            type: 'completeMazeWithoutMinimap',
+            target: 'Tornado',
             floor: 11,
             count: 1
         }
