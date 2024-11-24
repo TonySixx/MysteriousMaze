@@ -558,6 +558,10 @@ export async function init() {
             openInventory();
           }
         }
+      } else if (event.code === "KeyU") {
+        if (!isInput) {
+          toggleQuestWindow();
+        }
       } else if (event.code === "KeyN") {
         if (!isInput) {
           document.getElementById("mazeInput").focus();
