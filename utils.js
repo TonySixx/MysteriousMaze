@@ -4,7 +4,7 @@ import { addExperience, getPlayerLevel, getPlayerMaxHealth, player, playerGround
 import * as THREE from 'three';
 import { equipment } from "./inventory";
 import { bosses } from "./boss";
-import { floorMusic, floorsConfig } from "./globals";
+import { floorMusic, floorsConfig, FOG_OF_WAR_RADIUS, RAY_COUNT } from "./globals";
 import { updateQuestsOnEvent } from "./quests";
 import { isProtectiveShieldActive } from './animate.js';
 import { SPIKE_TRAP_CYCLE, SPIKE_TRAP_UP_TIME } from './globals.js';
@@ -652,103 +652,158 @@ export function drawMinimap() {
   // Vymazání canvasu
   ctx.clearRect(0, 0, minimap.width, minimap.height);
 
-  // Vykreslení pozadí
-  ctx.fillStyle = "#55535e";
+  // Vykreslení pozadí (mlha války)
+  ctx.fillStyle = "#1a1a1a";
   ctx.fillRect(0, 0, minimap.width, minimap.height);
 
-  // Vykreslení zdí
-  for (let i = 0; i < MAZE_SIZE; i++) {
-    for (let j = 0; j < MAZE_SIZE; j++) {
-      if (maze[i][j] === 1) {
-        ctx.fillStyle = "#282633";
-        ctx.fillRect(
-          i * CELL_SIZE * scale,
-          j * CELL_SIZE * scale,
-          CELL_SIZE * scale,
-          CELL_SIZE * scale
-        );
-      } else if (maze[i][j] === BLOCKING_WALL) {
-        ctx.fillStyle = "#cc7e54";
-        ctx.fillRect(
-          i * CELL_SIZE * scale,
-          j * CELL_SIZE * scale,
-          CELL_SIZE * scale,
-          CELL_SIZE * scale
-        );
+  // Získání pozice hráče v souřadnicích bludiště
+  const playerMazeX = Math.floor((player.position.x + (MAZE_SIZE / 2) * CELL_SIZE) / CELL_SIZE);
+  const playerMazeZ = Math.floor((player.position.z + (MAZE_SIZE / 2) * CELL_SIZE) / CELL_SIZE);
+
+  // Inicializace pole objevených buněk, pokud ještě neexistuje
+  if (!window.discoveredCells || window.discoveredCells.length !== MAZE_SIZE) {
+    window.discoveredCells = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(false));
+  }
+
+  // Ray casting pro zjištění viditelných buněk
+  for (let angle = 0; angle < 360; angle += 360 / RAY_COUNT) {
+    const radians = angle * (Math.PI / 180);
+    let rayX = playerMazeX;
+    let rayZ = playerMazeZ;
+    let distance = 0;
+
+    while (distance < FOG_OF_WAR_RADIUS) {
+      const dx = Math.cos(radians) * 0.1;
+      const dz = Math.sin(radians) * 0.1;
+      rayX += dx;
+      rayZ += dz;
+      distance = Math.sqrt(Math.pow(rayX - playerMazeX, 2) + Math.pow(rayZ - playerMazeZ, 2));
+
+      const cellX = Math.floor(rayX);
+      const cellZ = Math.floor(rayZ);
+
+      // Kontrola hranic bludiště
+      if (cellX < 0 || cellX >= MAZE_SIZE || cellZ < 0 || cellZ >= MAZE_SIZE) {
+        break;
+      }
+
+      // Označení buňky jako objevené
+      window.discoveredCells[cellX][cellZ] = true;
+
+      // Pokud narazíme na zeď, paprsek se zastaví
+      if (maze[cellX][cellZ] === 1 || maze[cellX][cellZ] === BLOCKING_WALL) {
+        window.discoveredCells[cellX][cellZ] = true;
+        break;
       }
     }
   }
 
-  // Vykreslení teleportů
+  // Vykreslení objevených buněk
+  for (let i = 0; i < MAZE_SIZE; i++) {
+    for (let j = 0; j < MAZE_SIZE; j++) {
+      if (window.discoveredCells[i][j]) {
+        // Vykreslení zdí
+        if (maze[i][j] === 1) {
+          ctx.fillStyle = "#282633";
+          ctx.fillRect(
+            i * CELL_SIZE * scale,
+            j * CELL_SIZE * scale,
+            CELL_SIZE * scale,
+            CELL_SIZE * scale
+          );
+        } else if (maze[i][j] === BLOCKING_WALL) {
+          ctx.fillStyle = "#cc7e54";
+          ctx.fillRect(
+            i * CELL_SIZE * scale,
+            j * CELL_SIZE * scale,
+            CELL_SIZE * scale,
+            CELL_SIZE * scale
+          );
+        } else {
+          // Vykreslení podlahy pro objevené oblasti
+          ctx.fillStyle = "#55535e";
+          ctx.fillRect(
+            i * CELL_SIZE * scale,
+            j * CELL_SIZE * scale,
+            CELL_SIZE * scale,
+            CELL_SIZE * scale
+          );
+        }
+      }
+    }
+  }
+
+  // Vykreslení objevených objektů
   scene.children.forEach((child) => {
-    if (child.userData.isTeleport) {
-      ctx.fillStyle = child.material.color.getStyle();
-      ctx.beginPath();
-      ctx.arc(
-        (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (CELL_SIZE * scale) / 3,
-        0,
-        2 * Math.PI
-      );
-      ctx.fill();
+    if (child.userData.isTeleport || child.userData.isKey || child.userData.isGoal) {
+      const objectX = Math.floor((child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) / CELL_SIZE);
+      const objectZ = Math.floor((child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) / CELL_SIZE);
+
+      if (window.discoveredCells[objectX][objectZ]) {
+        if (child.userData.isTeleport) {
+          ctx.fillStyle = child.material.color.getStyle();
+          ctx.beginPath();
+          ctx.arc(
+            (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
+            (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
+            (CELL_SIZE * scale) / 3,
+            0,
+            2 * Math.PI
+          );
+          ctx.fill();
+        } else if (child.userData.isKey) {
+          ctx.fillStyle = "#fffc4d";
+          ctx.beginPath();
+          ctx.arc(
+            (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
+            (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
+            (CELL_SIZE * scale) / 4,
+            0,
+            2 * Math.PI
+          );
+          ctx.fill();
+        } else if (child.userData.isGoal) {
+          ctx.fillStyle = "#5fd0f5";
+          ctx.beginPath();
+          ctx.arc(
+            (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
+            (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
+            (CELL_SIZE * scale) / 2,
+            0,
+            2 * Math.PI
+          );
+          ctx.fill();
+        }
+      }
     }
   });
 
-  // Vykreslení klíčů
-  scene.children.forEach((child) => {
-    if (child.userData.isKey) {
-      ctx.fillStyle = "#fffc4d";
-      ctx.beginPath();
-      ctx.arc(
-        (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (CELL_SIZE * scale) / 4,
-        0,
-        2 * Math.PI
-      );
-      ctx.fill();
-    }
-  });
-
-  // Vykreslení cíle
-  scene.children.forEach((child) => {
-    if (child.userData.isGoal) {
-      ctx.fillStyle = "#5fd0f5";
-      ctx.beginPath();
-      ctx.arc(
-        (child.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (child.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale,
-        (CELL_SIZE * scale) / 2,
-        0,
-        2 * Math.PI
-      );
-      ctx.fill();
-    }
-  });
-
-  // Vykreslení bossů jako bílý křížek
+  // Vykreslení bossů v objevených oblastech
   bosses.forEach((boss) => {
-    const bossX = (boss.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
-    const bossZ = (boss.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
+    const bossX = Math.floor((boss.position.x + (MAZE_SIZE / 2) * CELL_SIZE) / CELL_SIZE);
+    const bossZ = Math.floor((boss.position.z + (MAZE_SIZE / 2) * CELL_SIZE) / CELL_SIZE);
 
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
+    if (window.discoveredCells[bossX][bossZ]) {
+      const bossScreenX = (boss.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
+      const bossScreenZ = (boss.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
 
-    // Vykreslení křížku
-    ctx.beginPath();
-    ctx.moveTo(bossX - 5, bossZ - 5);
-    ctx.lineTo(bossX + 5, bossZ + 5);
-    ctx.moveTo(bossX + 5, bossZ - 5);
-    ctx.lineTo(bossX - 5, bossZ + 5);
-    ctx.stroke();
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(bossScreenX - 5, bossScreenZ - 5);
+      ctx.lineTo(bossScreenX + 5, bossScreenZ + 5);
+      ctx.moveTo(bossScreenX + 5, bossScreenZ - 5);
+      ctx.lineTo(bossScreenX - 5, bossScreenZ + 5);
+      ctx.stroke();
+    }
   });
 
   // Vykreslení pozice hráče jako šipky
   ctx.fillStyle = "#9ec0ff";
   const playerX = (player.position.x + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
   const playerZ = (player.position.z + (MAZE_SIZE / 2) * CELL_SIZE) * scale;
-  const playerAngle = -player.rotation.y - Math.PI / 2; // Úprava úhlu rotace
+  const playerAngle = -player.rotation.y - Math.PI / 2;
   drawArrow(ctx, playerX, playerZ, playerAngle, CELL_SIZE * scale);
 }
 

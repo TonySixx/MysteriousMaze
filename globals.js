@@ -378,11 +378,11 @@ export const floorsConfig = {
     maxSize: 25,
     textureSets: textureSets.slice(0, 2),
     hallConfig: {
-      probability: 0.02,
+      probability: 0.03,
       minSize: 2,
       maxSize: 3
     },
-    bossProbability: 0.8,
+    bossProbability: 0.99,
     traps: {
       enabled: false,
       probability: 0
@@ -570,3 +570,10 @@ export const floorsConfig = {
 // Přidejte toto na konec souboru
 export const SPIKE_TRAP_CYCLE = 4000; // 4 sekundy na celý cyklus
 export const SPIKE_TRAP_UP_TIME = 2000; // 2 sekundy nahoře
+
+// Přidáme pole pro sledování objevených buněk
+window.discoveredCells = [];
+
+// Přidáme konstanty pro viditelnost
+export const FOG_OF_WAR_RADIUS = 5; // Počet buněk viditelných od hráče
+export const RAY_COUNT = 360; // Počet paprsků pro ray casting (jeden na každý stupeň)

@@ -577,8 +577,28 @@ export function updateQuestsOnEvent(eventType, eventData) {
                     return quest;
                 });
             }
+            else if (eventData.seed === "Blood" && eventData.floor === 10 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeBloodWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
             else if (eventData.seed === "Light" && eventData.floor === 11 && !eventData.usedMinimap) {
                 updateQuestProgress('completeMazeLightWithoutMinimap', (quest) => {
+                    quest.objective.current++;
+                    quest.progress = `${quest.objective.current}/${quest.objective.count}`;
+                    if (quest.objective.current >= quest.objective.count) {
+                        quest.isCompleted = true;
+                    }
+                    return quest;
+                });
+            }
+            else if (eventData.seed === "Tornado" && eventData.floor === 11 && !eventData.usedMinimap) {
+                updateQuestProgress('completeMazeTornadoWithoutMinimap', (quest) => {
                     quest.objective.current++;
                     quest.progress = `${quest.objective.current}/${quest.objective.count}`;
                     if (quest.objective.current >= quest.objective.count) {

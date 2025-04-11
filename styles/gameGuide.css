@@ -39,6 +39,8 @@
     margin-bottom: 30px;
     line-height: 1.6;
     font-size: 18px;
+    text-align: left;
+    padding: 0 20px;
 }
 
 #guideControls {
@@ -192,4 +194,59 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background: #b39169;
+}
+
+#guideText p {
+    position: relative;
+    margin: 15px 0;
+    padding-left: 30px;
+    line-height: 1.5;
+    font-size: 16px;
+}
+
+#guideText p::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #ffd700;
+    font-size: 24px;
+    line-height: 1;
+    top: 50%;
+    transform: translateY(-50%);
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+#guideText p:first-child {
+    margin-top: 0;
+}
+
+#guideText p:last-child {
+    margin-bottom: 0;
+}
+
+@keyframes bulletPulse {
+    0% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.2); }
+    100% { transform: translateY(-50%) scale(1); }
+}
+
+#guideText p:hover::before {
+    animation: bulletPulse 1s ease infinite;
+}
+
+#guideText p {
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    border-radius: 5px;
+    padding: 8px 30px;
+}
+
+#guideText p:hover {
+    background-color: rgba(200, 169, 126, 0.1);
+    transform: translateX(5px);
+}
+
+#guideText p:not(:last-child) {
+    border-bottom: 1px solid rgba(200, 169, 126, 0.1);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
 }

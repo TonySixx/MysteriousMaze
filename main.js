@@ -94,7 +94,7 @@ import { createFireParticles } from "./others/effects.js";
 import { LightManager } from "./rendering/lightManager.js";
 import { createSeaScene } from "./Sea.js";
 
-export const version = "3.4.3";
+export const version = "3.4.4";
 
 // Initialize Supabase client
 const supabaseUrl = "https://olhgutdozhdvniefmltx.supabase.co";
@@ -115,13 +115,13 @@ export const keys = {
 };
 
 document.addEventListener("keydown", (event) => {
-  if (event.key.toLowerCase() === "f") {
+  if (event.code === "KeyF") {
     keys.f = true;
   }
 });
 
 document.addEventListener("keyup", (event) => {
-  if (event.key.toLowerCase() === "f") {
+  if (event.code === "KeyF") {
     keys.f = false;
   }
 });
@@ -527,7 +527,7 @@ export async function init() {
       const isInput =
         activeElement.tagName === "INPUT" ||
         activeElement.tagName === "TEXTAREA";
-      if (event.key === "c" || event.key === "C") {
+      if (event.code === "KeyC") {
         if (!isInput) {
           if (document.getElementById("scoreModal").style.display === "block") {
             hideScoreModal();
@@ -536,7 +536,7 @@ export async function init() {
             displayScores(null);
           }
         }
-      } else if (event.key === "h" || event.key === "H") {
+      } else if (event.code === "KeyH") {
         if (!isInput) {
           if (document.getElementById("hintModal").style.display === "block") {
             hideHintModal();
@@ -544,20 +544,20 @@ export async function init() {
             showHintModal();
           }
         }
-      } else if (event.key === "p" || event.key === "P") {
+      } else if (event.code === "KeyP") {
         if (!isInput) {
           showFPS = !showFPS;
           fpsCounter.style.display = showFPS ? "block" : "none";
         }
-      } else if (event.key === "o" || event.key === "O") {
+      } else if (event.code === "KeyO") {
         if (!isInput) {
           showSettingsModal();
         }
-      } else if (event.key === "b" || event.key === "B") {
+      } else if (event.code === "KeyB") {
         if (!isInput) {
           toggleBackgroundMusic();
         }
-      } else if (event.key === "i" || event.key === "I") {
+      } else if (event.code === "KeyI") {
         if (!isInput) {
           if (
             document.getElementById("inventoryModal").style.display === "block"
@@ -567,19 +567,19 @@ export async function init() {
             openInventory();
           }
         }
-      } else if (event.key === "u" || event.key === "U") {
+      } else if (event.code === "KeyU") {
         if (!isInput) {
           toggleQuestWindow();
         }
-      } else if (event.code === "Numpad1") {
+      } else if (event.code === "KeyN") {
         if (!isInput) {
           document.getElementById("mazeInput").focus();
         }
-      } else if (event.code === "Numpad2") {
+      } else if (event.code === "KeyM") {
         if (!isInput) {
           document.getElementById("showFloorSelect").click();
         }
-      } else if (event.code === "Numpad3") {
+      } else if (event.code === "Digit0") {
         if (!isInput) {
           document.getElementById("generateMaze").click();
         }
@@ -1019,6 +1019,7 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
 
   keyCount = 0;
   updateKeyCount();
+  window.discoveredCells = [];
 
   if (isMinimapVisible) {
     toggleMinimap();
@@ -1405,7 +1406,7 @@ export function checkObjectInteractions() {
     ) {
       const distance = player.position.distanceTo(child.position);
 
-      if (child.userData.isKey && distance < 0.7) {
+      if (child.userData.isKey && distance < 0.9) {
         console.debug("Sbírám klíč");
         scene.remove(child);
         keyCount++;
