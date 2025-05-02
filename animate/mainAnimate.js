@@ -13,16 +13,26 @@ import { updateBloodVortexes, updateBloodRitual, updateBloodLances } from "./blo
 import { updateLightningStrikes, updateBallLightnings, updateElectromagneticPulse } from "./thunderlordAnimate";
 import { updateDarkMistEffect, updateManaDrainEffect } from "./darklordAnimate";
 import { updateSpikeTraps } from '../utils.js';
+import { isGamePaused, setIsGamePaused } from '../globals.js'; // Import isGamePaused
 
-let previousTime = performance.now(); // Definice a inicializace previousTime
+export let previousTime = performance.now(); // Definice, inicializace a export previousTime
 let frameCountForAnimation = 0;
+
+export function setPreviousTime(time) { // Funkce pro nastavení previousTime z main.js
+  previousTime = time;
+}
+
 export function animate() {
+  requestAnimationFrame(animate);
+
+  if (isGamePaused) { // Kontrola pauzy
+    return; // Přeskočit zbytek funkce, pokud je hra pauznutá
+  }
+
   const currentTime = performance.now();
   const deltaTime = (currentTime - previousTime) / 1000; // Delta time v sekundách
   previousTime = currentTime;
 
-  requestAnimationFrame(animate);
-  
   tweenUpdate();  // Přidáno
 
   updateFreezeEffect();

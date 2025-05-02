@@ -88,7 +88,8 @@ import { createMainBossRoom } from "./mainBoss/mainBoss.js";
 import { MAIN_BOSS_TYPES } from "./mainBoss/mainBossTypes.js";
 import { toggleQuestWindow } from "./quests.js";
 import { clearScene } from "./clearScene.js";
-import { animate } from "./animate/mainAnimate.js";
+import { animate, setPreviousTime } from "./animate/mainAnimate.js"; // Import setPreviousTime
+import { isGamePaused, setIsGamePaused } from "./globals.js"; // Import isGamePaused
 
 export const version = "3.4.4";
 
@@ -498,9 +499,26 @@ export async function init() {
     });
 
     document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) {
-        // Stránka je znovu aktivní
-        location.reload();
+      if (document.hidden) {
+        console.log("Stránka je neaktivní - pauznout hru");
+        // Stránka je neaktivní - pauznout hru
+        setIsGamePaused(true);
+        // Zastavení zvuků
+        if (window.footstepsSound && window.footstepsSound.isPlaying) {
+            window.footstepsSound.pause();
+        }
+      } else {
+        console.log("Stránka je znovu aktivní - obnovit hru");
+        // Stránka je znovu aktivní - obnovit hru
+        setIsGamePaused(false);
+        // Znovu spustit zvuky
+        if (window.footstepsSound && !window.footstepsSound.isPlaying && player.controls.isMoving) {
+             window.footstepsSound.play();
+        }
+        // Resetovat čas pro výpočet deltaTime v animate pomocí setter funkce
+        setPreviousTime(performance.now());
+        // Resetovat časovač bludiště
+        lastUpdateTime = performance.now(); // Přidáno: Resetovat časovač bludiště
       }
     });
 
@@ -1619,8 +1637,18 @@ async function stopTimer() {
 }
 
 function updateTimer() {
+  if (isGamePaused) return; // Přidáno: Nepočítat čas, pokud je hra pauznutá
+
   const now = Date.now();
-  const deltaTime = now - lastUpdateTime;
+  let deltaTime = now - lastUpdateTime;
+
+  // Omezení deltaTime, aby se zabránilo velkým skokům po pauze
+  const maxDeltaTimeMs = 1000; // Maximálně 1 sekunda (lze upravit)
+  if (deltaTime > maxDeltaTimeMs) {
+    console.warn(`Large deltaTime detected (${deltaTime}ms), clamping to ${maxDeltaTimeMs}ms.`);
+    deltaTime = maxDeltaTimeMs; 
+  }
+
   cumulativeTime += deltaTime * minimapTimeMultiplier;
   lastUpdateTime = now;
 
