@@ -34,6 +34,27 @@ var moveForward = false,
 var playerRotation = 0;
 var playerVelocity = new THREE.Vector3();
 
+// Proměnné pro realistický pohyb
+var isSprinting = false;
+var currentSpeed = 0;
+const maxWalkSpeed = 6;
+const maxSprintSpeed = 8.0;
+const acceleration = 10.0;
+const deceleration = 15.0;
+var canJump = true;
+
+// Proměnné pro kamerový bob
+var bobAmplitude = 0.05;
+var bobFrequency = 10.0;
+var bobPhase = 0;
+var cameraBobActive = false;
+var cameraBaseHeight = 1.6;
+
+// Proměnné pro FOV efekt
+var baseFOV = 75;
+var sprintFOVBoost = 10;
+var currentFOV = baseFOV;
+
 var isJumping = false;
 var playSoundOnLand = false;
 var jumpVelocity = 0;
@@ -458,15 +479,33 @@ function updatePlayerPosition(deltaTime) {
         return;
     }
 
+    // Reset velocity na začátku každého snímku
     playerVelocity.set(0, 0, 0);
 
-    const speed = window.playerSpeed; // Základní rychlost hráče
-    const flySpeed = 6.5; // Rychlost při letu
+    // Zjistím, jestli hráč vůbec pohybuje
+    const isMoving = moveForward || moveBackward || moveLeft || moveRight;
+    
+    // Určím cílovou rychlost podle toho, jestli hráč běží nebo chodí
+    const targetSpeed = isMoving ? (isSprinting ? maxSprintSpeed : maxWalkSpeed) : 0;
+    
+    // Plynule aktualizuji aktuální rychlost pomocí zrychlení/zpomalení
+    if (isMoving && currentSpeed < targetSpeed) {
+        // Zrychlujeme
+        currentSpeed = Math.min(currentSpeed + acceleration * deltaTime, targetSpeed);
+    } else if (!isMoving || currentSpeed > targetSpeed) {
+        // Zpomalujeme
+        currentSpeed = Math.max(currentSpeed - deceleration * deltaTime, 0);
+    }
+
+    // Upravíme FOV podle rychlosti
+    updateFOV(deltaTime, currentSpeed);
 
     if (isFlying) {
         // Při letu se pohybujeme ve směru kamery, pokud jsou stisknuty klávesy
         const direction = new THREE.Vector3();
         camera.getWorldDirection(direction);
+
+        const flySpeed = targetSpeed * 1.3; // Létání je o něco rychlejší než sprint
 
         if (moveForward) playerVelocity.add(direction.clone().multiplyScalar(flySpeed * deltaTime));
         if (moveBackward) playerVelocity.add(direction.clone().multiplyScalar(-flySpeed * deltaTime));
@@ -480,9 +519,12 @@ function updatePlayerPosition(deltaTime) {
         }
     } else {
 
-        // Aplikujte gravitaci a skok
+        // Aplikujme gravitaci a skok
         if (isJumping) {
             jumpVelocity += GRAVITY * deltaTime * 60;
+            
+          
+            
             const newY = player.position.y + jumpVelocity * deltaTime * 60;
 
             // Kontrola kolize se stropem před aplikací nové pozice
@@ -494,23 +536,30 @@ function updatePlayerPosition(deltaTime) {
             }
         }
 
-        // Vždy aplikujte gravitaci, i když hráč neskáče
+        // Vždy aplikujeme gravitaci, i když hráč neskáče
         if (!isJumping && player.position.y > 0) {
             player.position.y += GRAVITY * FALL_MULTIPLIER * deltaTime * 60;
         }
 
-        // Zajistěte, že hráč nespadne pod podlahu
+        // Zajistíme, že hráč nespadne pod podlahu
         if (player.position.y <= 0) {
+            // Pokud jsme dopadli z výšky, přidáme efekt nárazu
+            if (jumpVelocity < -0.1) {
+                addLandingImpact(-jumpVelocity);
+            }
+            
             player.position.y = 0;
             isJumping = false;
             jumpVelocity = 0;
+            canJump = true;  // Hráč může opět skočit
+            
             if (playSoundOnLand) {
                 playSoundOnLand = false;
                 playSound(landSoundBuffer, 0.35);
             }
         }
 
-        // Upravená část pro normalizaci pohybu
+        // Zjistíme směr pohybu
         let moveVector = new THREE.Vector3(0, 0, 0);
         if (moveForward) moveVector.z -= 1;
         if (moveBackward) moveVector.z += 1;
@@ -520,8 +569,16 @@ function updatePlayerPosition(deltaTime) {
         // Normalizujeme vektor pohybu, pokud se hráč pohybuje
         if (moveVector.length() > 0) {
             moveVector.normalize();
-            playerVelocity.x = moveVector.x * speed * deltaTime;
-            playerVelocity.z = moveVector.z * speed * deltaTime;
+            
+            // Použijeme aktuální rychlost pro pohyb
+            playerVelocity.x = moveVector.x * currentSpeed * deltaTime;
+            playerVelocity.z = moveVector.z * currentSpeed * deltaTime;
+            
+            // Aktualizujeme kamerový bob
+            updateCameraBob(deltaTime, currentSpeed);
+        } else {
+            // Pokud se hráč nepohybuje, resetujeme hodnoty kamerového bobu
+            resetCameraBob(deltaTime);
         }
 
         playerVelocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
@@ -558,6 +615,10 @@ function updatePlayerPosition(deltaTime) {
     }
 
     checkObjectInteractions();
+    
+    // Aktualizace informace o pohybu pro zvuky kroků
+    player.controls = player.controls || {};
+    player.controls.isMoving = isMoving && currentSpeed > 0.1;
 }
 
 export function checkCeilingCollision() {
@@ -634,6 +695,76 @@ function regenerateHealth(deltaTime) {
     }
 }
 
+// Funkce pro aktualizaci kamerového bobu
+function updateCameraBob(deltaTime, speed) {
+    const movementFactor = speed / maxWalkSpeed;
+    
+    bobPhase += bobFrequency * deltaTime * movementFactor;
+    if (bobPhase > Math.PI * 2) {
+        bobPhase -= Math.PI * 2;
+    }
+    
+    const bobHeight = Math.sin(bobPhase) * bobAmplitude * (isSprinting ? 1.5 : 1.0) * movementFactor;
+    
+    camera.position.y = cameraBaseHeight + bobHeight;
+    
+    cameraBobActive = true;
+}
+
+// Funkce pro resetování kamerového bobu
+function resetCameraBob(deltaTime) {
+    if (cameraBobActive) {
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraBaseHeight, deltaTime * 5);
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, deltaTime * 5);
+        
+        if (Math.abs(camera.position.y - cameraBaseHeight) < 0.001 && Math.abs(camera.position.x) < 0.001) {
+            bobPhase = 0;
+            cameraBobActive = false;
+            camera.position.y = cameraBaseHeight;
+            camera.position.x = 0;
+        }
+    }
+}
+
+// Funkce pro efekt dopadu při skoku
+function addLandingImpact(impactForce) {
+    const impactAmount = Math.min(0.15, impactForce * 0.1);
+    
+    camera.position.y = cameraBaseHeight - impactAmount;
+    
+    if (impactForce > 0.3) {
+        const shakeAmount = Math.min(0.03, impactForce * 0.02);
+        const shakeDecay = 4.0;
+        let shakeTime = 0;
+        
+        const shakeCamera = function(time) {
+            shakeTime += time / 1000;
+            const shake = shakeAmount * Math.exp(-shakeDecay * shakeTime);
+            
+            if (shake > 0.001) {
+                camera.position.x = (Math.random() - 0.5) * shake * 2;
+                camera.position.z += (Math.random() - 0.5) * shake * 2;
+                requestAnimationFrame(shakeCamera);
+            } else {
+                camera.position.x = 0;
+            }
+        };
+        
+        shakeCamera(0);
+    }
+}
+
+// Funkce pro aktualizaci FOV na základě pohybu
+function updateFOV(deltaTime, speed) {
+    const speedFactor = speed / maxWalkSpeed;
+    const targetFOV = baseFOV + (isSprinting ? sprintFOVBoost * speedFactor : 0);
+    
+    currentFOV = THREE.MathUtils.lerp(currentFOV, targetFOV, deltaTime * 5);
+    
+    camera.fov = currentFOV;
+    camera.updateProjectionMatrix();
+}
+
 export function onMouseMove(event) {
     if (document.pointerLockElement === document.body) {
         const movementX =
@@ -678,6 +809,10 @@ export function onKeyDown(event) {
         case "KeyD":
             moveRight = true;
             break;
+        case "ShiftLeft":
+        case "ShiftRight":
+            isSprinting = true;
+            break;            
         case "KeyF": // Přidáno: reakce na stisknutí klávesy F
             if (nearTeleport) {
                 teleportPlayer(nearTeleport);
@@ -693,8 +828,9 @@ export function onKeyDown(event) {
             }
             break;
         case "Space":
-            if (!isJumping && !isFlying) {
+            if (canJump && !isJumping && !isFlying) {
                 isJumping = true;
+                canJump = false;  // Nemůže skočit znovu, dokud nedopadne
                 playSoundOnLand = true;
                 jumpVelocity = JUMP_FORCE;
             }
@@ -757,6 +893,10 @@ export function onKeyUp(event) {
         case "KeyD":
             moveRight = false;
             break;
+        case "ShiftLeft":
+        case "ShiftRight":
+            isSprinting = false;
+            break;
     }
 }
 
@@ -787,11 +927,17 @@ export {
     moveRight,
     playerRotation,
     playerVelocity,
+    isSprinting,
+    currentSpeed,
     createPlayer,
     updatePlayerPosition,
     checkCollisions,
     updatePlayerHealthBar,
     updatePlayerManaBar,
     regenerateMana,
-    regenerateHealth
+    regenerateHealth,
+    updateCameraBob,
+    resetCameraBob,
+    addLandingImpact,
+    updateFOV
 };
