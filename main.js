@@ -190,6 +190,7 @@ export var explosionSoundBuffer;
 
 export var bossSoundBuffer;
 export var aoeBlastSoundBuffer;
+export var dustParticles = [];
 
 let isMusicPlaying = true;
 let footstepsSound;
@@ -834,6 +835,87 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
+    // Create border walls (low, no collision)
+    const borderWallHeight = 0.5; // User adjusted height
+    const borderWallDepth = 0.3; // User adjusted depth
+    const mazeTotalSize = MAZE_SIZE * CELL_SIZE;
+    const mazeHalfSize = mazeTotalSize / 2;
+    const extendedLength = mazeTotalSize + borderWallDepth * 2;
+
+    // --- Material for North/South Walls --- 
+    const borderTextureHoriz = brickTexture.clone();
+    borderTextureHoriz.needsUpdate = true;
+    borderTextureHoriz.wrapS = THREE.RepeatWrapping;
+    borderTextureHoriz.wrapT = THREE.RepeatWrapping;
+    const repeatXHoriz = extendedLength / CELL_SIZE;
+    const repeatYHoriz = borderWallHeight / CELL_SIZE;
+    borderTextureHoriz.repeat.set(repeatXHoriz, repeatYHoriz);
+    const borderWallMaterialHoriz = new THREE.MeshStandardMaterial({ map: borderTextureHoriz });
+
+    // --- Material for East/West Walls (adjusted for top face) ---
+    const borderTextureVert = brickTexture.clone();
+    borderTextureVert.needsUpdate = true;
+    borderTextureVert.wrapS = THREE.RepeatWrapping;
+    borderTextureVert.wrapT = THREE.RepeatWrapping;
+    // Repeat based on TOP face dimensions (Depth x Length)
+    const repeatXVert = borderWallDepth / CELL_SIZE;
+    const repeatYVert = extendedLength / CELL_SIZE;
+    borderTextureVert.repeat.set(repeatXVert, repeatYVert);
+    const borderWallMaterialVert = new THREE.MeshStandardMaterial({ map: borderTextureVert });
+
+    // North Wall (Single Mesh - Works)
+    const northWallGeom = new THREE.BoxGeometry(extendedLength, borderWallHeight, borderWallDepth);
+    const northWall = new THREE.Mesh(northWallGeom, borderWallMaterialHoriz);
+    northWall.position.set(0, borderWallHeight / 2, -mazeHalfSize - borderWallDepth / 2);
+    scene.add(northWall);
+
+    // South Wall (Single Mesh - Works)
+    const southWallGeom = new THREE.BoxGeometry(extendedLength, borderWallHeight, borderWallDepth);
+    const southWall = new THREE.Mesh(southWallGeom, borderWallMaterialHoriz);
+    southWall.position.set(0, borderWallHeight / 2, mazeHalfSize + borderWallDepth / 2);
+    scene.add(southWall);
+
+    // --- West Wall (Composite: Side + Top Meshes) ---
+    const wallSideThickness = 0.01; // Very thin mesh for the side
+    const wallTopThickness = 0.01;  // Very thin mesh for the top
+
+    // West Wall - Side Face
+
+
+    // West Wall - Top Face
+    const westWallTopGeom = new THREE.BoxGeometry(borderWallDepth, wallTopThickness, extendedLength);
+    const westWallTop = new THREE.Mesh(westWallTopGeom, borderWallMaterialVert); // Use Vert material (Depth x Length repeat)
+    // Position it centered horizontally, at the top vertically
+    westWallTop.position.set(-mazeHalfSize - borderWallDepth / 2, borderWallHeight - wallTopThickness / 2, 0);
+    scene.add(westWallTop);
+
+    // West Wall - Inner Side Face
+    const westWallInnerSideGeom = new THREE.BoxGeometry(wallSideThickness, borderWallHeight, extendedLength);
+    const westWallInnerSide = new THREE.Mesh(westWallInnerSideGeom, borderWallMaterialHoriz); // Use Horiz material
+    // Position it at the inner edge
+    westWallInnerSide.position.set(-mazeHalfSize, borderWallHeight / 2, 0);
+    scene.add(westWallInnerSide);
+
+    // --- East Wall (Composite: Side + Top Meshes) ---
+    // East Wall - Side Face
+   
+
+    // East Wall - Top Face
+    const eastWallTopGeom = new THREE.BoxGeometry(borderWallDepth, wallTopThickness, extendedLength);
+    const eastWallTop = new THREE.Mesh(eastWallTopGeom, borderWallMaterialVert); // Use Vert material
+    // Position it centered horizontally, at the top vertically
+    eastWallTop.position.set(mazeHalfSize + borderWallDepth / 2, borderWallHeight - wallTopThickness / 2, 0);
+    scene.add(eastWallTop);
+
+    // East Wall - Inner Side Face
+    const eastWallInnerSideGeom = new THREE.BoxGeometry(wallSideThickness, borderWallHeight, extendedLength);
+    const eastWallInnerSide = new THREE.Mesh(eastWallInnerSideGeom, borderWallMaterialHoriz); // Use Horiz material
+    // Position it at the inner edge
+    eastWallInnerSide.position.set(mazeHalfSize, borderWallHeight / 2, 0);
+    scene.add(eastWallInnerSide);
+    
+    // End of border walls creation
+
     maze = generateMaze(MAZE_SIZE, MAZE_SIZE, seed, selectedFloor);
     totalBossesInMaze = bosses.length;
 
@@ -992,6 +1074,9 @@ function createMaze(inputText = "", selectedFloor = 1, manager) {
       MAZE_SIZE,
       selectedTextureSet.torchColor
     );
+
+    // Add decorative elements to the maze
+    addDustParticlesToMaze(maze, rng);
 
     // Použijeme model truhly jako cíl
     const goal = treasureModel.clone();
@@ -2057,6 +2142,97 @@ export function createFireParticles(color) {
 
   return new THREE.Points(geometry, material);
 }
+
+export function createDustParticles() {
+  const particleCount = 100;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+  const sizes = new Float32Array(particleCount);
+
+  // Create dust particles with random positions within a unit cube
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 2;
+    positions[i * 3 + 1] = Math.random() * 4;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 2;
+
+    // Dust color (light gray with slight variation)
+    const brightness = 0.5 + Math.random() * 0.3;
+    colors[i * 3] = brightness;
+    colors[i * 3 + 1] = brightness;
+    colors[i * 3 + 2] = brightness;
+
+    // Vary the particle sizes
+    sizes[i] = 0.01 + Math.random() * 0.02;
+  }
+
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+
+  const material = new THREE.PointsMaterial({
+    size: 0.03,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.2,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+
+  return new THREE.Points(geometry, material);
+}
+
+export function animateDust(deltaTime) {
+  dustParticles.forEach((dust) => {
+    const positions = dust.geometry.attributes.position.array;
+    for (let i = 0; i < positions.length; i += 3) {
+      // Slow upward movement
+      positions[i + 1] += 0.001 * (deltaTime * 100);
+      
+      // Slight sideways drift
+      positions[i] += (Math.random() - 0.5) * 0.001 * (deltaTime * 50);
+      positions[i + 2] += (Math.random() - 0.5) * 0.001 * (deltaTime * 50);
+
+      // Reset particles that move too high
+      if (positions[i + 1] > 4) {
+        positions[i + 1] = 0;
+      }
+    }
+    dust.geometry.attributes.position.needsUpdate = true;
+  });
+}
+
+function addDustParticlesToMaze(maze, rng) {
+  // Clear any existing dust particles
+  dustParticles.forEach(dust => scene.remove(dust));
+  dustParticles = [];
+
+  // Add dust particles in corridors
+  const dustCount = Math.floor(MAZE_SIZE * MAZE_SIZE * 0.05); // 5% of maze cells get dust
+  
+  for (let i = 0; i < dustCount; i++) {
+    let x, z;
+    do {
+      x = Math.floor(rng() * MAZE_SIZE);
+      z = Math.floor(rng() * MAZE_SIZE);
+    } while (maze[x][z] !== 0); // Only place dust in corridors (not walls)
+    
+    // Create dust particle system
+    const dust = createDustParticles();
+    
+    // Position dust in the maze
+    dust.position.set(
+      (x - MAZE_SIZE / 2 + 0.5) * CELL_SIZE,
+      0,
+      (z - MAZE_SIZE / 2 + 0.5) * CELL_SIZE
+    );
+    
+    scene.add(dust);
+    dustParticles.push(dust);
+  }
+}
+
+
 
 // Přidejte novou funkci pro animaci otáčení hůlky
 function animateStaffRotation(deltaTime) {

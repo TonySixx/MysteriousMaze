@@ -1,6 +1,6 @@
 import { animateBossEntry, animateMerchants, animateQuestIndicator, animateStaffInspection, updateAcidExplosions, updateAcidSprays, updateBossChestAndPortal, updateChainExplosions, updateChainLightningsVisuals, updateChronoNovaEffects, updateDeathParticles, updateEntanglementBeams, updateExplosions, updateFireballExplosions, updateFloatingTexts, updateFrostAuras, updateIceExplosions, updateMainBossDragons, updateObsidianBlast, updatePoisonClouds, updatePoisonParticles, updateQuestBoardInteraction, updateSeedBurst, updateStaffSwing, updateTeleportEffects, updateTeleportMove, updateTeleportParticles, updateTeleportParticleSystems, updateTemporalEchoes, updateTimeDilationEffects, updateTimeWarpEffects, updateVineGrab, updateVoidRifts } from "../animate";
 import { updatePotionCooldowns } from "../inventory";
-import { animateFire, animateGoal, animateKeys, checkObjectInteractions, isMinimapVisible, resetStaffColor, rotateObjects, showFPS, updateBosses, updateFootstepsSound, updateFPS, updateStaffColor, updateVisibleObjects } from "../main";
+import { animateDust, animateFire, animateGoal, animateKeys, checkObjectInteractions, isMinimapVisible, resetStaffColor, rotateObjects, showFPS, updateBosses, updateFootstepsSound, updateFPS, updateStaffColor, updateVisibleObjects } from "../main";
 import { player, regenerateHealth, regenerateMana, updatePlayerPosition } from "../player";
 import { updateArcaneMissiles, updateChainLightnings, updateFireballs, updateFrostbolts, updateSkillbar } from "../spells";
 import { drawMinimap, updateFreezeEffect, updateMagicBalls } from "../utils";
@@ -41,6 +41,7 @@ export function animate() {
   animateGoal(deltaTime);
   rotateObjects(deltaTime);
   animateFire(deltaTime);
+  animateDust(deltaTime);
   updateFireballs(deltaTime);
   updateFrostbolts(deltaTime);
   updateArcaneMissiles(deltaTime);
