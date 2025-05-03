@@ -64,6 +64,10 @@ function generateControlsContent() {
           <td>${getTranslation("movement")}</td>
         </tr>
         <tr>
+          <td><span class="key">Shift</span></td>
+          <td>${getTranslation("sprint")}</td>
+        </tr>
+        <tr>
           <td><span class="key">${getTranslation("mouseLeft")}</span></td>
           <td>${getTranslation("fireball")}</td>
         </tr>

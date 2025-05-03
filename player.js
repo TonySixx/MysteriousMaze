@@ -55,6 +55,15 @@ var baseFOV = 75;
 var sprintFOVBoost = 10;
 var currentFOV = baseFOV;
 
+// Proměnné pro systém staminy
+var maxStamina = 100;
+var currentStamina = maxStamina;
+var staminaRegenRate = 15; // Jednotky za sekundu
+var staminaDrainRate = 22; // Jednotky za sekundu
+var staminaRegenDelay = 1.5; // Sekundy před zahájením regenerace
+var lastStaminaUseTime = 0; // Čas poslední spotřeby staminy
+var canSprint = true; // Zda může hráč sprintovat
+
 var isJumping = false;
 var playSoundOnLand = false;
 var jumpVelocity = 0;
@@ -367,8 +376,19 @@ export function initPlayerUI() {
     createExpSegments();
     updateExpBar();
     document.getElementById('playerLevel').textContent = `Level ${playerLevel}`;
+    
+    // Inicializace ukazatele staminy
+    createStaminaBar();
+    resetStamina();
 }
 
+// Funkce pro resetování staminy
+export function resetStamina() {
+    currentStamina = maxStamina;
+    canSprint = true;
+    lastStaminaUseTime = 0;
+    updateStaminaBar();
+}
 
 function createPlayer() {
     if (player) {
@@ -485,8 +505,11 @@ function updatePlayerPosition(deltaTime) {
     // Zjistím, jestli hráč vůbec pohybuje
     const isMoving = moveForward || moveBackward || moveLeft || moveRight;
     
+    // Kontrola, zda hráč může sprintovat (má dostatek staminy)
+    const canSprintNow = canSprint && currentStamina > 0;
+    
     // Určím cílovou rychlost podle toho, jestli hráč běží nebo chodí
-    const targetSpeed = isMoving ? (isSprinting ? maxSprintSpeed : maxWalkSpeed) : 0;
+    const targetSpeed = isMoving ? (isSprinting && canSprintNow ? maxSprintSpeed : maxWalkSpeed) : 0;
     
     // Plynule aktualizuji aktuální rychlost pomocí zrychlení/zpomalení
     if (isMoving && currentSpeed < targetSpeed) {
@@ -499,6 +522,34 @@ function updatePlayerPosition(deltaTime) {
 
     // Upravíme FOV podle rychlosti
     updateFOV(deltaTime, currentSpeed);
+    
+    // Správa staminy
+    const now = performance.now() / 1000; // Aktuální čas v sekundách
+    
+    if (isSprinting && isMoving && currentStamina > 0) {
+        // Spotřebovává staminu při sprintu
+        currentStamina = Math.max(0, currentStamina - staminaDrainRate * deltaTime);
+        lastStaminaUseTime = now;
+        
+        // Pokud stamina klesla na 0, znemožníme další sprint dokud se částečně neobnoví
+        if (currentStamina === 0) {
+            canSprint = false;
+            isSprinting = false;
+        }
+    } else if (!isSprinting || !isMoving) {
+        // Regenerujeme staminu, pokud neběžíme a uplynul delay
+        if (now - lastStaminaUseTime > staminaRegenDelay) {
+            currentStamina = Math.min(maxStamina, currentStamina + staminaRegenRate * deltaTime);
+            
+            // Když dosáhneme 30% staminy, znovu povolíme sprint
+            if (!canSprint && currentStamina > maxStamina * 0.3) {
+                canSprint = true;
+            }
+        }
+    }
+    
+    // Aktualizace ukazatele staminy
+    updateStaminaBar();
 
     if (isFlying) {
         // Při letu se pohybujeme ve směru kamery, pokud jsou stisknuty klávesy
@@ -695,6 +746,94 @@ function regenerateHealth(deltaTime) {
     }
 }
 
+// Funkce pro vytvoření UI ukazatele staminy
+function createStaminaBar() {
+    // Kontrola, zda element již neexistuje
+    if (document.getElementById('playerStaminaBar')) {
+        return;
+    }
+    
+    // Najdeme element game-stats, kam přidáme stamina bar
+    const gameStats = document.getElementById('game-stats');
+    if (!gameStats) {
+        console.error("Nelze najít element #game-stats");
+        return;
+    }
+    
+    // Vytvoříme container pro stamina bar ve stejném stylu jako health a mana bary
+    const staminaBar = document.createElement('div');
+    staminaBar.id = 'playerStaminaBar';
+    staminaBar.className = 'stat-bar';
+    staminaBar.style.width = '200px';
+    staminaBar.style.height = '20px';
+    staminaBar.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    staminaBar.style.border = '1px solid #c8a97e';
+    staminaBar.style.borderRadius = '10px';
+    staminaBar.style.overflow = 'hidden';
+    staminaBar.style.marginBottom = '5px';
+    staminaBar.style.position = 'relative';
+    
+    // Vytvoříme fill element pro zobrazení úrovně staminy
+    const staminaFill = document.createElement('div');
+    staminaFill.id = 'playerStaminaFill';
+    staminaFill.style.height = '100%';
+    staminaFill.style.width = '100%';
+    staminaFill.style.borderRadius = '9px';
+    staminaFill.style.transition = 'width 0.3s ease';
+    staminaFill.style.background = 'linear-gradient(to right, #006400, #66cc66)';
+    
+    // Vytvoříme text element pro zobrazení hodnoty staminy
+    const staminaText = document.createElement('span');
+    staminaText.id = 'playerStaminaText';
+    staminaText.style.position = 'absolute';
+    staminaText.style.top = '50%';
+    staminaText.style.left = '50%';
+    staminaText.style.transform = 'translate(-50%, -50%)';
+    staminaText.style.color = '#ffffff';
+    staminaText.style.fontWeight = 'bold';
+    staminaText.style.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.7)';
+    staminaText.style.fontSize = '12px';
+    staminaText.textContent = `${Math.round(currentStamina)} / ${maxStamina}`;
+    
+    // Složíme elementy dohromady
+    staminaBar.appendChild(staminaFill);
+    staminaBar.appendChild(staminaText);
+    
+    // Vložíme stamina bar hned za mana bar
+    const manaBar = document.getElementById('playerManaBar');
+    if (manaBar && manaBar.nextSibling) {
+        gameStats.insertBefore(staminaBar, manaBar.nextSibling);
+    } else {
+        gameStats.appendChild(staminaBar);
+    }
+}
+
+// Funkce pro aktualizaci UI ukazatele staminy
+function updateStaminaBar() {
+    const staminaBarElement = document.getElementById('playerStaminaBar');
+    const staminaFillElement = document.getElementById('playerStaminaFill');
+    const staminaTextElement = document.getElementById('playerStaminaText');
+    
+    if (!staminaBarElement || !staminaFillElement || !staminaTextElement) {
+        createStaminaBar();
+        return;
+    }
+    
+    // Aktualizace progresu
+    const staminaPercentage = (currentStamina / maxStamina) * 100;
+    staminaFillElement.style.width = `${staminaPercentage}%`;
+    
+    // Aktualizace textu
+    staminaTextElement.textContent = `${Math.round(currentStamina)} / ${maxStamina}`;
+    
+    // Změna barvy podle stavu staminy
+    if (staminaPercentage < 30) {
+        staminaFillElement.style.background = 'linear-gradient(to right, #8b0000, #ff5555)';
+    } else {
+        staminaFillElement.style.background = 'linear-gradient(to right, #006400, #66cc66)';
+    }
+}
+
 // Funkce pro aktualizaci kamerového bobu
 function updateCameraBob(deltaTime, speed) {
     const movementFactor = speed / maxWalkSpeed;
@@ -811,7 +950,7 @@ export function onKeyDown(event) {
             break;
         case "ShiftLeft":
         case "ShiftRight":
-            isSprinting = true;
+            isSprinting = canSprint && currentStamina > 0;
             break;            
         case "KeyF": // Přidáno: reakce na stisknutí klávesy F
             if (nearTeleport) {
@@ -929,6 +1068,9 @@ export {
     playerVelocity,
     isSprinting,
     currentSpeed,
+    maxStamina,
+    currentStamina,
+    canSprint,
     createPlayer,
     updatePlayerPosition,
     checkCollisions,
@@ -939,5 +1081,7 @@ export {
     updateCameraBob,
     resetCameraBob,
     addLandingImpact,
-    updateFOV
+    updateFOV,
+    createStaminaBar,
+    updateStaminaBar
 };
