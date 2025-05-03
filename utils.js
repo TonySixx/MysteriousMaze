@@ -525,7 +525,7 @@ export function updateMagicBalls(deltaTime) {
 
     // Vytvoříme kouli reprezentující hráče
     const playerSphere = new THREE.Sphere(player.position.clone(), 0.5);
-    playerSphere.center.y = 1; // Nastavíme Y pozici na 1, aby odpovídala výšce hráče
+    playerSphere.center.y = player.position.y + 1; // Nastavíme Y pozici na 1, aby odpovídala výšce hráče
 
     // Kontrola kolize pomocí průniku koulí
     if (playerSphere.intersectsSphere(new THREE.Sphere(magicBall.position, magicBallRadius))) {

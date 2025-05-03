@@ -849,15 +849,23 @@ class Boss {
             emissiveIntensity: this.type.emissiveIntensity || 2
         });
         const magicBall = new THREE.Mesh(geometry, material);
-        magicBall.position.copy(startPosition);
-        magicBall.position.y += 1;
-
-        const direction = new THREE.Vector3().subVectors(targetPosition, startPosition).normalize();
-
-        // Nastavení rychlosti na základě rng, v rozmezí 0.2 - 0.3
+    
+        // Upravit počáteční pozici
+        const adjustedStartPosition = startPosition.clone();
+        adjustedStartPosition.y += 1;
+        magicBall.position.copy(adjustedStartPosition);
+    
+        // Upravit cílovou pozici konzistentně
+        const adjustedTargetPosition = targetPosition.clone();
+        adjustedTargetPosition.y += 1;
+    
+        // Vypočítat směr letu
+        const direction = new THREE.Vector3().subVectors(adjustedTargetPosition, adjustedStartPosition).normalize();
+    
+        // Nastavení rychlosti
         const speed = magicBallSpeed ? magicBallSpeed : 0.2 + this.rng() * 0.1;
         magicBall.velocity = direction.multiplyScalar(speed);
-
+    
         magicBall.attackDamage = this.attackDamage;
         return magicBall;
     }
