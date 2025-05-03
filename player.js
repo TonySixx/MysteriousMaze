@@ -871,26 +871,6 @@ function addLandingImpact(impactForce) {
     
     camera.position.y = cameraBaseHeight - impactAmount;
     
-    if (impactForce > 0.3) {
-        const shakeAmount = Math.min(0.03, impactForce * 0.02);
-        const shakeDecay = 4.0;
-        let shakeTime = 0;
-        
-        const shakeCamera = function(time) {
-            shakeTime += time / 1000;
-            const shake = shakeAmount * Math.exp(-shakeDecay * shakeTime);
-            
-            if (shake > 0.001) {
-                camera.position.x = (Math.random() - 0.5) * shake * 2;
-                camera.position.z += (Math.random() - 0.5) * shake * 2;
-                requestAnimationFrame(shakeCamera);
-            } else {
-                camera.position.x = 0;
-            }
-        };
-        
-        shakeCamera(0);
-    }
 }
 
 // Funkce pro aktualizaci FOV na základě pohybu
