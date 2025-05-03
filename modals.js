@@ -5,6 +5,7 @@ import { currentLanguage, getTranslation, setLanguage, updateTranslations, updat
 import { chestSoundBuffer, exitPointerLock, init, itemSoundBuffer, playSound, requestPointerLock, selectedFloor, startGame, supabase, teleportPairsCount, totalKeys } from "./main";
 import { MAIN_BOSS_TYPES_DESCRIPTIONS } from "./mainBoss/mainBossTypesDesc";
 import { getBestTime, showMessage } from "./utils";
+import { teleportToCamp } from "./animate.js";
 
 export function showHintModal() {
   exitPointerLock();
@@ -505,8 +506,7 @@ export function showCompletionModal(elapsedTime, goldGained, expGained, previous
   document.getElementById('continueButton').addEventListener('click', () => {
     document.body.removeChild(modal);
     goalReached = false;
-    requestPointerLock();
-    startGame();
+    teleportToCamp();
   });
 }
 

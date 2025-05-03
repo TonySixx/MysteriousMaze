@@ -747,8 +747,38 @@ export function updateFootstepsSound() {
 }
 
 export function playerDeath() {
-  // Restart hry
+  // Show death message
+  showDeathMessage();
   startGame();
+}
+
+function showDeathMessage() {
+  // Check if death message element exists, create it if not
+  let deathMessageElement = document.getElementById("deathMessage");
+  if (!deathMessageElement) {
+    deathMessageElement = document.createElement("div");
+    deathMessageElement.id = "deathMessage";
+    deathMessageElement.style.display = "none";
+    deathMessageElement.style.position = "absolute";
+    deathMessageElement.style.top = "60%";
+    deathMessageElement.style.left = "50%";
+    deathMessageElement.style.transform = "translate(-50%, -60%)";
+    deathMessageElement.style.color = "red"; // Red color for death message
+    deathMessageElement.style.fontSize = "24px"; // Slightly larger font
+    
+    // Set a data-translate attribute for future localization
+    deathMessageElement.setAttribute("data-translate", "youDied");
+    // Hardcoded English message for now
+    deathMessageElement.textContent = "You died!";
+    
+    document.body.appendChild(deathMessageElement);
+  }
+  
+  deathMessageElement.style.display = "block";
+  
+  setTimeout(() => {
+    deathMessageElement.style.display = "none";
+  }, 3000);
 }
 
 function createMaze(inputText = "", selectedFloor = 1, manager) {

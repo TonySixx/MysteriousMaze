@@ -8,7 +8,7 @@ import { CELL_SIZE, chestSoundBuffer, generateNewMaze, itemSoundBuffer, keys, pl
 import { player, checkCollisions, checkCollisionZ, checkCollisionX } from "./player";
 import { getAvailableQuests, getCompletedQuests, toggleQuestBoardUI } from "./quests";
 import { createTeleportEffect, inspectionDuration, inspectionStartTime, isInspectingStaff, isSwingingStaff, originalStaffRotation, setIsInspectingStaff, setIsSwingingStaff } from "./spells";
-import { freezePlayer, playerTakeDamage, showMessage, showTimeDilationEffect } from "./utils";
+import { freezePlayer, playerTakeDamage, removeFreezeEffect, showMessage, showTimeDilationEffect } from "./utils";
 import * as THREE from "three";
 
 let protectiveShield = null;
@@ -281,6 +281,7 @@ function openChest(chest) {
 
 export function teleportToCamp() {
   // Implementace teleportace do kempu
+  removeFreezeEffect();
   setSelectedFloor(999);
   showFloorSelectBtn.textContent = getTranslation("floorCamp");
   playSound(teleportSoundBuffer);
