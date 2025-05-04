@@ -1712,6 +1712,24 @@ function updateUIForSelectedFloor() {
     mazeInput.placeholder = getTranslation("mazeInputPlaceholder");
     generateMazeButton.style.display = "inline-block";
   }
+
+  // Hide/show time and magic keys in GUI based on current location
+  const timeElement = document.querySelector('span[data-translate="time"]');
+  const magicKeysElement = document.querySelector('span[data-translate="magicKeys"]');
+
+  if (timeElement && magicKeysElement) {
+    // Use parentElement to get the containing paragraph
+    const timeContainer = timeElement.parentElement;
+    const magicKeysContainer = magicKeysElement.parentElement;
+    
+    if (selectedFloor === 999 || selectedFloor >= 100) {
+      timeContainer.style.display = 'none';
+      magicKeysContainer.style.display = 'none';
+    } else {
+      timeContainer.style.display = '';
+      magicKeysContainer.style.display = '';
+    }
+  }
 }
 
 function updateKeyCount() {
