@@ -8,7 +8,8 @@ import {
     bossCounter,
     bosses,
 } from "../boss.js";
-import { player } from "../player.js";
+import { player, getPlayerLevel } from "../player.js";
+import { inventory, equipment } from "../inventory.js";
 import {
     CELL_SIZE,
     createTeleportModel,
@@ -18,6 +19,7 @@ import {
     selectedFloor,
     spell1SoundBuffer,
     teleportSoundBuffer,
+    supabase
 } from "../main.js";
 import { updateQuestsOnEvent } from "../quests.js";
 import { getTranslation } from "../langUtils.js";
@@ -125,14 +127,44 @@ export class MainBoss extends Boss {
         });
     }
 
-    die() {
+    async die() {
         super.die();
-        this.activeEffects = this.activeEffects.forEach((effect) => {
+        this.activeEffects.forEach((effect) => {
             scene.remove(effect);
         });
+        this.activeEffects = [];
 
         // Aktualizace questu po zabití bosse
         updateQuestsOnEvent('mainBossDeath', { bossType: this.type.translationKey });
+
+        // Logování zabití bosse do databáze
+        try {
+            const playerName = localStorage.getItem("playerName") || "Unknown";
+            const bossName = this.type.translationKey;
+            const playerLevel = getPlayerLevel();
+            const playerInventory = {
+                inventory: inventory.filter(item => item !== null),
+                equipment: equipment
+            };
+
+            const { data, error } = await supabase
+                .from('boss_kills')
+                .insert([
+                    {
+                        playername: playerName,
+                        boss: bossName,
+                        playerlevel: playerLevel,
+                        inventory: playerInventory
+                    }
+                ]);
+
+            if (error) {
+                throw error;
+            }
+            console.log(`Boss kill logged: ${playerName} defeated ${bossName}`);
+        } catch (error) {
+            console.error("Error logging boss kill to Supabase:", error.message);
+        }
 
         // Přidání truhly po poražení bosse
         const loader = new GLTFLoader();
