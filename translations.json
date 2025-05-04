@@ -471,7 +471,8 @@
     "completeMazeTornadoWithoutMinimapQuest": "Master of Tornado Maze",
     "completeMazeTornadoWithoutMinimapQuestDescription": "Complete the maze on the eleventh floor with seed 'Tornado' without using the minimap.",
     "completeMazeBloodWithoutMinimapQuest": "Master of Blood Maze",
-    "completeMazeBloodWithoutMinimapQuestDescription": "Complete the maze on the tenth floor with seed 'Blood' without using the minimap."
+    "completeMazeBloodWithoutMinimapQuestDescription": "Complete the maze on the tenth floor with seed 'Blood' without using the minimap.",
+    "randomSeed": "Random Seed"
   },
   "cs": {
     "enterName": "Zadejte své jméno",
@@ -944,6 +945,7 @@
     "completeMazeTornadoWithoutMinimapQuest": "Mistr tornádového bludiště",
     "completeMazeTornadoWithoutMinimapQuestDescription": "Dokončete bludiště na jedenáctém podlaží se seedem 'Tornado' bez použití minimapy.",
     "completeMazeBloodWithoutMinimapQuest": "Mistr krvavého bludiště",
-    "completeMazeBloodWithoutMinimapQuestDescription": "Dokončete bludiště na desátém podlaží se seedem 'Blood' bez použití minimapy."
+    "completeMazeBloodWithoutMinimapQuestDescription": "Dokončete bludiště na desátém podlaží se seedem 'Blood' bez použití minimapy.",
+    "randomSeed": "Náhodný seed"
   }
 }

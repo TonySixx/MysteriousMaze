@@ -2543,6 +2543,14 @@ document.getElementById("generateMaze").addEventListener("click", () => {
 
 showFloorSelectBtn.addEventListener("click", () => {
   exitPointerLock();
+  
+  // Initialize mazeSeedInput with the current value from mazeInput
+  const mazeSeedInput = document.getElementById("mazeSeedInput");
+  const mazeInput = document.getElementById("mazeInput");
+  if (mazeSeedInput && mazeInput) {
+    mazeSeedInput.value = mazeInput.value;
+  }
+  
   floorSelectModal.style.display = "block";
 });
 
@@ -2557,11 +2565,30 @@ document
   .querySelector("#floorSelectModal .close")
   .addEventListener("click", closeFloorSelectModal);
 
+// Event listener pro tlačítko generování náhodného seedu
+document.getElementById("generateRandomSeedButton").addEventListener("click", () => {
+  const mazeSeedInput = document.getElementById("mazeSeedInput");
+  if (mazeSeedInput) {
+    mazeSeedInput.value = generateRandomSeed();
+  }
+});
+
 floorOptions.forEach((option) => {
   option.addEventListener("click", () => {
     const floor = parseInt(option.dataset.floor);
     if (canSelectFloor(floor)) {
       selectedFloor = floor;
+      
+      // Check if we're selecting a maze floor (not camp or boss)
+      if (floor > 0 && floor < 100) {
+        // Get the seed value from mazeSeedInput
+        const mazeSeedInput = document.getElementById("mazeSeedInput");
+        if (mazeSeedInput && mazeSeedInput.value.trim() !== "") {
+          // Set it in the main mazeInput
+          document.getElementById("mazeInput").value = mazeSeedInput.value.trim();
+        }
+      }
+      
       closeFloorSelectModal();
       showFloorSelectBtn.textContent = getSelectedFloorText();
       updateUIForSelectedFloor();
@@ -2650,3 +2677,14 @@ function updateLoadingProgress(progress) {
 window.addEventListener("load", () => {
   createMainMenu();
 });
+
+// Function to generate a random seed string
+function generateRandomSeed(length = 8) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}

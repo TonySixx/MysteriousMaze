@@ -159,6 +159,67 @@
   display: block;
 }
 
+/* Maze seed input styles */
+.maze-seed-input-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 5px
+}
+
+#mazeSeedInput {
+  width: 300px;
+  padding: 10px;
+  border: 1px solid #c8a97e;
+  border-radius: 5px 0 0 5px;
+  background-color: #1e1e1e;
+  color: #f0e6d2;
+  transition: all 0.3s ease;
+  text-align: center;
+  margin-right: -1px;
+}
+
+#mazeSeedInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #e9b266;
+  border-color: #e9b266;
+  z-index: 1;
+}
+
+#mazeSeedInput::placeholder {
+  color: #8e7a5e;
+}
+
+#mazeSeedInput:hover {
+  background-color: rgba(200, 169, 126, 0.1);
+}
+
+#generateRandomSeedButton {
+  padding: 10px 15px;
+  border: 1px solid #c8a97e;
+  border-radius: 0 5px 5px 0;
+  background-color: #1e1e1e;
+  color: #c8a97e;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  margin:0px;
+  height:37px;
+}
+
+#generateRandomSeedButton:hover {
+  background-color: #c8a97e;
+  color: #1e1e1e;
+}
+
+#generateRandomSeedButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #e9b266;
+  border-color: #e9b266;
+  z-index: 1;
+}
+
 /* Upravíme styl pro scrollování, pokud je obsah příliš dlouhý */
 .floor-select-content {
   max-height: 80vh;
