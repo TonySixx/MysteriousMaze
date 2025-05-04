@@ -6,6 +6,7 @@ import { equipment, initInventory, usePotion } from "./inventory.js";
 import { calculateSpellDamage, skillTree } from "./skillTree.js";
 import { checkQuestAvailability, initQuestSystem } from "./quests.js";
 import { initializeQuests } from "./questDatabase.js";
+import { playerDefaultSpeed } from "./globals.js";
 
 
 var player;
@@ -37,8 +38,8 @@ var playerVelocity = new THREE.Vector3();
 // Proměnné pro realistický pohyb
 var isSprinting = false;
 var currentSpeed = 0;
-const maxWalkSpeed = 6;
-const maxSprintSpeed = 8.0;
+var maxWalkSpeed = playerDefaultSpeed;
+var maxSprintSpeed = 8.0;
 const acceleration = 10.0;
 const deceleration = 15.0;
 var canJump = true;
@@ -509,6 +510,8 @@ function updatePlayerPosition(deltaTime) {
     const canSprintNow = canSprint && currentStamina > 0;
     
     // Určím cílovou rychlost podle toho, jestli hráč běží nebo chodí
+    maxWalkSpeed = window.playerSpeed;
+    maxSprintSpeed = window.playerSpeed + 2;
     const targetSpeed = isMoving ? (isSprinting && canSprintNow ? maxSprintSpeed : maxWalkSpeed) : 0;
     
     // Plynule aktualizuji aktuální rychlost pomocí zrychlení/zpomalení

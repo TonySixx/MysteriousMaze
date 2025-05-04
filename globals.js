@@ -42,7 +42,7 @@ window.fireballExplosions = [];
 window.interactiveObjects = [];
 window.staffSwing = null;
 window.deathParticles = [];
-window.playerSpeed = 6.5;
+window.playerSpeed = 6;
 
 window.activeVines = [];
 window.seedBurstParticleSystems = [];
@@ -104,7 +104,7 @@ window.electromagneticPulse = null;
 window.darkMistEffect = null;
 window.manaDrainEffect = null;
 
-export const playerDefaultSpeed = 6.5;
+export const playerDefaultSpeed = 6;
 
 export const floorMusic = {
   1: "music/msc_lost.mp3",
